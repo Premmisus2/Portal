@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#1a1a1a"/>
+  <defs>
+    <linearGradient id="gold" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#B8860B"/>
+      <stop offset="40%" stop-color="#DAA520"/>
+      <stop offset="70%" stop-color="#FFD700"/>
+      <stop offset="100%" stop-color="#FFFACD"/>
+    </linearGradient>
+  </defs>
+  <!-- P curve (white/gold) -->
+  <path d="M200 420V100h20c70 0 130 10 160 50s40 80 20 130c-20 45-70 70-140 70h-20"
+        fill="none" stroke="url(#gold)" stroke-width="36" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Three arrows -->
+  <line x1="210" y1="420" x2="210" y2="180" stroke="url(#gold)" stroke-width="20" stroke-linecap="round"/>
+  <polygon points="210,150 225,185 195,185" fill="#FFD700"/>
+  <line x1="255" y1="420" x2="255" y2="200" stroke="url(#gold)" stroke-width="20" stroke-linecap="round"/>
+  <polygon points="255,170 270,205 240,205" fill="#FFD700"/>
+  <line x1="300" y1="420" x2="300" y2="220" stroke="url(#gold)" stroke-width="20" stroke-linecap="round"/>
+  <polygon points="300,190 315,225 285,225" fill="#FFD700"/>
+</svg>
