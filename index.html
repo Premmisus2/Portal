@@ -1212,36 +1212,47 @@ Niche: ${form.niche}
 Pain Point: ${form.painPoint}
 Next Step: ${form.nextStep}${form.notes ? `\nNotes: ${form.notes}` : ''}`;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSending(true);
     setSendError('');
+    let supabaseOk = false;
     // Save to Supabase
     if (repId) {
-      sb.from('handoffs').insert({
-        rep_id: repId,
-        company: form.company,
-        niche: form.niche,
-        pain_point: form.painPoint,
-        next_step: form.nextStep,
-        notes: form.notes,
-      }).then(() => {}).catch(() => {});
+      try {
+        const { error } = await sb.from('handoffs').insert({
+          rep_id: repId,
+          company: form.company,
+          niche: form.niche,
+          pain_point: form.painPoint,
+          next_step: form.nextStep,
+          notes: form.notes,
+        });
+        if (!error) supabaseOk = true;
+      } catch {}
     }
     // Also log to Google Sheets (backup)
-    fetch(HANDOFF_WEBHOOK, {
-      method: 'POST',
-      body: JSON.stringify({
-        repName: userName,
-        repEmail: userEmail || '',
-        businessName: form.company,
-        niche: form.niche,
-        painPoint: form.painPoint,
-        nextStep: form.nextStep,
-        notes: form.notes,
-      }),
-    })
-      .catch(() => {})
-      .finally(() => { setSending(false); setSubmitted(true); });
+    try {
+      await fetch(HANDOFF_WEBHOOK, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify({
+          repName: userName,
+          repEmail: userEmail || '',
+          businessName: form.company,
+          niche: form.niche,
+          painPoint: form.painPoint,
+          nextStep: form.nextStep,
+          notes: form.notes,
+        }),
+      });
+    } catch {}
+    setSending(false);
+    if (supabaseOk) {
+      setSubmitted(true);
+    } else {
+      setSendError('Handoff failed to save. Check your connection and try again.');
+    }
   };
   const handleCopy = () => {
     navigator.clipboard.writeText(pingText);
