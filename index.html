@@ -672,6 +672,7 @@ const Icon = ({ name, size = 16 }) => {
     dollar:   <><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></>,
     star:     <><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></>,
     zap:      <><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></>,
+    info:     <><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></>,
   };
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -4175,7 +4176,7 @@ const OfferStackView = ({ userName, userEmail, onHome, onLogout, totalCloses, se
       <main className="print-area section-main" style={{ flex: 1, overflowY: 'auto', padding: '28px 32px', maxWidth: '900px', width: '100%', margin: '0 auto' }}>
 
         {/* ── Main tabs: Marketing / AI ── */}
-        <div style={{display:'flex',gap:'8px',marginBottom:'24px'}}>
+        <div style={{display:'flex',gap:'8px',marginBottom:'24px',flexWrap:'wrap'}}>
           <button className={`call-tab${mainTab==='marketing'?' active':''}`} onClick={() => setMainTab('marketing')}>Marketing Services</button>
           <button className={`call-tab${mainTab==='ai'?' active':''}`} onClick={() => setMainTab('ai')}>AI Services</button>
         </div>
@@ -4191,7 +4192,7 @@ const OfferStackView = ({ userName, userEmail, onHome, onLogout, totalCloses, se
         {mainTab === 'ai' && (
           <div className="fadein">
             {/* AI sub-tabs */}
-            <div style={{display:'flex',gap:'8px',marginBottom:'20px'}}>
+            <div style={{display:'flex',gap:'8px',marginBottom:'20px',flexWrap:'wrap'}}>
               {[
                 { id: 'services', label: 'AI Services' },
                 { id: 'stack', label: 'Stack Calculator' },
