@@ -5005,7 +5005,7 @@ const CallLogger = ({ lead, repId, onLogged }) => {
     if (!outcome) return;
     setSaving(true);
     try {
-      await sb.from('call_logs').insert({ lead_id: lead.id, rep_id: repId, outcome, notes: notes || null, callback_date: callbackDate || null });
+      await sb.from('call_logs').insert({ lead_id: lead.id, rep_id: repId, outcome, notes: notes || null, callback_date: callbackDate || null, business_name: lead.business_name || null });
       const statusMap = { no_answer:'contacted', voicemail_left:'voicemail', callback_requested:'callback', not_interested:'not_interested', booked_call:'booked', discovery_completed:'discovery_completed', no_show:'no_show', wrong_number:'wrong_number' };
       await sb.from('leads').update({ status: statusMap[outcome] || 'contacted', updated_at: new Date().toISOString() }).eq('id', lead.id);
       if (CALL_LOG_WEBHOOK) {
@@ -5184,7 +5184,7 @@ const QuickLogForm = ({ repId, onLogged }) => {
 
       // Log the call
       if (leadId) {
-        await sb.from('call_logs').insert({ lead_id: leadId, rep_id: repId, outcome: form.outcome, notes: form.notes || null, callback_date: form.callbackDate || null });
+        await sb.from('call_logs').insert({ lead_id: leadId, rep_id: repId, outcome: form.outcome, notes: form.notes || null, callback_date: form.callbackDate || null, business_name: form.businessName || null });
       }
 
       // Push to Google Sheet
