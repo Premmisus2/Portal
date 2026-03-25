@@ -602,6 +602,9 @@
       .print-area {
         padding-bottom: 70px !important;
       }
+      .dir-rep-detail-stats {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
     }
   </style>
 </head>
@@ -7101,9 +7104,11 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
   const [handoffs, setHandoffs] = useState([]);
   const [allLeads, setAllLeads] = useState([]);
   const [callLogs, setCallLogs] = useState([]);
+  const [allCloses, setAllCloses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('pipeline');
   const [selectedRepId, setSelectedRepId] = useState('all');
+  const [selectedRepDetail, setSelectedRepDetail] = useState(null);
 
   useEffect(() => { loadData(); }, []);
 
@@ -7119,9 +7124,10 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
       if (ld.length < 1000) break;
       lf += 1000;
     }
-    const { data: callLogsData } = await sb.from('call_logs').select('*, reps(name)').order('created_at', { ascending: false }).limit(50);
+    const { data: callLogsData } = await sb.from('call_logs').select('*, reps(name)').order('created_at', { ascending: false }).limit(500);
     setAllLeads(leadsData);
     setCallLogs(callLogsData || []);
+    setAllCloses(closesData || []);
     const closesMap = {};
     (closesData || []).forEach(c => { if (!closesMap[c.rep_id]) closesMap[c.rep_id] = []; closesMap[c.rep_id].push(c); });
     const enriched = (repsData || []).filter(r => r.role !== 'director').map(rep => {
@@ -7254,7 +7260,7 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
             </div>
 
             {/* Rep Roster */}
-            {tab === 'reps' && (
+            {tab === 'reps' && !selectedRepDetail && (
               <div style={{display:'flex', flexDirection:'column', gap:'10px'}} className="fadein">
                 {reps.length === 0 && (
                   <div className="card" style={{padding:'32px', textAlign:'center'}}>
@@ -7265,7 +7271,10 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                   const tier = rep.tier;
                   const progress = tier.at ? Math.min((rep.totalPoints / tier.at) * 100, 100) : 100;
                   return (
-                    <div key={rep.id} className="card" style={{padding:'20px'}}>
+                    <div key={rep.id} className="card" style={{padding:'20px', cursor:'pointer', transition:'border-color .15s'}}
+                      onClick={() => setSelectedRepDetail(rep.id)}
+                      onMouseEnter={e => e.currentTarget.style.borderColor='rgba(0,240,255,.3)'}
+                      onMouseLeave={e => e.currentTarget.style.borderColor='#1e1e1e'}>
                       <div className="dir-rep-header" style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'12px', flexWrap:'wrap', gap:'8px'}}>
                         <div style={{display:'flex', alignItems:'center', gap:'12px', minWidth:0}}>
                           <div style={{width:'38px', height:'38px', borderRadius:'50%', background: tier.badge.bg, border:`1px solid ${tier.badge.border}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'13px', fontWeight:800, color: tier.badge.color, fontFamily:'Inter,sans-serif', flexShrink:0}}>
@@ -7310,6 +7319,181 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                 })}
               </div>
             )}
+
+            {/* Rep Detail Panel */}
+            {tab === 'reps' && selectedRepDetail && (() => {
+              const rep = reps.find(r => r.id === selectedRepDetail);
+              if (!rep) { setSelectedRepDetail(null); return null; }
+              const tier = rep.tier;
+              const repCalls = callLogs.filter(cl => cl.rep_id === rep.id);
+              const repLeads = allLeads.filter(l => l.assigned_rep_id === rep.id);
+              const repHandoffs = handoffs.filter(h => h.rep_id === rep.id);
+              const repCloses = allCloses.filter(c => c.rep_id === rep.id);
+              const todayStr = new Date().toISOString().split('T')[0];
+              const callsToday = repCalls.filter(cl => cl.created_at && cl.created_at.startsWith(todayStr)).length;
+              const connects = repCalls.filter(cl => cl.outcome && cl.outcome !== 'no_answer' && cl.outcome !== 'wrong_number').length;
+              const connectRate = repCalls.length > 0 ? Math.round((connects / repCalls.length) * 100) : 0;
+              const bookings = repCalls.filter(cl => cl.outcome === 'booked_call' || cl.outcome === 'booked' || cl.outcome === 'discovery_completed').length;
+              const daysActive = Math.max(1, Math.ceil((Date.now() - new Date(rep.created_at).getTime()) / 86400000));
+              const outcomeLabels = { no_answer:'No Answer', voicemail_left:'Voicemail', callback_requested:'Callback', not_interested:'Not Interested', booked_call:'Booked Call', discovery_completed:'Discovery Done', no_show:'No Show', wrong_number:'Wrong Number' };
+              const outcomeColors = { no_answer:'#555', voicemail_left:'#F59E0B', callback_requested:'#F59E0B', not_interested:'#ff6060', booked_call:'#22c55e', discovery_completed:'#00F0FF', no_show:'#ff8800', wrong_number:'#ff6060' };
+              const outcomeCounts = {};
+              repCalls.forEach(cl => { const o = cl.outcome || 'unknown'; outcomeCounts[o] = (outcomeCounts[o] || 0) + 1; });
+              const maxOutcome = Math.max(1, ...Object.values(outcomeCounts));
+              const leadsByStatus = {};
+              repLeads.forEach(l => { const s = l.status || 'new'; leadsByStatus[s] = (leadsByStatus[s] || 0) + 1; });
+              const statusLabels = { new:'New', contacted:'Contacted', callback:'Callback', booked:'Booked', not_interested:'Not Interested', discovery_completed:'Discovery Done', no_show:'No Show', wrong_number:'Wrong Number', voicemail:'Voicemail' };
+              const statusColors = { new:'#00F0FF', contacted:'#F59E0B', callback:'#a855f7', booked:'#22c55e', not_interested:'#ff6060', discovery_completed:'#00F0FF', no_show:'#ff8800', wrong_number:'#ff6060', voicemail:'#888' };
+
+              return (
+                <div className="fadein" style={{display:'flex', flexDirection:'column', gap:'16px'}}>
+                  {/* Back Button */}
+                  <button onClick={() => setSelectedRepDetail(null)}
+                    style={{alignSelf:'flex-start', display:'flex', alignItems:'center', gap:'6px', padding:'8px 16px', borderRadius:'7px', cursor:'pointer', border:'1px solid #1e1e1e', background:'transparent', color:'#888', fontSize:'12px', fontWeight:700, fontFamily:'Inter,sans-serif', transition:'all .15s'}}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor='rgba(0,240,255,.3)'; e.currentTarget.style.color='#00F0FF'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor='#1e1e1e'; e.currentTarget.style.color='#888'; }}>
+                    <span style={{fontSize:'14px'}}>&#8592;</span> Back to Roster
+                  </button>
+
+                  {/* 1. Header Card */}
+                  <div className="card-glow" style={{padding:'24px'}}>
+                    <div style={{display:'flex', alignItems:'center', gap:'16px', flexWrap:'wrap'}}>
+                      <div style={{width:'52px', height:'52px', borderRadius:'50%', background: tier.badge.bg, border:`2px solid ${tier.badge.border}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', fontWeight:800, color: tier.badge.color, fontFamily:'Inter,sans-serif', flexShrink:0}}>
+                        {rep.name.trim().split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2)}
+                      </div>
+                      <div style={{flex:1, minWidth:0}}>
+                        <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap'}}>
+                          <h3 style={{margin:0, fontSize:'22px', fontWeight:900, color:'#fff'}}>{rep.name}</h3>
+                          <span style={{fontSize:'9px', fontWeight:700, padding:'3px 12px', borderRadius:'20px', background: tier.badge.bg, border:`1px solid ${tier.badge.border}`, color: tier.badge.color, fontFamily:'JetBrains Mono,monospace', letterSpacing:'.05em'}}>{tier.name}</span>
+                        </div>
+                        <p style={{margin:'4px 0 0', fontSize:'12px', color:'#555'}}>{rep.email} &middot; Code: <span style={{color:'#00F0FF', fontFamily:'JetBrains Mono,monospace'}}>{rep.invite_code}</span></p>
+                      </div>
+                      <div style={{display:'flex', gap:'20px', flexWrap:'wrap'}}>
+                        <div style={{textAlign:'center'}}>
+                          <p style={{margin:0, fontSize:'22px', fontWeight:900, color:'#fff', fontFamily:'monospace'}}>{rep.totalCloses}</p>
+                          <p style={{margin:'2px 0 0', fontSize:'8px', color:'#444', fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase'}}>Closes</p>
+                        </div>
+                        <div style={{textAlign:'center'}}>
+                          <p style={{margin:0, fontSize:'22px', fontWeight:900, color: tier.badge.color, fontFamily:'monospace'}}>{rep.totalPoints}</p>
+                          <p style={{margin:'2px 0 0', fontSize:'8px', color:'#444', fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase'}}>Points</p>
+                        </div>
+                        <div style={{textAlign:'center'}}>
+                          <p style={{margin:0, fontSize:'14px', fontWeight:700, color:'#888'}}>{new Date(rep.created_at).toLocaleDateString()}</p>
+                          <p style={{margin:'2px 0 0', fontSize:'8px', color:'#444', fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase'}}>Joined</p>
+                        </div>
+                        <div style={{textAlign:'center'}}>
+                          <p style={{margin:0, fontSize:'14px', fontWeight:700, color:'#888', fontFamily:'monospace'}}>{daysActive}d</p>
+                          <p style={{margin:'2px 0 0', fontSize:'8px', color:'#444', fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase'}}>Active</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 2. Stats Row */}
+                  <div className="dir-rep-detail-stats" style={{display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'10px'}}>
+                    <div className="card-glow" style={{padding:'16px 18px', textAlign:'center'}}>
+                      <p style={{margin:0, fontSize:'28px', fontWeight:900, color:'#fff', fontFamily:'monospace'}}>{repCalls.length}</p>
+                      <p style={{margin:'4px 0 0', fontSize:'9px', color:'#444', fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase'}}>Total Calls</p>
+                    </div>
+                    <div className="card-glow" style={{padding:'16px 18px', textAlign:'center'}}>
+                      <p style={{margin:0, fontSize:'28px', fontWeight:900, color:'#00F0FF', fontFamily:'monospace'}}>{connectRate}%</p>
+                      <p style={{margin:'4px 0 0', fontSize:'9px', color:'#444', fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase'}}>Connect Rate</p>
+                    </div>
+                    <div className="card-glow" style={{padding:'16px 18px', textAlign:'center'}}>
+                      <p style={{margin:0, fontSize:'28px', fontWeight:900, color:'#F59E0B', fontFamily:'monospace'}}>{callsToday}</p>
+                      <p style={{margin:'4px 0 0', fontSize:'9px', color:'#444', fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase'}}>Calls Today</p>
+                    </div>
+                    <div className="card-glow" style={{padding:'16px 18px', textAlign:'center'}}>
+                      <p style={{margin:0, fontSize:'28px', fontWeight:900, color:'#22c55e', fontFamily:'monospace'}}>{bookings}</p>
+                      <p style={{margin:'4px 0 0', fontSize:'9px', color:'#444', fontWeight:700, letterSpacing:'.12em', textTransform:'uppercase'}}>Bookings</p>
+                    </div>
+                  </div>
+
+                  {/* 3. Recent Call Log */}
+                  <div className="card" style={{padding:'20px'}}>
+                    <p style={{fontSize:'10px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'#00F0FF', margin:'0 0 14px'}}>Recent Call Log</p>
+                    {repCalls.length === 0 && <p style={{color:'#333', fontSize:'13px', margin:0}}>No calls logged yet.</p>}
+                    <div style={{display:'flex', flexDirection:'column', gap:'6px', maxHeight:'400px', overflowY:'auto'}}>
+                      {repCalls.slice(0, 20).map((cl, i) => (
+                        <div key={cl.id || i} style={{display:'flex', alignItems:'center', gap:'10px', padding:'10px 12px', background:'#0a0a0a', border:'1px solid #1a1a1a', borderRadius:'8px'}}>
+                          <span style={{fontSize:'10px', fontWeight:700, padding:'3px 10px', borderRadius:'4px', border:`1px solid ${(outcomeColors[cl.outcome] || '#555')}33`, color: outcomeColors[cl.outcome] || '#555', background:`${outcomeColors[cl.outcome] || '#555'}11`, fontFamily:'JetBrains Mono,monospace', whiteSpace:'nowrap', minWidth:'90px', textAlign:'center'}}>
+                            {outcomeLabels[cl.outcome] || cl.outcome || '—'}
+                          </span>
+                          <span style={{fontSize:'12px', fontWeight:600, color:'#ccc', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{cl.business_name || cl.lead_name || '—'}</span>
+                          {cl.notes && <span style={{fontSize:'11px', color:'#555', flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{cl.notes}</span>}
+                          <span style={{fontSize:'10px', color:'#333', whiteSpace:'nowrap', fontFamily:'JetBrains Mono,monospace'}}>{fmtAgo(cl.created_at)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 4. Outcome Breakdown */}
+                  <div className="card" style={{padding:'20px'}}>
+                    <p style={{fontSize:'10px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'#00F0FF', margin:'0 0 14px'}}>Outcome Breakdown</p>
+                    {Object.keys(outcomeCounts).length === 0 && <p style={{color:'#333', fontSize:'13px', margin:0}}>No data yet.</p>}
+                    <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
+                      {Object.entries(outcomeCounts).sort((a,b) => b[1] - a[1]).map(([outcome, count]) => (
+                        <div key={outcome} style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                          <span style={{fontSize:'11px', fontWeight:600, color: outcomeColors[outcome] || '#555', width:'120px', textAlign:'right', fontFamily:'Inter,sans-serif'}}>{outcomeLabels[outcome] || outcome}</span>
+                          <div style={{flex:1, height:'14px', background:'#111', borderRadius:'4px', overflow:'hidden'}}>
+                            <div style={{height:'100%', borderRadius:'4px', background: outcomeColors[outcome] || '#555', width:`${(count / maxOutcome) * 100}%`, transition:'width .5s ease', opacity:.7}}/>
+                          </div>
+                          <span style={{fontSize:'12px', fontWeight:800, color:'#fff', fontFamily:'monospace', width:'30px'}}>{count}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 5. Active Leads */}
+                  <div className="card" style={{padding:'20px'}}>
+                    <p style={{fontSize:'10px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'#00F0FF', margin:'0 0 14px'}}>Active Leads &middot; {repLeads.length} total</p>
+                    {repLeads.length === 0 && <p style={{color:'#333', fontSize:'13px', margin:0}}>No leads assigned.</p>}
+                    <div style={{display:'flex', flexWrap:'wrap', gap:'8px'}}>
+                      {Object.entries(leadsByStatus).sort((a,b) => b[1] - a[1]).map(([status, count]) => (
+                        <div key={status} style={{background:'#0a0a0a', border:`1px solid ${(statusColors[status] || '#1a1a1a')}44`, borderRadius:'8px', padding:'10px 16px', textAlign:'center', minWidth:'80px'}}>
+                          <p style={{margin:0, fontSize:'20px', fontWeight:800, color: statusColors[status] || '#888', fontFamily:'monospace'}}>{count}</p>
+                          <p style={{margin:'2px 0 0', fontSize:'9px', color:'#444', fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase'}}>{statusLabels[status] || status}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 6. Handoffs */}
+                  <div className="card" style={{padding:'20px'}}>
+                    <p style={{fontSize:'10px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'#00F0FF', margin:'0 0 14px'}}>Handoffs &middot; {repHandoffs.length}</p>
+                    {repHandoffs.length === 0 && <p style={{color:'#333', fontSize:'13px', margin:0}}>No handoffs submitted.</p>}
+                    <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                      {repHandoffs.map((h, i) => (
+                        <div key={h.id || i} style={{display:'flex', alignItems:'center', gap:'10px', padding:'10px 12px', background:'#0a0a0a', border:'1px solid #1a1a1a', borderRadius:'8px', flexWrap:'wrap'}}>
+                          <span style={{fontSize:'13px', fontWeight:700, color:'#fff', minWidth:'120px'}}>{h.company_name || h.business_name || '—'}</span>
+                          {h.niche && <span className="tag" style={{fontSize:'9px'}}>{h.niche}</span>}
+                          {h.next_step && <span style={{fontSize:'11px', color:'#888', flex:1}}>{h.next_step}</span>}
+                          <span style={{fontSize:'10px', color:'#333', fontFamily:'JetBrains Mono,monospace'}}>{fmtAgo(h.created_at)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* 7. Closes */}
+                  <div className="card" style={{padding:'20px'}}>
+                    <p style={{fontSize:'10px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'#22c55e', margin:'0 0 14px'}}>Closes &middot; {repCloses.length}</p>
+                    {repCloses.length === 0 && <p style={{color:'#333', fontSize:'13px', margin:0}}>No closes yet.</p>}
+                    <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                      {repCloses.map((c, i) => {
+                        const prodLabels = { 1:'Website Package', 2:'Foundation 1.0', 3:'Authority System 2.0', 4:'Market Domination 3.0' };
+                        return (
+                          <div key={c.id || i} style={{display:'flex', alignItems:'center', gap:'10px', padding:'10px 12px', background:'#0a0a0a', border:'1px solid rgba(34,197,94,.15)', borderRadius:'8px'}}>
+                            <span style={{fontSize:'12px', fontWeight:700, color:'#22c55e'}}>{prodLabels[c.pts] || c.product || '—'}</span>
+                            <span style={{fontSize:'11px', fontWeight:700, color: tier.badge.color, fontFamily:'JetBrains Mono,monospace', marginLeft:'auto'}}>{c.pts} pts</span>
+                            <span style={{fontSize:'10px', color:'#333', fontFamily:'JetBrains Mono,monospace'}}>{fmtAgo(c.created_at)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Recent Handoffs — with Follow-Up Tracking */}
             {tab === 'handoffs' && (
