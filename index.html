@@ -244,12 +244,9 @@
           "handoff"
           "aitools"
           "training"
-          "voicemail"
-          "discovery"
           "upsell"
-          "noshow"
-          "proofpoints"
-          "director" !important;
+          "director"
+          "newupdates" !important;
         gap: 12px !important;
       }
 
@@ -3101,42 +3098,19 @@ const HomeView = ({ userName, userEmail, onNav, onLogout, totalCloses, setTotalC
 
   if (isDirector) {
     sections.push({
-      key: 'voicemail',
-      num: 'VM',
-      title: 'Voicemail Scripts',
-      desc: 'Four voicemail templates under 20 seconds each. First call, preview call, follow-up, and callback — all copy-ready.',
-      pills: ['Cold Call VM', 'Preview VM', 'Follow-Up VM', 'Callback VM'],
-    });
-    sections.push({
-      key: 'discovery',
-      num: 'DC',
-      title: 'Discovery Call Framework',
-      desc: 'The full 15-minute discovery call agenda. Five phases: warm-up, discovery questions, demo, recommendation, and close.',
-      pills: ['Warm-Up', 'Discovery Qs', 'Demo', 'Recommendation', 'Close'],
-      featured: true,
-    });
-    sections.push({
-      key: 'noshow',
-      num: 'NS',
-      title: 'No-Show Recovery',
-      desc: 'Three-touch SMS sequence for when a booked prospect no-shows. Professional, zero attitude, door stays open.',
-      pills: ['Immediate SMS', '24-Hour', '72-Hour Final', 'Prevention'],
-    });
-    sections.push({
-      key: 'proofpoints',
-      num: 'PP',
-      title: 'Proof Points & Ammo',
-      desc: 'Social proof, AI subcontractor threading, competitor ammunition, and credibility builders. Director-only reference material.',
-      pills: ['Social Proof', 'AI Subcontractor', 'Competitor Ammo', 'Credibility Drops'],
-      featured: true,
-    });
-    sections.push({
       key: 'director',
       num: 'D',
       title: 'Director Dashboard',
       desc: 'Real-time view of all rep performance, closes, tier progress, handoff submissions, and lead assignment.',
       pills: ['Rep Roster', 'Team Stats', 'Handoff Feed', 'Lead Assignment', 'Lead Import'],
       featured: true,
+    });
+    sections.push({
+      key: 'newupdates',
+      num: '🔧',
+      title: 'New Updates',
+      desc: 'New features built but not yet active. Build these once the current sales portal is up to speed.',
+      pills: ['Voicemail Scripts', 'Discovery Call', 'No-Show Recovery', 'Proof Points & Ammo'],
     });
   }
 
@@ -3180,7 +3154,7 @@ const HomeView = ({ userName, userEmail, onNav, onLogout, totalCloses, setTotalC
           display:'grid',
           gridTemplateColumns:'repeat(3, 1fr)',
           gridTemplateAreas: isDirector
-            ? `"coldcall coldcall coldcall" "foundation scripts scripts" "outreach postcall ladder" "handoff aitools training" "upsell voicemail discovery" "noshow proofpoints proofpoints" "director director director"`
+            ? `"coldcall coldcall coldcall" "foundation scripts scripts" "outreach postcall ladder" "handoff aitools training" "upsell upsell upsell" "director director director" "newupdates newupdates newupdates"`
             : `"coldcall coldcall coldcall" "foundation scripts scripts" "outreach postcall ladder" "handoff aitools training" "upsell upsell upsell"`,
           gap:'16px',
         }}>
@@ -7786,6 +7760,7 @@ const App = () => {
   if (view === 'noshow')     return <>{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}><TopBar title="No-Show Recovery" subtitle="NS — Don't Chase. Replace." userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('No-Show-Recovery')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><NoShowPanel/></main></div>}{bottomNav}{chat}</>;
   if (view === 'proofpoints') return <>{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}><TopBar title="Proof Points & Ammo" subtitle="PP — Confidence Arsenal" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('Proof-Points')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><ProofPointsPanel/><NotesPad storageKey="notes_proofpoints" /></main></div>}{bottomNav}{chat}</>;
   if (view === 'director' && isDirector) return <>{sidebar}{<DirectorView {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'newupdates' && actuallyDirector) return <>{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}><TopBar title="New Updates" subtitle="Features built — activate when ready" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose} actuallyDirector={actuallyDirector} viewAsRep={viewAsRep} onToggleView={() => setViewAsRep(v => !v)}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><div style={{marginBottom:'8px'}}><span className="tag">NEW UPDATES</span></div><h2 style={{fontSize:'26px',fontWeight:900,color:'#fff',margin:'8px 0 4px'}}>Features Built — Not Yet Active</h2><p style={{color:'#666',fontSize:'14px',lineHeight:1.6,margin:'0 0 24px'}}>Build these once the current sales portal is up to speed. Click any to open.</p><div style={{display:'flex',flexDirection:'column',gap:'12px'}}>{[{key:'voicemail',title:'Voicemail Scripts',desc:'4 voicemail templates under 20 seconds each'},{key:'discovery',title:'Discovery Call Framework',desc:'15-minute discovery call agenda with 5 phases'},{key:'noshow',title:'No-Show Recovery',desc:'3-touch SMS recovery sequence'},{key:'proofpoints',title:'Proof Points & Ammo',desc:'Social proof, competitor ammunition, credibility builders'}].map(f=>(<button key={f.key} onClick={()=>handleNav(f.key)} className="card" style={{padding:'18px 20px',textAlign:'left',cursor:'pointer',border:'1px solid #1e1e1e',font:'inherit',display:'flex',justifyContent:'space-between',alignItems:'center'}}><div><p style={{margin:0,fontWeight:700,color:'#fff',fontSize:'15px'}}>{f.title}</p><p style={{margin:'4px 0 0',color:'#555',fontSize:'12px'}}>{f.desc}</p></div><span style={{color:'#00F0FF',fontSize:'12px',fontWeight:700}}>Open →</span></button>))}</div></main></div>}{bottomNav}{chat}</>;
   // Fallback — any invalid view goes home instead of blank screen
   return <>{sidebar}{<HomeView {...shared} onNav={handleNav} onShortcuts={() => setShowShortcuts(true)}/>}{bottomNav}{chat}{shortcuts}</>;
 };
