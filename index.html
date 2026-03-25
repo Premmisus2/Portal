@@ -229,7 +229,7 @@
 
       /* Chat widget mobile */
       .chat-widget { bottom: 70px !important; right: 14px !important; }
-      .chat-panel { width: auto !important; right: 0 !important; left: 0 !important; bottom: 64px !important; max-height: 60vh !important; }
+      .chat-panel { position: fixed !important; width: calc(100vw - 28px) !important; right: 14px !important; left: 14px !important; bottom: 134px !important; max-height: 55vh !important; }
 
       /* Home hub grid → single column */
       .hub-grid {
@@ -2711,14 +2711,15 @@ const ShortcutsModal = ({ onClose }) => (
           <div style={{width:'3px', height:'14px', background:'#00F0FF', borderRadius:'2px'}}/>
           <span style={{fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'#00F0FF'}}>From Home — Jump to Section</span>
         </div>
-        <ShortcutRow keys={['⇧','1']} label="Foundation & Blueprint" color="#ccc"/>
-        <ShortcutRow keys={['⇧','2']} label="Scripts" color="#ccc"/>
-        <ShortcutRow keys={['⇧','3']} label="Post-Call Protocols" color="#ccc"/>
-        <ShortcutRow keys={['⇧','4']} label="The Ladder" color="#ccc"/>
-        <ShortcutRow keys={['⇧','5']} label="Director Handoff" color="#ccc"/>
-        <ShortcutRow keys={['⇧','6']} label="DM Scripts" color="#ccc"/>
-        <ShortcutRow keys={['⇧','7']} label="Email Outreach" color="#ccc"/>
-        <ShortcutRow keys={['⇧','8']} label="SMS Sequences" color="#ccc"/>
+        <ShortcutRow keys={['⇧','1']} label="Call Center" color="#ccc"/>
+        <ShortcutRow keys={['⇧','2']} label="Scripts & Sequences" color="#ccc"/>
+        <ShortcutRow keys={['⇧','3']} label="Foundation & Blueprint" color="#ccc"/>
+        <ShortcutRow keys={['⇧','4']} label="Written Outreach (DMs)" color="#ccc"/>
+        <ShortcutRow keys={['⇧','5']} label="Post-Call Protocols" color="#ccc"/>
+        <ShortcutRow keys={['⇧','6']} label="The Ladder" color="#ccc"/>
+        <ShortcutRow keys={['⇧','7']} label="Director Handoff" color="#ccc"/>
+        <ShortcutRow keys={['⇧','8']} label="AI Tools" color="#ccc"/>
+        <ShortcutRow keys={['⇧','9']} label="Director Dashboard" color="#ccc"/>
       </div>
 
       {/* Section: Script Tabs */}
@@ -4572,23 +4573,23 @@ const ChatWidget = ({ userName, userEmail, currentView, repId, userRole }) => {
     setMsgs(next); setInput(''); setLoading(true);
     setFeedbackIdx(null);
     try {
-      const res = await fetch('/api/ai-chat', {
+      const sysPrompt = COACH_SYSTEM(userName || 'Rep', currentView || 'home');
+      const geminiMessages = [
+        { role: 'user', parts: [{ text: sysPrompt }] },
+        { role: 'model', parts: [{ text: 'Understood. I am the Premmisus AI Sales Coach. How can I help?' }] },
+        ...next.filter(m => m.role !== 'system').map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }],
+        })),
+      ];
+      const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyDnmdZOb4V3nZ1cjlCwzOtGvkwPJIi5SnU', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: next.filter(m => m.role !== 'system').map(m => ({ role: m.role, content: m.content })),
-          role: userRole || 'rep',
-          userName: userName || '',
-          currentView: currentView || 'home',
-        }),
+        body: JSON.stringify({ contents: geminiMessages, generationConfig: { maxOutputTokens: 1024, temperature: 0.7 } }),
       });
       const data = await res.json();
-      if (data.error) {
-        setMsgs(p => [...p, { role:'assistant', content: `Error: ${data.error}` }]);
-      } else {
-        setMsgs(p => [...p, { role:'assistant', content: data.reply, toolsUsed: data.toolsUsed }]);
-        if (data.toolsUsed) setToolsUsed(data.toolsUsed);
-      }
+      const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I couldn\'t generate a response. Try again.';
+      setMsgs(p => [...p, { role:'assistant', content: reply }]);
       if (!open) setUnread(true);
     } catch {
       setMsgs(p => [...p, { role:'assistant', content:'Could not reach the AI server. Check your internet connection.' }]);
@@ -4768,6 +4769,7 @@ const ChatWidget = ({ userName, userEmail, currentView, repId, userRole }) => {
    BOTTOM NAV (mobile)
 ══════════════════════════════════════════════════════ */
 function BottomNav({ currentView, onNav, addClose }) {
+  const [pickerOpen, setPickerOpen] = useState(false);
   const items = [
     {
       key: 'home',
@@ -4827,10 +4829,28 @@ function BottomNav({ currentView, onNav, addClose }) {
       {items.map((item) => {
         if (item.isCenter) {
           return (
-            <div key={item.key} className="bottom-nav-item bottom-nav-center">
+            <div key={item.key} className="bottom-nav-item bottom-nav-center" style={{position:'relative'}}>
+              {pickerOpen && (
+                <div className="fadein" style={{position:'absolute', bottom:'60px', left:'50%', transform:'translateX(-50%)', width:'240px', background:'#0a0a0a', border:'1px solid #1e1e1e', borderRadius:'12px', boxShadow:'0 16px 48px rgba(0,0,0,.9)', zIndex:500, padding:'6px'}}>
+                  <p style={{margin:'6px 8px 8px', fontSize:'9px', fontWeight:700, color:'#444', letterSpacing:'.15em', textTransform:'uppercase', fontFamily:'JetBrains Mono,monospace'}}>What did you close?</p>
+                  {CLOSE_PRODUCTS.map(prod => (
+                    <button key={prod.id} onClick={()=>{ addClose(prod.pts); setPickerOpen(false); }}
+                      style={{width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 10px', borderRadius:'7px', background:'none', border:'none', cursor:'pointer', textAlign:'left'}}
+                      onMouseEnter={e=>e.currentTarget.style.background='#111'}
+                      onMouseLeave={e=>e.currentTarget.style.background='none'}>
+                      <div>
+                        <p style={{margin:0, fontSize:'12px', fontWeight:700, color:'#fff', fontFamily:'Inter,sans-serif'}}>{prod.label}</p>
+                        <p style={{margin:'1px 0 0', fontSize:'10px', color:'#444', fontFamily:'Roboto,sans-serif'}}>{prod.price}</p>
+                      </div>
+                      <span style={{fontSize:'10px', fontWeight:800, padding:'3px 8px', borderRadius:'20px', background:'rgba(0,240,255,.08)', border:'1px solid rgba(0,240,255,.2)', color:'#00F0FF', fontFamily:'JetBrains Mono,monospace', flexShrink:0}}>+{prod.pts}pt{prod.pts>1?'s':''}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {pickerOpen && <div onClick={()=>setPickerOpen(false)} style={{position:'fixed', inset:0, zIndex:499}}/>}
               <button
                 className="bottom-nav-center-btn"
-                onClick={() => addClose(1)}
+                onClick={() => setPickerOpen(p=>!p)}
                 aria-label="Log a close"
               >
                 {item.icon}
@@ -4911,7 +4931,7 @@ const GlobalSidebar = ({ open, onClose, onNav, currentView, isDirector }) => {
                 {isDirector && <button className={`gs-item${currentView==='voicemail'?' active':''}`} onClick={()=>go('voicemail')}>Voicemail Scripts</button>}
                 {isDirector && <button className={`gs-item${currentView==='discovery'?' active':''}`} onClick={()=>go('discovery')}>Discovery Call</button>}
                 {isDirector && <button className={`gs-item${currentView==='noshow'?' active':''}`} onClick={()=>go('noshow')}>No-Show Recovery</button>}
-                <button className={`gs-item${currentView==='upsell'?' active':''}`} onClick={()=>go('upsell')}>0.5 → 1.0 Upsell</button>
+                {isDirector && <button className={`gs-item${currentView==='upsell'?' active':''}`} onClick={()=>go('upsell')}>0.5 → 1.0 Upsell</button>}
                 <button className={`gs-item${currentView==='postcall'?' active':''}`} onClick={()=>go('postcall')}>Post-Call</button>
                 <button className={`gs-item${currentView==='handoff'?' active':''}`} onClick={()=>go('handoff')}>Director Handoff</button>
                 {isDirector && <button className={`gs-item${currentView==='proofpoints'?' active':''}`} onClick={()=>go('proofpoints')}>Proof Points & Ammo</button>}
