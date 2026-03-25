@@ -4831,7 +4831,7 @@ function BottomNav({ currentView, onNav, addClose }) {
           return (
             <div key={item.key} className="bottom-nav-item bottom-nav-center" style={{position:'relative'}}>
               {pickerOpen && (
-                <div className="fadein" style={{position:'absolute', bottom:'60px', left:'50%', transform:'translateX(-50%)', width:'240px', background:'#0a0a0a', border:'1px solid #1e1e1e', borderRadius:'12px', boxShadow:'0 16px 48px rgba(0,0,0,.9)', zIndex:500, padding:'6px'}}>
+                <div className="fadein" style={{position:'fixed', bottom:'80px', left:'14px', right:'14px', background:'#0a0a0a', border:'2px solid rgba(0,240,255,.3)', borderRadius:'12px', boxShadow:'0 16px 48px rgba(0,0,0,.9), 0 0 30px rgba(0,240,255,.1)', zIndex:500, padding:'6px'}}>
                   <p style={{margin:'6px 8px 8px', fontSize:'9px', fontWeight:700, color:'#444', letterSpacing:'.15em', textTransform:'uppercase', fontFamily:'JetBrains Mono,monospace'}}>What did you close?</p>
                   {CLOSE_PRODUCTS.map(prod => (
                     <button key={prod.id} onClick={()=>{ addClose(prod.pts); setPickerOpen(false); }}
