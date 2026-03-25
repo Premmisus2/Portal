@@ -273,6 +273,10 @@
       .dir-rep-stats { grid-template-columns: repeat(2, 1fr) !important; }
       .dir-rep-header { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
 
+      /* Rep filter mobile */
+      .dir-rep-filter { flex-direction: column !important; align-items: stretch !important; }
+      .dir-rep-filter select { max-width: 100% !important; }
+
       /* Hub card padding */
       .hub-card { padding: 20px !important; }
 
@@ -7138,6 +7142,7 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
   const [callLogs, setCallLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('pipeline');
+  const [selectedRepId, setSelectedRepId] = useState('all');
 
   useEffect(() => { loadData(); }, []);
 
@@ -7176,6 +7181,20 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
     if (ms < 604800000) return Math.floor(ms / 86400000) + 'd ago';
     return new Date(d).toLocaleDateString();
   };
+
+  // Filtered data based on selectedRepId
+  const filteredCallLogs = selectedRepId === 'all' ? callLogs : callLogs.filter(cl => cl.rep_id === selectedRepId);
+  const filteredLeads = selectedRepId === 'all' ? allLeads : allLeads.filter(l => l.assigned_rep_id === selectedRepId);
+  const filteredHandoffs = selectedRepId === 'all' ? handoffs : handoffs.filter(h => h.rep_id === selectedRepId);
+
+  // Filtered stats
+  const today = new Date().toISOString().split('T')[0];
+  const filteredTotalCalls = filteredCallLogs.length;
+  const filteredCallsToday = filteredCallLogs.filter(cl => cl.created_at && cl.created_at.startsWith(today)).length;
+  const filteredConnects = filteredCallLogs.filter(cl => cl.outcome && cl.outcome !== 'no_answer' && cl.outcome !== 'wrong_number').length;
+  const filteredConnectRate = filteredTotalCalls > 0 ? Math.round((filteredConnects / filteredTotalCalls) * 100) : 0;
+  const filteredBookings = filteredCallLogs.filter(cl => cl.outcome === 'booked_call' || cl.outcome === 'booked' || cl.outcome === 'discovery_completed').length;
+  const filteredBookingRate = filteredTotalCalls > 0 ? Math.round((filteredBookings / filteredTotalCalls) * 100) : 0;
 
   const teamCloses = reps.reduce((s, r) => s + r.totalCloses, 0);
   const teamPoints = reps.reduce((s, r) => s + r.totalPoints, 0);
@@ -7243,6 +7262,36 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
               </button>
             </div>
 
+            {/* Rep Filter */}
+            <div className="dir-rep-filter" style={{display:'flex', flexWrap:'wrap', alignItems:'center', gap:'12px', marginBottom:'20px', padding:'14px 18px', background:'#0a0a0a', border:'1px solid #1a1a1a', borderRadius:'10px'}}>
+              <label style={{fontSize:'9px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'#00F0FF', fontFamily:'JetBrains Mono, monospace', whiteSpace:'nowrap'}}>Filter by Rep</label>
+              <select className="field" value={selectedRepId} onChange={e => setSelectedRepId(e.target.value)}
+                style={{flex:'1 1 200px', maxWidth:'320px', padding:'10px 14px', fontSize:'13px', cursor:'pointer'}}>
+                <option value="all">All Reps</option>
+                {reps.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+              </select>
+              {selectedRepId !== 'all' && (
+                <div style={{display:'flex', gap:'10px', flexWrap:'wrap', flex:'1 1 auto'}}>
+                  <div style={{background:'#111', border:'1px solid #1e1e1e', borderRadius:'7px', padding:'8px 14px', textAlign:'center', minWidth:'80px'}}>
+                    <p style={{margin:0, fontSize:'16px', fontWeight:800, color:'#fff', fontFamily:'monospace'}}>{filteredTotalCalls}</p>
+                    <p style={{margin:'2px 0 0', fontSize:'8px', color:'#444', fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase'}}>Total Calls</p>
+                  </div>
+                  <div style={{background:'#111', border:'1px solid #1e1e1e', borderRadius:'7px', padding:'8px 14px', textAlign:'center', minWidth:'80px'}}>
+                    <p style={{margin:0, fontSize:'16px', fontWeight:800, color:'#00F0FF', fontFamily:'monospace'}}>{filteredConnectRate}%</p>
+                    <p style={{margin:'2px 0 0', fontSize:'8px', color:'#444', fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase'}}>Connect Rate</p>
+                  </div>
+                  <div style={{background:'#111', border:'1px solid #1e1e1e', borderRadius:'7px', padding:'8px 14px', textAlign:'center', minWidth:'80px'}}>
+                    <p style={{margin:0, fontSize:'16px', fontWeight:800, color:'#22c55e', fontFamily:'monospace'}}>{filteredBookingRate}%</p>
+                    <p style={{margin:'2px 0 0', fontSize:'8px', color:'#444', fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase'}}>Booking Rate</p>
+                  </div>
+                  <div style={{background:'#111', border:'1px solid #1e1e1e', borderRadius:'7px', padding:'8px 14px', textAlign:'center', minWidth:'80px'}}>
+                    <p style={{margin:0, fontSize:'16px', fontWeight:800, color:'#F59E0B', fontFamily:'monospace'}}>{filteredCallsToday}</p>
+                    <p style={{margin:'2px 0 0', fontSize:'8px', color:'#444', fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase'}}>Calls Today</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Rep Roster */}
             {tab === 'reps' && (
               <div style={{display:'flex', flexDirection:'column', gap:'10px'}} className="fadein">
@@ -7308,7 +7357,7 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                 <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(140px, 1fr))', gap:'10px', marginBottom:'18px'}}>
                   {(() => {
                     const fCounts = { pending: 0, in_progress: 0, booked: 0, closed: 0 };
-                    handoffs.forEach(h => { const s = h.followup_status || 'pending'; if (fCounts[s] !== undefined) fCounts[s]++; });
+                    filteredHandoffs.forEach(h => { const s = h.followup_status || 'pending'; if (fCounts[s] !== undefined) fCounts[s]++; });
                     return [
                       { label: 'Pending', count: fCounts.pending, color: '#F59E0B' },
                       { label: 'In Progress', count: fCounts.in_progress, color: '#00F0FF' },
@@ -7323,12 +7372,12 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                   })()}
                 </div>
 
-                {handoffs.length === 0 && (
+                {filteredHandoffs.length === 0 && (
                   <div className="card" style={{padding:'32px', textAlign:'center'}}>
                     <p style={{color:'#444', fontSize:'14px', margin:0}}>No handoffs submitted yet.</p>
                   </div>
                 )}
-                {handoffs.map(h => {
+                {filteredHandoffs.map(h => {
                   const fsColors = { pending:'#F59E0B', in_progress:'#00F0FF', booked:'#a855f7', closed:'#22c55e' };
                   const fsLabels = { pending:'Pending', in_progress:'In Progress', booked:'Booked', closed:'Closed' };
                   const fs = h.followup_status || 'pending';
@@ -7389,7 +7438,7 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
 
             {/* Pipeline Funnel */}
             {tab === 'pipeline' && (
-              <PipelineFunnelView leads={allLeads} reps={[...reps, { id: repId, name: userName, role: 'director' }]}/>
+              <PipelineFunnelView leads={filteredLeads} reps={[...reps, { id: repId, name: userName, role: 'director' }]}/>
             )}
 
             {/* Activity Feed */}
@@ -7399,7 +7448,7 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                 {(() => {
                   // Merge call logs, handoffs, and recent leads into a single timeline
                   const events = [];
-                  callLogs.forEach(cl => {
+                  filteredCallLogs.forEach(cl => {
                     const outcomeLabels = { no_answer:'No Answer', voicemail_left:'Voicemail', callback_requested:'Callback', not_interested:'Not Interested', booked_call:'Booked Call', discovery_completed:'Discovery Done', no_show:'No Show', wrong_number:'Wrong Number' };
                     const outcomeColors = { no_answer:'#555', voicemail_left:'#888', callback_requested:'#F59E0B', not_interested:'#ff6060', booked_call:'#22c55e', discovery_completed:'#00F0FF', no_show:'#ff8800', wrong_number:'#ff6060' };
                     events.push({
@@ -7412,7 +7461,7 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                       sub: cl.notes || '',
                     });
                   });
-                  handoffs.forEach(h => {
+                  filteredHandoffs.forEach(h => {
                     events.push({
                       type: 'handoff',
                       time: h.created_at,
@@ -7464,20 +7513,20 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
             {tab === 'outreach' && (
               <div className="fadein">
                 {(() => {
-                  const total = allLeads.length;
-                  const contacted = allLeads.filter(l => l.status === 'contacted' || l.status === 'replied' || l.status === 'interested' || l.status === 'opted_out' || l.status === 'booked' || l.status === 'closed').length;
-                  const replied = allLeads.filter(l => l.status === 'replied' || l.status === 'interested' || l.status === 'booked' || l.status === 'closed').length;
-                  const interested = allLeads.filter(l => l.status === 'interested' || l.status === 'booked' || l.status === 'closed').length;
-                  const optedOut = allLeads.filter(l => l.status === 'opted_out').length;
-                  const booked = allLeads.filter(l => l.status === 'booked' || l.status === 'closed').length;
-                  const closed = allLeads.filter(l => l.status === 'closed').length;
+                  const total = filteredLeads.length;
+                  const contacted = filteredLeads.filter(l => l.status === 'contacted' || l.status === 'replied' || l.status === 'interested' || l.status === 'opted_out' || l.status === 'booked' || l.status === 'closed').length;
+                  const replied = filteredLeads.filter(l => l.status === 'replied' || l.status === 'interested' || l.status === 'booked' || l.status === 'closed').length;
+                  const interested = filteredLeads.filter(l => l.status === 'interested' || l.status === 'booked' || l.status === 'closed').length;
+                  const optedOut = filteredLeads.filter(l => l.status === 'opted_out').length;
+                  const booked = filteredLeads.filter(l => l.status === 'booked' || l.status === 'closed').length;
+                  const closed = filteredLeads.filter(l => l.status === 'closed').length;
                   const contactedPct = total > 0 ? Math.round((contacted / total) * 100) : 0;
                   const replyRate = contacted > 0 ? Math.round((replied / contacted) * 100) : 0;
                   const closeRate = booked > 0 ? Math.round((closed / booked) * 100) : 0;
 
                   // Group by niche
                   const byNiche = {};
-                  allLeads.forEach(l => {
+                  filteredLeads.forEach(l => {
                     const n = l.niche || 'Other';
                     if (!byNiche[n]) byNiche[n] = { total: 0, contacted: 0, replied: 0, interested: 0, optedOut: 0 };
                     byNiche[n].total++;
@@ -7564,7 +7613,7 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
             {/* ═══ CALL LOG ═══ */}
             {tab === 'calllog' && (
               <div className="fadein">
-                <CallLogTab callLogs={callLogs} repId={repId}/>
+                <CallLogTab callLogs={filteredCallLogs} repId={repId}/>
               </div>
             )}
 
