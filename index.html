@@ -4665,10 +4665,10 @@ const ChatWidget = ({ userName, userEmail, currentView, repId, userRole }) => {
   return (
     <div style={{position:'fixed', bottom:'24px', right:'24px', zIndex:400, fontFamily:'Inter,sans-serif'}} className="no-print chat-widget">
       {open && (
-        <div style={{position:'absolute', bottom:'64px', right:0, width:'360px', background:'#080808', border:'1px solid rgba(0,240,255,.22)', borderRadius:'14px', boxShadow:'0 0 48px rgba(0,240,255,.07), 0 12px 40px rgba(0,0,0,.7)', display:'flex', flexDirection:'column', overflow:'hidden', maxHeight:'560px'}} className="fadein chat-panel">
+        <div style={{position:'absolute', bottom:'64px', right:0, width:'360px', background: isDirector ? 'rgba(34,197,94,.12)' : 'rgba(0,240,255,.12)', border: `2px solid ${isDirector ? 'rgba(34,197,94,.5)' : 'rgba(0,240,255,.5)'}`, borderRadius:'14px', boxShadow: `0 0 60px ${isDirector ? 'rgba(34,197,94,.2)' : 'rgba(0,240,255,.2)'}, 0 12px 40px rgba(0,0,0,.7)`, display:'flex', flexDirection:'column', overflow:'hidden', maxHeight:'560px', backdropFilter:'blur(20px)', WebkitBackdropFilter:'blur(20px)'}} className="fadein chat-panel">
 
           {/* Header */}
-          <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'11px 14px', borderBottom:'1px solid #111', background:'#050505', flexShrink:0}}>
+          <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'11px 14px', borderBottom: `1px solid ${isDirector ? 'rgba(34,197,94,.3)' : 'rgba(0,240,255,.3)'}`, background: isDirector ? 'rgba(34,197,94,.15)' : 'rgba(0,240,255,.15)', flexShrink:0}}>
             <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
               <div style={{width:'7px', height:'7px', borderRadius:'50%', background: isDirector ? '#22c55e' : '#00F0FF', boxShadow: `0 0 8px ${isDirector ? 'rgba(34,197,94,.9)' : 'rgba(0,240,255,.9)'}`}}/>
               <span style={{fontSize:'12px', fontWeight:800, color:'#fff', letterSpacing:'.04em'}}>{isDirector ? 'AI Command Center' : 'AI Sales Coach'}</span>
@@ -4741,7 +4741,7 @@ const ChatWidget = ({ userName, userEmail, currentView, repId, userRole }) => {
           </div>
 
           {/* Input */}
-          <div style={{padding:'10px 12px', borderTop:'1px solid #111', display:'flex', gap:'7px', alignItems:'flex-end', flexShrink:0, background:'#050505'}}>
+          <div style={{padding:'10px 12px', borderTop: `1px solid ${isDirector ? 'rgba(34,197,94,.3)' : 'rgba(0,240,255,.3)'}`, display:'flex', gap:'7px', alignItems:'flex-end', flexShrink:0, background: isDirector ? 'rgba(34,197,94,.15)' : 'rgba(0,240,255,.15)'}}>
             <textarea ref={inputRef} value={input} onChange={e=>setInput(e.target.value)} onKeyDown={onKey}
               placeholder={isDirector ? 'Query data, assign leads, post announcements...' : 'Ask anything — on a call right now?'}
               rows={1} style={{flex:1, background:'#111', border:'1px solid #222', borderRadius:'8px', padding:'9px 12px', color:'#fff', fontSize:'13px', fontFamily:'Inter,sans-serif', resize:'none', outline:'none', lineHeight:1.45, maxHeight:'80px', overflowY:'auto'}}
