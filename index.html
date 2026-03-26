@@ -36,6 +36,14 @@
   ✅ Shadow rep selector in ProfileDropdown with rep list
   ✅ Exit Shadow from banner or dropdown
 
+  COMPLETED (Rev 2.3 — Twilio Click-to-Call):
+  ✅ TwilioCallModal — real-time call status overlay (initiating → ringing → connected → completed)
+  ✅ Click-to-Call button in LeadRow when repPhone is set (falls back to tel: link otherwise)
+  ✅ CallLogger update mode — existingCallLogId prop updates Twilio row instead of inserting
+  ✅ RepPhoneEditor — Director can set/edit phone numbers per rep in Rep Roster
+  ✅ Recording player + duration + Twilio badge in call history
+  ✅ repPhone state in App, passed through shared object to all views
+
   STILL TO DO:
   ☐ Make The Ladder closes counter sync with the global header counter
   ☐ Keyboard shortcuts or hotkeys for quick navigation between sections
@@ -58,7 +66,7 @@
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/@babel/standalone@7.24.0/babel.min.js" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1"></script>
   <script>
     tailwind.config = {
       theme: { extend: { colors: { accent: '#00F0FF' }, fontFamily: { sans: ['Inter','sans-serif'], body: ['Roboto','system-ui','sans-serif'], mono: ['JetBrains Mono','monospace'] } } },
@@ -386,6 +394,14 @@
     .lead-row.expanded { border-color: rgba(0,240,255,.4); box-shadow: 0 0 20px rgba(0,240,255,.05); }
     .lead-row.callback-overdue { border-left: 3px solid #ff6060; }
     .lead-row.callback-today { border-left: 3px solid #F59E0B; }
+    .lead-row.status-contacted { border-left: 3px solid #3b82f6; }
+    .lead-row.status-voicemail { border-left: 3px solid #8b5cf6; }
+    .lead-row.status-callback { border-left: 3px solid #f59e0b; }
+    .lead-row.status-booked { border-left: 3px solid #22c55e; }
+    .lead-row.status-not_interested { border-left: 3px solid #666; }
+    .lead-row.status-wrong_number { border-left: 3px solid #444; }
+    .lead-row.status-discovery_completed { border-left: 3px solid #00F0FF; }
+    .lead-row.status-no_show { border-left: 3px solid #ff4444; }
     .niche-badge {
       font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 4px;
       background: rgba(255,255,255,.04); border: 1px solid #1e1e1e; color: #666;
@@ -630,7 +646,9 @@ const NOTES_EXPIRY_DAYS = 7;
 /* ─── SUPABASE ─── */
 const SUPABASE_URL  = 'https://qokvhrrjrivvshaapncd.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFva3ZocnJqcml2dnNoYWFwbmNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzNjcyMTIsImV4cCI6MjA4ODk0MzIxMn0.wPcIESen8ezhEtijOGCPZDxjUxp0CLIx_lxKoY0g7E0';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false, storage: window.localStorage }
+});
 const DIRECTOR_EMAILS = ['elliott@premmisus.ca', 'elliott@premmisus.com'];
 const PRODUCT_LABELS = { 1:'Website Package', 2:'Foundation 1.0', 3:'Authority System 2.0', 4:'Market Domination 3.0' };
 const CALL_LOG_WEBHOOK = 'https://script.google.com/macros/s/AKfycbz2gylsLejcBUe1zjSkuJmE8tWUFcMfqNVzV0ZF-cfCe9tk5U-Feq2SI20xQX1kRQ/exec';
@@ -5016,9 +5034,153 @@ const GlobalSidebar = ({ open, onClose, onNav, currentView, isDirector }) => {
 };
 
 /* ══════════════════════════════════════════════════════
+   TWILIO CLICK-TO-CALL MODAL
+══════════════════════════════════════════════════════ */
+const TwilioCallModal = ({ lead, repId, repPhone, onClose, onCallComplete }) => {
+  const [status, setStatus] = useState('initiating');
+  const [callSid, setCallSid] = useState(null);
+  const [callLogId, setCallLogId] = useState(null);
+  const [duration, setDuration] = useState(0);
+  const [error, setError] = useState('');
+  const timerRef = useRef(null);
+  const pollRef = useRef(null);
+
+  useEffect(() => { initiateCall(); return () => { clearInterval(timerRef.current); clearInterval(pollRef.current); }; }, []);
+
+  const initiateCall = async () => {
+    try {
+      const res = await fetch('/api/initiate-call', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          repPhone, leadPhone: lead.phone, leadName: lead.business_name,
+          leadId: lead.id, repId
+        })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setCallSid(data.callSid);
+      setCallLogId(data.callLogId);
+      setStatus('ringing');
+      pollStatus(data.callSid);
+    } catch (err) {
+      setError(err.message);
+      setStatus('failed');
+    }
+  };
+
+  const pollStatus = (sid) => {
+    const poll = setInterval(async () => {
+      try {
+        const { data } = await sb.from('call_logs').select('twilio_status, duration_seconds, recording_url').eq('call_sid', sid).single();
+        if (data) {
+          if (data.twilio_status === 'in-progress' || data.twilio_status === 'answered') {
+            setStatus('connected');
+            if (!timerRef.current) {
+              timerRef.current = setInterval(() => setDuration(d => d + 1), 1000);
+            }
+          }
+          if (data.twilio_status === 'completed') {
+            setStatus('completed');
+            setDuration(data.duration_seconds || 0);
+            clearInterval(poll);
+            clearInterval(timerRef.current);
+          }
+          if (data.twilio_status === 'busy' || data.twilio_status === 'no-answer' || data.twilio_status === 'failed' || data.twilio_status === 'canceled') {
+            setStatus('failed');
+            setError('Call ' + data.twilio_status);
+            clearInterval(poll);
+          }
+        }
+      } catch {}
+    }, 3000);
+    pollRef.current = poll;
+    setTimeout(() => clearInterval(poll), 300000);
+  };
+
+  const formatDuration = (s) => `${Math.floor(s/60)}m ${s%60}s`;
+
+  const statusConfig = {
+    initiating: { dot: '#00F0FF', pulse: true, label: 'Initiating call...' },
+    ringing:    { dot: '#F59E0B', pulse: true, label: 'Ringing your phone...' },
+    connected:  { dot: '#22c55e', pulse: false, label: 'Connected — hang up on your phone when done' },
+    completed:  { dot: '#22c55e', pulse: false, label: 'Call complete' },
+    failed:     { dot: '#ff6060', pulse: false, label: error || 'Call failed' },
+  };
+  const cfg = statusConfig[status] || statusConfig.initiating;
+
+  return (
+    <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,.85)', zIndex:600, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px'}}
+      onClick={e => { if (e.target === e.currentTarget && (status === 'completed' || status === 'failed')) onClose(); }}>
+      <div style={{maxWidth:'400px', width:'100%', background:'#0d0d0d', border:'1px solid #1e1e1e', borderRadius:'12px', padding:'32px', position:'relative'}}>
+        {/* Close X */}
+        <button onClick={onClose} style={{position:'absolute', top:'12px', right:'12px', background:'none', border:'none', color:'#555', cursor:'pointer', fontSize:'18px', lineHeight:1, padding:'4px'}}
+          onMouseEnter={e=>e.currentTarget.style.color='#fff'} onMouseLeave={e=>e.currentTarget.style.color='#555'}>×</button>
+
+        {/* Business Name */}
+        <p style={{margin:'0 0 4px', fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.12em', textTransform:'uppercase'}}>Calling</p>
+        <p style={{margin:'0 0 24px', fontSize:'20px', fontWeight:800, color:'#fff', fontFamily:'Inter,sans-serif'}}>{lead.business_name}</p>
+
+        {/* Status Indicator */}
+        <div style={{display:'flex', alignItems:'center', gap:'12px', marginBottom:'20px'}}>
+          <div style={{width:'12px', height:'12px', borderRadius:'50%', background: cfg.dot, flexShrink:0,
+            animation: cfg.pulse ? 'twiliopulse 1.5s ease-in-out infinite' : 'none'}}/>
+          <span style={{fontSize:'14px', color: cfg.dot, fontWeight:600}}>{cfg.label}</span>
+        </div>
+
+        {/* Duration (connected or completed) */}
+        {(status === 'connected' || status === 'completed') && (
+          <div style={{marginBottom:'24px', textAlign:'center'}}>
+            <p style={{margin:0, fontSize:'36px', fontWeight:700, color:'#00F0FF', fontFamily:'JetBrains Mono,monospace'}}>{formatDuration(duration)}</p>
+          </div>
+        )}
+
+        {/* Completed icon */}
+        {status === 'completed' && (
+          <div style={{textAlign:'center', marginBottom:'16px'}}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+        )}
+
+        {/* Failed icon */}
+        {status === 'failed' && (
+          <div style={{textAlign:'center', marginBottom:'16px'}}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ff6060" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div style={{display:'flex', gap:'10px', justifyContent:'center', flexWrap:'wrap'}}>
+          {status === 'completed' && (
+            <button onClick={() => { onCallComplete({ callSid, callLogId, duration }); onClose(); }}
+              style={{padding:'10px 24px', borderRadius:'8px', cursor:'pointer', border:'none', background:'#00F0FF', color:'#000',
+                fontWeight:800, fontSize:'12px', fontFamily:'Inter,sans-serif', letterSpacing:'.06em', textTransform:'uppercase', transition:'opacity .15s'}}
+              onMouseEnter={e=>e.currentTarget.style.opacity='.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+              Log Outcome
+            </button>
+          )}
+          {status === 'failed' && (
+            <a href={`tel:${lead.phone}`} style={{padding:'10px 24px', borderRadius:'8px', textDecoration:'none', display:'inline-block',
+              background:'transparent', border:'1px solid #333', color:'#888',
+              fontWeight:800, fontSize:'12px', fontFamily:'Inter,sans-serif', letterSpacing:'.06em', textTransform:'uppercase', transition:'all .15s'}}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor='#555'; e.currentTarget.style.color='#ccc';}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor='#333'; e.currentTarget.style.color='#888';}}>
+              Call Manually
+            </a>
+          )}
+        </div>
+      </div>
+
+      {/* Pulse animation */}
+      <style>{`@keyframes twiliopulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(.8); } }`}</style>
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════════════════════
    COLD CALL CENTER — CALL LOGGER (inline form)
 ══════════════════════════════════════════════════════ */
-const CallLogger = ({ lead, repId, onLogged }) => {
+const CallLogger = ({ lead, repId, onLogged, existingCallLogId }) => {
   const [outcome, setOutcome] = useState('');
   const [notes, setNotes] = useState('');
   const [callbackDate, setCallbackDate] = useState('');
@@ -5028,9 +5190,17 @@ const CallLogger = ({ lead, repId, onLogged }) => {
     if (!outcome) return;
     setSaving(true);
     try {
-      await sb.from('call_logs').insert({ lead_id: lead.id, rep_id: repId, outcome, notes: notes || null, callback_date: callbackDate || null, business_name: lead.business_name || null });
+      if (existingCallLogId) {
+        // Update mode — Twilio call already created the row, just add outcome + notes
+        const { error: updateLogErr } = await sb.from('call_logs').update({ outcome, notes: notes || null, callback_date: callbackDate || null }).eq('id', existingCallLogId);
+        if (updateLogErr) { alert('Failed to update call log: ' + updateLogErr.message); setSaving(false); return; }
+      } else {
+        const { error: insertErr } = await sb.from('call_logs').insert({ lead_id: lead.id, rep_id: repId, outcome, notes: notes || null, callback_date: callbackDate || null, business_name: lead.business_name || null });
+        if (insertErr) { alert('Failed to save call log: ' + insertErr.message); setSaving(false); return; }
+      }
       const statusMap = { no_answer:'contacted', voicemail_left:'voicemail', callback_requested:'callback', not_interested:'not_interested', booked_call:'booked', discovery_completed:'discovery_completed', no_show:'no_show', wrong_number:'wrong_number' };
-      await sb.from('leads').update({ status: statusMap[outcome] || 'contacted', updated_at: new Date().toISOString() }).eq('id', lead.id);
+      const { error: updateErr } = await sb.from('leads').update({ status: statusMap[outcome] || 'contacted', updated_at: new Date().toISOString() }).eq('id', lead.id);
+      if (updateErr) { alert('Call logged but failed to update lead status: ' + updateErr.message); setSaving(false); return; }
       if (CALL_LOG_WEBHOOK) {
         fetch(CALL_LOG_WEBHOOK, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({ businessName: lead.business_name, contactName: lead.contact_name, phone: lead.phone, niche: lead.niche, city: lead.city, outcome, notes, callbackDate, priority: lead.priority, source: 'Cold Call', timestamp: new Date().toISOString() })
@@ -5038,7 +5208,7 @@ const CallLogger = ({ lead, repId, onLogged }) => {
       }
       onLogged(lead.id, outcome, statusMap[outcome]);
       setOutcome(''); setNotes(''); setCallbackDate('');
-    } catch (err) { console.error('Call log error:', err); }
+    } catch (err) { console.error('Call log error:', err); alert('Failed to save call log: ' + (err.message || 'Unknown error')); }
     setSaving(false);
   };
 
@@ -5077,14 +5247,18 @@ const CallLogger = ({ lead, repId, onLogged }) => {
 /* ══════════════════════════════════════════════════════
    COLD CALL CENTER — LEAD ROW
 ══════════════════════════════════════════════════════ */
-const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadowMode }) => {
+const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadowMode, repPhone }) => {
   const [showQuickLog, setShowQuickLog] = useState(false);
+  const [expandedNote, setExpandedNote] = useState(null);
+  const [showCallModal, setShowCallModal] = useState(false);
+  const [twilioCallData, setTwilioCallData] = useState(null);
   const priorityClass = lead.priority === 'HOT' ? 'priority-hot' : lead.priority === 'HIGH' ? 'priority-high' : 'priority-medium';
   const lastLog = callLogs && callLogs.length > 0 ? callLogs[0] : null;
   const today = new Date().toISOString().split('T')[0];
   const isOverdue = lastLog?.callback_date && lastLog.callback_date < today;
   const isDueToday = lastLog?.callback_date && lastLog.callback_date === today;
-  const rowClass = `lead-row${isExpanded ? ' expanded' : ''}${isOverdue ? ' callback-overdue' : ''}${isDueToday ? ' callback-today' : ''}`;
+  const statusBorderClass = (!isOverdue && !isDueToday && lead.status && lead.status !== 'new') ? ` status-${lead.status}` : '';
+  const rowClass = `lead-row${isExpanded ? ' expanded' : ''}${isOverdue ? ' callback-overdue' : ''}${isDueToday ? ' callback-today' : ''}${statusBorderClass}`;
   const statusColors = { new:'#22c55e', contacted:'#3B82F6', callback:'#A855F7', booked:'#00F0FF', not_interested:'#555', discovery_completed:'#22c55e', no_show:'#ff6060', voicemail:'#F59E0B', wrong_number:'#555' };
 
   return (
@@ -5100,7 +5274,18 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
         </div>
         <div style={{display:'flex', alignItems:'center', gap:'10px', flexShrink:0}}>
           {lead.city && <span style={{fontSize:'11px', color:'#444'}}>{lead.city}</span>}
-          <a href={`tel:${lead.phone}`} onClick={e=>e.stopPropagation()} style={{fontSize:'12px', color:'#00F0FF', textDecoration:'none', fontFamily:'JetBrains Mono,monospace', fontWeight:600}}>{lead.phone}</a>
+          {repPhone && !shadowMode ? (
+            <button onClick={e=>{e.stopPropagation(); setShowCallModal(true);}}
+              style={{display:'flex', alignItems:'center', gap:'5px', padding:'4px 10px', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'JetBrains Mono,monospace',
+                background:'transparent', border:'1px solid rgba(0,240,255,.3)', color:'#00F0FF', transition:'all .15s'}}
+              onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,240,255,.08)'; e.currentTarget.style.borderColor='rgba(0,240,255,.5)';}}
+              onMouseLeave={e=>{e.currentTarget.style.background='transparent'; e.currentTarget.style.borderColor='rgba(0,240,255,.3)';}}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00F0FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              {lead.phone}
+            </button>
+          ) : (
+            <a href={`tel:${lead.phone}`} onClick={e=>e.stopPropagation()} style={{fontSize:'12px', color:'#00F0FF', textDecoration:'none', fontFamily:'JetBrains Mono,monospace', fontWeight:600}}>{lead.phone}</a>
+          )}
           {lastLog && (
             <span style={{fontSize:'10px', color: OUTCOME_COLORS[lastLog.outcome] || '#555', fontWeight:700}}>{OUTCOME_LABELS[lastLog.outcome]}</span>
           )}
@@ -5122,7 +5307,7 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
       {/* Quick Inline Logger — visible without expanding, hidden in shadow mode */}
       {showQuickLog && !isExpanded && !shadowMode && (
         <div className="fadein" onClick={e=>e.stopPropagation()} style={{marginTop:'12px', padding:'12px 16px', background:'rgba(0,240,255,.02)', borderRadius:'8px', border:'1px solid rgba(0,240,255,.08)'}}>
-          <CallLogger lead={lead} repId={repId} onLogged={(leadId, outcome, newStatus) => { onLogged(leadId, outcome, newStatus); setShowQuickLog(false); }}/>
+          <CallLogger lead={lead} repId={repId} onLogged={(leadId, outcome, newStatus) => { setTwilioCallData(null); onLogged(leadId, outcome, newStatus); setShowQuickLog(false); }} existingCallLogId={twilioCallData?.callLogId || null}/>
         </div>
       )}
 
@@ -5144,11 +5329,26 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
               <p style={{fontSize:'9px', fontWeight:700, color:'#444', letterSpacing:'.12em', textTransform:'uppercase', margin:'0 0 8px'}}>Call History</p>
               <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
                 {callLogs.slice(0, 5).map(log => (
-                  <div key={log.id} style={{display:'flex', alignItems:'center', gap:'8px', padding:'6px 10px', background:'#080808', borderRadius:'6px', border:'1px solid #151515'}}>
-                    <div className={`call-history-dot outcome-${log.outcome}`}/>
-                    <span style={{fontSize:'11px', color: OUTCOME_COLORS[log.outcome], fontWeight:600}}>{OUTCOME_LABELS[log.outcome]}</span>
-                    <span style={{fontSize:'10px', color:'#333', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString()}</span>
-                    {log.notes && <span style={{fontSize:'10px', color:'#555', fontStyle:'italic', maxWidth:'200px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>— {log.notes}</span>}
+                  <div key={log.id} style={{display:'flex', flexDirection:'column', gap:'4px', padding:'6px 10px', background:'#080808', borderRadius:'6px', border:'1px solid #151515'}}>
+                    <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                      <div className={`call-history-dot outcome-${log.outcome}`}/>
+                      <span style={{fontSize:'11px', color: OUTCOME_COLORS[log.outcome], fontWeight:600}}>{OUTCOME_LABELS[log.outcome]}</span>
+                      {log.call_sid && <span style={{fontSize:'8px', fontWeight:700, padding:'1px 5px', borderRadius:'3px', background:'rgba(124,58,237,.15)', color:'#a78bfa', letterSpacing:'.05em', textTransform:'uppercase'}}>Twilio</span>}
+                      {log.duration_seconds != null && log.duration_seconds > 0 && (
+                        <span style={{fontSize:'10px', color:'#888', fontFamily:'JetBrains Mono,monospace', fontWeight:500}}>{Math.floor(log.duration_seconds/60)}m {log.duration_seconds%60}s</span>
+                      )}
+                      <span style={{fontSize:'10px', color:'#333', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString()}</span>
+                      {log.notes && (
+                        log.notes.length > 80 && expandedNote !== log.id
+                          ? <span onClick={e=>{e.stopPropagation(); setExpandedNote(log.id);}} style={{fontSize:'10px', color:'#555', fontStyle:'italic', maxWidth:'200px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', cursor:'pointer'}} title="Click to expand">— {log.notes.slice(0,80)}...</span>
+                          : <span onClick={e=>{e.stopPropagation(); setExpandedNote(expandedNote === log.id ? null : log.id);}} style={{fontSize:'10px', color:'#555', fontStyle:'italic', wordBreak:'break-word', whiteSpace:'normal', cursor: log.notes.length > 80 ? 'pointer' : 'default'}}>— {log.notes}</span>
+                      )}
+                    </div>
+                    {log.recording_url && (
+                      <div style={{paddingLeft:'20px'}} onClick={e=>e.stopPropagation()}>
+                        <audio controls src={log.recording_url} style={{width:'100%', height:'32px'}} preload="none"/>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -5156,8 +5356,15 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
           )}
 
           {/* Call Logger — hidden in shadow mode */}
-          {!shadowMode && <CallLogger lead={lead} repId={repId} onLogged={onLogged}/>}
+          {!shadowMode && <CallLogger lead={lead} repId={repId} onLogged={(leadId, outcome, newStatus) => { setTwilioCallData(null); onLogged(leadId, outcome, newStatus); }} existingCallLogId={twilioCallData?.callLogId || null}/>}
         </div>
+      )}
+
+      {/* Twilio Call Modal */}
+      {showCallModal && repPhone && (
+        <TwilioCallModal lead={lead} repId={repId} repPhone={repPhone}
+          onClose={() => setShowCallModal(false)}
+          onCallComplete={(data) => { setTwilioCallData(data); setShowCallModal(false); setShowQuickLog(false); onToggle(lead.id); }}/>
       )}
     </div>
   );
@@ -5187,7 +5394,7 @@ const QuickLogForm = ({ repId, onLogged }) => {
 
       // If no existing lead, create one
       if (!leadId) {
-        const { data: newLead } = await sb.from('leads').insert({
+        const { data: newLead, error: leadInsertErr } = await sb.from('leads').insert({
           business_name: form.businessName,
           contact_name: form.contactName,
           phone: form.phone,
@@ -5199,16 +5406,19 @@ const QuickLogForm = ({ repId, onLogged }) => {
           google_reviews: 0,
           rating: 0,
         }).select('id').single();
+        if (leadInsertErr) { alert('Failed to create lead: ' + leadInsertErr.message); setSaving(false); return; }
         leadId = newLead?.id;
       } else {
         // Update existing lead status
         const statusMap = { no_answer:'contacted', voicemail_left:'voicemail', callback_requested:'callback', not_interested:'not_interested', booked_call:'booked', discovery_completed:'discovery_completed', no_show:'no_show', wrong_number:'wrong_number' };
-        await sb.from('leads').update({ status: statusMap[form.outcome] || 'contacted', updated_at: new Date().toISOString() }).eq('id', leadId);
+        const { error: leadUpdateErr } = await sb.from('leads').update({ status: statusMap[form.outcome] || 'contacted', updated_at: new Date().toISOString() }).eq('id', leadId);
+        if (leadUpdateErr) { alert('Failed to update lead status: ' + leadUpdateErr.message); setSaving(false); return; }
       }
 
       // Log the call
       if (leadId) {
-        await sb.from('call_logs').insert({ lead_id: leadId, rep_id: repId, outcome: form.outcome, notes: form.notes || null, callback_date: form.callbackDate || null, business_name: form.businessName || null });
+        const { error: callLogErr } = await sb.from('call_logs').insert({ lead_id: leadId, rep_id: repId, outcome: form.outcome, notes: form.notes || null, callback_date: form.callbackDate || null, business_name: form.businessName || null });
+        if (callLogErr) { alert('Failed to save call log: ' + callLogErr.message); setSaving(false); return; }
       }
 
       // Push to Google Sheet
@@ -5223,7 +5433,7 @@ const QuickLogForm = ({ repId, onLogged }) => {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       if (onLogged) onLogged();
-    } catch (err) { console.error('Quick log error:', err); }
+    } catch (err) { console.error('Quick log error:', err); alert('Failed to save: ' + (err.message || 'Unknown error')); }
     setSaving(false);
   };
 
@@ -5321,19 +5531,27 @@ const QuickLogForm = ({ repId, onLogged }) => {
   );
 };
 
-const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, totalPoints, addClose, undoClose, repId, isDirector, shadowMode }) => {
-  const [tab, setTab] = useState('list');
+const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, totalPoints, addClose, undoClose, repId, isDirector, shadowMode, repPhone }) => {
+  const [tab, setTab] = useState(() => { try { return localStorage.getItem('pmss_cc_tab') || 'list'; } catch { return 'list'; } });
   const [leads, setLeads] = useState([]);
   const [callLogs, setCallLogs] = useState({});
   const [loading, setLoading] = useState(true);
   const [expandedLead, setExpandedLead] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [quickFilter, setQuickFilter] = useState('all');
-  const [filterNiche, setFilterNiche] = useState('all');
-  const [filterPriority, setFilterPriority] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchQuery, setSearchQuery] = useState(() => { try { return localStorage.getItem('pmss_cc_search') || ''; } catch { return ''; } });
+  const [quickFilter, setQuickFilter] = useState(() => { try { return localStorage.getItem('pmss_cc_quickFilter') || 'all'; } catch { return 'all'; } });
+  const [filterNiche, setFilterNiche] = useState(() => { try { return localStorage.getItem('pmss_cc_filterNiche') || 'all'; } catch { return 'all'; } });
+  const [filterPriority, setFilterPriority] = useState(() => { try { return localStorage.getItem('pmss_cc_filterPriority') || 'all'; } catch { return 'all'; } });
+  const [filterStatus, setFilterStatus] = useState(() => { try { return localStorage.getItem('pmss_cc_filterStatus') || 'all'; } catch { return 'all'; } });
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [stats, setStats] = useState({ today: 0, week: 0, booked: 0, pending: 0 });
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => { try { localStorage.setItem('pmss_cc_tab', tab); } catch {} }, [tab]);
+  useEffect(() => { try { localStorage.setItem('pmss_cc_search', searchQuery); } catch {} }, [searchQuery]);
+  useEffect(() => { try { localStorage.setItem('pmss_cc_quickFilter', quickFilter); } catch {} }, [quickFilter]);
+  useEffect(() => { try { localStorage.setItem('pmss_cc_filterNiche', filterNiche); } catch {} }, [filterNiche]);
+  useEffect(() => { try { localStorage.setItem('pmss_cc_filterPriority', filterPriority); } catch {} }, [filterPriority]);
+  useEffect(() => { try { localStorage.setItem('pmss_cc_filterStatus', filterStatus); } catch {} }, [filterStatus]);
 
   const loadLeads = async () => {
     setLoading(true);
@@ -5341,7 +5559,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
     while (true) {
       let query = sb.from('leads').select('*');
       if (!isDirector) query = query.eq('assigned_rep_id', repId);
-      query = query.order('google_reviews', { ascending: true }).range(from, from + 999);
+      query = query.order('google_reviews', { ascending: true }).order('id', { ascending: true }).range(from, from + 999);
       const { data, error } = await query;
       if (error || !data || data.length === 0) break;
       allLeads = allLeads.concat(data);
@@ -5352,7 +5570,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
     if (allLeads.length > 0) {
       let allLogs = [], logFrom = 0;
       while (true) {
-        const { data: logsData } = await sb.from('call_logs').select('*').order('created_at', { ascending: false }).range(logFrom, logFrom + 999);
+        const { data: logsData } = await sb.from('call_logs').select('*').eq('rep_id', repId).order('created_at', { ascending: false }).range(logFrom, logFrom + 999);
         if (!logsData || logsData.length === 0) break;
         allLogs = allLogs.concat(logsData);
         if (logsData.length < 1000) break;
@@ -5396,12 +5614,16 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
   useEffect(() => { loadLeads(); loadStats(); loadCalendar(); }, []);
 
   const handleLogged = (leadId, outcome, newStatus) => {
+    const loggedLead = leads.find(l => l.id === leadId);
+    const bizName = loggedLead ? loggedLead.business_name : 'Lead';
     setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: newStatus } : l));
     setCallLogs(prev => {
       const newLog = { id: Date.now().toString(), lead_id: leadId, rep_id: repId, outcome, created_at: new Date().toISOString() };
       return { ...prev, [leadId]: [newLog, ...(prev[leadId] || [])] };
     });
     loadStats();
+    setToast({ message: 'Logged: ' + (OUTCOME_LABELS[outcome] || outcome) + ' — ' + bizName, type: 'success' });
+    setTimeout(() => setToast(null), 3000);
   };
 
   const priorityOrder = { HOT: 0, HIGH: 1, MEDIUM: 2 };
@@ -5434,7 +5656,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
     .filter(l => filterNiche === 'all' || l.niche === filterNiche)
     .filter(l => filterPriority === 'all' || l.priority === filterPriority)
     .filter(l => filterStatus === 'all' || l.status === filterStatus)
-    .sort((a, b) => (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2));
+    .sort((a, b) => (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2) || a.id.localeCompare(b.id));
 
   const bookingRate = stats.today > 0 ? Math.round((stats.booked / stats.week) * 100) : 0;
 
@@ -5443,6 +5665,17 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
       <TopBar title="Call Center" subtitle="Your calling command center"
         userName={userName} userEmail={userEmail} onHome={onHome} onLogout={onLogout}
         totalCloses={totalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/>
+      {toast && (
+        <div style={{
+          position:'fixed', top: shadowMode ? '76px' : '36px', left:'50%', transform:'translateX(-50%)',
+          background: toast.type === 'error' ? '#ff4444' : '#22c55e', color:'#000', padding:'10px 24px', borderRadius:'8px',
+          fontFamily:'Inter, sans-serif', fontWeight:600, fontSize:'13px',
+          zIndex:450, boxShadow:'0 4px 12px rgba(0,0,0,.3)',
+          animation:'fadein .3s'
+        }}>
+          {toast.message}
+        </div>
+      )}
       <main className="section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'1100px', width:'100%', margin:'0 auto'}}>
         <div style={{marginBottom:'6px'}}><span className="tag">Command Center</span></div>
         <h2 style={{fontSize:'26px', fontWeight:900, color:'#fff', margin:'8px 0 4px'}}>Call Center</h2>
@@ -5451,7 +5684,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
 
         {/* Tab Switcher */}
         <div style={{display:'flex', gap:'6px', marginBottom:'20px', flexWrap:'wrap'}}>
-          {[['list','Today\'s List'],['quicklog','Quick Log'],['callbacks','Callbacks Due'],['calendar','Calendar'],['stats','My Stats']].map(([key, label]) => (
+          {[['list','All Leads'],['mycalls','My Calls'],['quicklog','Quick Log'],['callbacks','Callbacks Due'],['calendar','Calendar'],['stats','My Stats']].map(([key, label]) => (
             <button key={key} className={`call-tab${tab===key?' active':''}`} onClick={()=>setTab(key)}>
               {label}
               {key === 'callbacks' && callbackLeads.length > 0 && (
@@ -5485,7 +5718,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
 
                 {/* Quick Filter Buttons */}
                 <div style={{display:'flex', gap:'6px', marginBottom:'14px', flexWrap:'wrap'}}>
-                  {[['all','All'],['HOT','HOT'],['HIGH','HIGH'],['MEDIUM','MEDIUM'],['callbacks','Callbacks'],['new','New']].map(([key, label]) => {
+                  {[['all','All'],['HOT','HOT'],['HIGH','HIGH'],['MEDIUM','MEDIUM'],['callbacks','Callbacks'],['new','Not Called']].map(([key, label]) => {
                     const isActive = quickFilter === key;
                     const colors = { HOT:'#ff6060', HIGH:'#F59E0B', MEDIUM:'#3B82F6', callbacks:'#A855F7', new:'#22c55e' };
                     const accentColor = colors[key] || '#00F0FF';
@@ -5548,10 +5781,45 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                         onToggle={(id) => setExpandedLead(expandedLead === id ? null : id)}
                         onLogged={handleLogged}
                         callLogs={callLogs[lead.id] || []}
-                        shadowMode={shadowMode}/>
+                        shadowMode={shadowMode}
+                        repPhone={repPhone}/>
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* MY CALLS — Rep's call history */}
+            {tab === 'mycalls' && (
+              <div className="fadein">
+                {(() => {
+                  const allMyLogs = Object.values(callLogs).flat().filter(log => log.rep_id === repId || !isDirector).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+                  if (allMyLogs.length === 0) return (
+                    <div className="card" style={{padding:'40px', textAlign:'center'}}>
+                      <p style={{color:'#444', fontSize:'14px', margin:0}}>No calls logged yet. Start dialing.</p>
+                    </div>
+                  );
+                  return (
+                    <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                      {allMyLogs.map(log => {
+                        const logLead = leads.find(l => l.id === log.lead_id);
+                        const bizName = log.business_name || (logLead ? logLead.business_name : 'Unknown');
+                        return (
+                          <div key={log.id} style={{padding:'14px 18px', background:'#0a0a0a', borderBottom:'1px solid #1e1e1e', borderRadius:'8px'}}>
+                            <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom: log.notes ? '8px' : '0'}}>
+                              <div style={{width:'8px', height:'8px', borderRadius:'50%', background: OUTCOME_COLORS[log.outcome] || '#555', flexShrink:0}}/>
+                              <span style={{fontSize:'13px', fontWeight:700, color:'#fff'}}>{bizName}</span>
+                              <span style={{fontSize:'10px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:`${OUTCOME_COLORS[log.outcome] || '#555'}15`, color: OUTCOME_COLORS[log.outcome] || '#555', letterSpacing:'.05em', textTransform:'uppercase'}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
+                              <span style={{fontSize:'11px', color:'#444', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString()} {new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                              {log.callback_date && <span style={{fontSize:'10px', color:'#F59E0B', fontWeight:600}}>CB: {log.callback_date}</span>}
+                            </div>
+                            {log.notes && <p style={{margin:0, fontSize:'12px', color:'#aaa', lineHeight:'1.5', wordBreak:'break-word'}}>{log.notes}</p>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
@@ -5581,7 +5849,8 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                         onToggle={(id) => setExpandedLead(expandedLead === id ? null : id)}
                         onLogged={handleLogged}
                         callLogs={callLogs[lead.id] || []}
-                        shadowMode={shadowMode}/>
+                        shadowMode={shadowMode}
+                        repPhone={repPhone}/>
                     ))}
                   </div>
                 )}
@@ -5592,9 +5861,9 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
             {tab === 'calendar' && (
               <div className="fadein">
                 {!CALENDAR_ENDPOINT ? (
-                  <div className="card" style={{padding:'40px', textAlign:'center'}}>
-                    <p style={{color:'#444', fontSize:'14px', margin:'0 0 8px'}}>Calendar endpoint not configured yet.</p>
-                    <p style={{color:'#333', fontSize:'12px', margin:0}}>Once the Google Apps Script is deployed, booked calls will appear here.</p>
+                  <div style={{padding:'40px 20px', textAlign:'center', color:'#555'}}>
+                    <div style={{fontSize:'14px', fontWeight:600, marginBottom:'8px'}}>Calendar — Coming Soon</div>
+                    <div style={{fontSize:'12px', color:'#444'}}>Google Calendar integration is being built. Callbacks are tracked in the Callbacks Due tab.</div>
                   </div>
                 ) : calendarEvents.length === 0 ? (
                   <div className="card" style={{padding:'40px', textAlign:'center'}}>
@@ -6081,10 +6350,12 @@ const AllLeadsTable = ({ reps }) => {
     setSaving(true);
     if (formData.id) {
       const { id, reps: _, created_at, updated_at, ...updates } = formData;
-      await sb.from('leads').update(updates).eq('id', id);
+      const { error } = await sb.from('leads').update(updates).eq('id', id);
+      if (error) { alert('Failed to update lead: ' + error.message); setSaving(false); return; }
     } else {
       const { id, reps: _, ...newLead } = formData;
-      await sb.from('leads').insert(newLead);
+      const { error } = await sb.from('leads').insert(newLead);
+      if (error) { alert('Failed to create lead: ' + error.message); setSaving(false); return; }
     }
     setEditingLead(null);
     setSaving(false);
@@ -6399,7 +6670,7 @@ const LeadAssignmentTool = ({ reps, isDirector, currentRepId }) => {
     setLoading(true);
     let all = [], from = 0;
     while (true) {
-      let query = sb.from('leads').select('*, reps(name)').order('google_reviews', { ascending: true });
+      let query = sb.from('leads').select('*, reps(name)').order('google_reviews', { ascending: true }).order('id', { ascending: true });
       if (!isDirector) query = query.eq('assigned_rep_id', currentRepId);
       query = query.range(from, from + 999);
       const { data } = await query;
@@ -7007,12 +7278,13 @@ const CallLogTab = ({ callLogs, repId }) => {
 
   const outcomes = [
     { value: 'no_answer', label: 'No Answer', color: '#555' },
-    { value: 'voicemail', label: 'Left Voicemail', color: '#F59E0B' },
-    { value: 'spoke', label: 'Spoke \u2014 Not Interested', color: '#ef4444' },
-    { value: 'callback', label: 'Callback Requested', color: '#a855f7' },
-    { value: 'interested', label: 'Interested', color: '#22c55e' },
-    { value: 'booked', label: 'Call Booked', color: '#00F0FF' },
-    { value: 'opted_out', label: 'Opted Out / Do Not Call', color: '#ef4444' },
+    { value: 'voicemail_left', label: 'Left Voicemail', color: '#F59E0B' },
+    { value: 'callback_requested', label: 'Callback Requested', color: '#a855f7' },
+    { value: 'not_interested', label: 'Not Interested', color: '#ef4444' },
+    { value: 'booked_call', label: 'Call Booked', color: '#00F0FF' },
+    { value: 'wrong_number', label: 'Wrong Number', color: '#888' },
+    { value: 'discovery_completed', label: 'Discovery Completed', color: '#22c55e' },
+    { value: 'no_show', label: 'No Show', color: '#F59E0B' },
   ];
 
   const niches = ['Cleaning','Landscaping','Plumbing','Window Washing','Pressure Washing','Construction','HVAC','Roofing','Electrical','Painting','Pest Control','Moving','Auto Detailing','Flooring','Pool Cleaning'];
@@ -7032,7 +7304,7 @@ const CallLogTab = ({ callLogs, repId }) => {
     });
     localStorage.setItem('pmss_call_logs', JSON.stringify(logs));
     try {
-      await sb.from('call_logs').insert({
+      const { error: clErr } = await sb.from('call_logs').insert({
         business_name: callBiz.trim(),
         niche: callNiche,
         outcome: callOutcome,
@@ -7040,7 +7312,8 @@ const CallLogTab = ({ callLogs, repId }) => {
         call_date: callDate,
         rep_id: repId,
       });
-    } catch {}
+      if (clErr) { alert('Failed to save call log: ' + clErr.message); setSaving(false); return; }
+    } catch (err) { alert('Failed to save call log: ' + (err.message || 'Unknown error')); setSaving(false); return; }
     setCallBiz(''); setCallNotes(''); setCallOutcome('no_answer');
     setSaving(false);
     setShowForm(false);
@@ -7052,11 +7325,11 @@ const CallLogTab = ({ callLogs, repId }) => {
 
   const totalCalls = allLogs.length;
   const todayCalls = allLogs.filter(l => l.call_date === new Date().toISOString().split('T')[0] || l.created_at?.startsWith(new Date().toISOString().split('T')[0])).length;
-  const interestedCalls = allLogs.filter(l => l.outcome === 'interested' || l.outcome === 'booked').length;
-  const bookedCalls = allLogs.filter(l => l.outcome === 'booked').length;
+  const interestedCalls = allLogs.filter(l => l.outcome === 'discovery_completed' || l.outcome === 'booked_call').length;
+  const bookedCalls = allLogs.filter(l => l.outcome === 'booked_call').length;
 
-  const outcomeColors = { no_answer:'#555', voicemail:'#F59E0B', spoke:'#ef4444', callback:'#a855f7', interested:'#22c55e', booked:'#00F0FF', opted_out:'#ef4444' };
-  const outcomeLabels = { no_answer:'No Answer', voicemail:'Voicemail', spoke:'Not Interested', callback:'Callback', interested:'Interested', booked:'Booked', opted_out:'Opted Out' };
+  const outcomeColors = { no_answer:'#555', voicemail_left:'#F59E0B', callback_requested:'#a855f7', not_interested:'#ef4444', booked_call:'#00F0FF', wrong_number:'#888', discovery_completed:'#22c55e', no_show:'#F59E0B' };
+  const outcomeLabels = { no_answer:'No Answer', voicemail_left:'Voicemail', callback_requested:'Callback', not_interested:'Not Interested', booked_call:'Booked', wrong_number:'Wrong Number', discovery_completed:'Discovery Completed', no_show:'No Show' };
 
   return (
     <div>
@@ -7158,6 +7431,61 @@ const CallLogTab = ({ callLogs, repId }) => {
             );
           })}
         </div>
+      )}
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════════════════════
+   REP PHONE EDITOR — Inline phone management for Director
+══════════════════════════════════════════════════════ */
+const RepPhoneEditor = ({ repId, currentPhone }) => {
+  const [editing, setEditing] = useState(false);
+  const [phone, setPhone] = useState(currentPhone);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    const { error } = await sb.from('reps').update({ phone: phone || null }).eq('id', repId);
+    setSaving(false);
+    if (error) { alert('Failed to save phone: ' + error.message); return; }
+    setSaved(true);
+    setEditing(false);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  return (
+    <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'10px', padding:'6px 0'}} onClick={e=>e.stopPropagation()}>
+      <span style={{fontSize:'9px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', minWidth:'60px'}}>Phone</span>
+      {editing ? (
+        <>
+          <input type="tel" value={phone} onChange={e=>setPhone(e.target.value)} placeholder="+1234567890"
+            style={{flex:1, maxWidth:'180px', padding:'5px 10px', background:'#111', border:'1px solid #333', borderRadius:'6px', color:'#fff', fontSize:'12px', fontFamily:'JetBrains Mono,monospace', outline:'none'}}
+            onFocus={e=>e.currentTarget.style.borderColor='rgba(0,240,255,.4)'}
+            onBlur={e=>e.currentTarget.style.borderColor='#333'}/>
+          <button onClick={handleSave} disabled={saving}
+            style={{padding:'4px 12px', borderRadius:'5px', cursor:'pointer', border:'1px solid rgba(0,240,255,.3)', background:'rgba(0,240,255,.08)', color:'#00F0FF', fontSize:'10px', fontWeight:700, fontFamily:'Inter,sans-serif'}}>
+            {saving ? '...' : 'Save'}
+          </button>
+          <button onClick={()=>{setEditing(false); setPhone(currentPhone);}}
+            style={{padding:'4px 8px', borderRadius:'5px', cursor:'pointer', border:'1px solid #333', background:'transparent', color:'#555', fontSize:'10px', fontWeight:700, fontFamily:'Inter,sans-serif'}}>
+            ×
+          </button>
+        </>
+      ) : (
+        <>
+          <span style={{fontSize:'12px', color: phone ? '#ccc' : '#555', fontFamily:'JetBrains Mono,monospace'}}>
+            {phone || 'No phone set'}
+          </span>
+          <button onClick={()=>setEditing(true)}
+            style={{padding:'3px 8px', borderRadius:'4px', cursor:'pointer', border:'1px solid #1e1e1e', background:'transparent', color:'#555', fontSize:'9px', fontWeight:700, fontFamily:'Inter,sans-serif', transition:'all .15s'}}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(0,240,255,.3)'; e.currentTarget.style.color='#00F0FF';}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor='#1e1e1e'; e.currentTarget.style.color='#555';}}>
+            Edit
+          </button>
+          {saved && <span style={{fontSize:'9px', color:'#22c55e', fontWeight:700}}>Saved</span>}
+        </>
       )}
     </div>
   );
@@ -7353,6 +7681,8 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                           <span style={{fontSize:'9px', fontWeight:700, padding:'3px 10px', borderRadius:'20px', background: tier.badge.bg, border:`1px solid ${tier.badge.border}`, color: tier.badge.color, fontFamily:'JetBrains Mono,monospace', letterSpacing:'.05em'}}>{tier.name}</span>
                         </div>
                       </div>
+                      {/* Rep Phone Management */}
+                      <RepPhoneEditor repId={rep.id} currentPhone={rep.phone || ''}/>
                       <div className="dir-rep-stats" style={{display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'10px', marginBottom:'12px'}}>
                         <div style={{background:'#0a0a0a', border:'1px solid #1a1a1a', borderRadius:'8px', padding:'10px 12px', textAlign:'center'}}>
                           <p style={{margin:0, fontSize:'18px', fontWeight:800, color:'#fff', fontFamily:'monospace'}}>{rep.totalCloses}</p>
@@ -7852,6 +8182,7 @@ const App = () => {
   const [closeHistory, setCloseHistory] = useState([]);
   const [scriptTab, setScriptTab]     = useState('openers');
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [repPhone, setRepPhone]   = useState(null);
   const [globalSidebarOpen, setGlobalSidebarOpen] = useState(false);
   const [viewAsRep, setViewAsRep] = useState(() => { try { return localStorage.getItem('pmss_viewAsRep') === 'true'; } catch { return false; } });
   useEffect(() => { try { localStorage.setItem('pmss_viewAsRep', viewAsRep); } catch {} }, [viewAsRep]);
@@ -7884,6 +8215,7 @@ const App = () => {
           if (repData) {
             setUserName(repData.name); setUserEmail(repData.email);
             setUserRole(repData.role); setRepId(repData.id);
+            setRepPhone(repData.phone || null);
             await loadCloses(repData.id);
             // Load all reps for shadow view if director
             if (repData.role === 'director') {
@@ -7900,6 +8232,39 @@ const App = () => {
     };
     init();
   }, []);
+
+  // A2: Auth state change listener — detect sign-outs and expired sessions
+  useEffect(() => {
+    const { data: { subscription } } = sb.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        setUserName(''); setUserEmail(''); setRepId(null); setUserRole('rep');
+        setView('login');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // A3: Visibility change handler — re-check session when app comes back to foreground (mobile)
+  useEffect(() => {
+    const handleVis = async () => {
+      if (document.visibilityState === 'visible' && repId) {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) { handleLogout(); }
+      }
+    };
+    document.addEventListener('visibilitychange', handleVis);
+    return () => document.removeEventListener('visibilitychange', handleVis);
+  }, [repId]);
+
+  // A4: 10-minute heartbeat — verify session is still alive
+  useEffect(() => {
+    if (!repId) return;
+    const interval = setInterval(async () => {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) handleLogout();
+    }, 10 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [repId]);
 
   // Keyboard Shortcuts
   useEffect(() => {
@@ -7933,7 +8298,8 @@ const App = () => {
     setTotalCloses(c => c + 1); setTotalPoints(p => p + pts); setLastClosePts(pts);
     const label = PRODUCT_LABELS[pts] || 'Unknown';
     if (repId) {
-      const { data } = await sb.from('closes').insert({ rep_id: repId, pts, product_label: label }).select().single();
+      const { data, error: closeErr } = await sb.from('closes').insert({ rep_id: repId, pts, product_label: label }).select().single();
+      if (closeErr) { alert('Failed to save close: ' + closeErr.message); setTotalCloses(c => c - 1); setTotalPoints(p => p - pts); return; }
       setCloseHistory(h => { const n = [...h, { pts, id: data?.id }]; try { localStorage.setItem('pmss_history', JSON.stringify(n)); } catch {} return n; });
     } else {
       setCloseHistory(h => { const n = [...h, { pts }]; try { localStorage.setItem('pmss_history', JSON.stringify(n)); } catch {} return n; });
@@ -8012,7 +8378,7 @@ const App = () => {
   const shadowUndoClose = () => {};
 
   const toggleSidebar = () => setGlobalSidebarOpen(s => !s);
-  const shared = { userName: shadowMode ? shadowRepName : userName, userEmail, onHome: handleHome, onLogout: handleLogout, totalCloses, setTotalCloses, totalPoints, addClose: shadowMode ? shadowAddClose : addClose, undoClose: shadowMode ? shadowUndoClose : undoClose, closeHistory, repId: effectiveRepId, isDirector: effectiveIsDirector, onToggleSidebar: toggleSidebar, actuallyDirector, viewAsRep, onToggleView: () => { if (shadowMode) { exitShadow(); } else { setViewAsRep(v => !v); } }, shadowMode, shadowRepId, shadowRepName, allReps, enterShadow, exitShadow };
+  const shared = { userName: shadowMode ? shadowRepName : userName, userEmail, onHome: handleHome, onLogout: handleLogout, totalCloses, setTotalCloses, totalPoints, addClose: shadowMode ? shadowAddClose : addClose, undoClose: shadowMode ? shadowUndoClose : undoClose, closeHistory, repId: effectiveRepId, isDirector: effectiveIsDirector, onToggleSidebar: toggleSidebar, actuallyDirector, viewAsRep, onToggleView: () => { if (shadowMode) { exitShadow(); } else { setViewAsRep(v => !v); } }, shadowMode, shadowRepId, shadowRepName, allReps, enterShadow, exitShadow, repPhone };
   const chat   = <ChatWidget userName={userName} userEmail={userEmail} currentView={view} repId={repId} userRole={userRole} />;
   const shortcuts = showShortcuts ? <ShortcutsModal onClose={() => setShowShortcuts(false)} /> : null;
   const sidebar = view !== 'login' ? <GlobalSidebar open={globalSidebarOpen} onClose={()=>setGlobalSidebarOpen(false)} onNav={handleNav} currentView={view} isDirector={effectiveIsDirector}/> : null;
