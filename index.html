@@ -452,11 +452,10 @@
     @media (max-width: 768px) {
       .cc-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
       .cc-filter-bar { flex-direction: column !important; }
-      .lead-row-header { flex-direction: column !important; align-items: flex-start !important; gap: 8px !important; }
-      .lead-row-header > div { flex-wrap: wrap !important; width: 100% !important; }
-      .lead-row-header > div:first-child { gap: 6px !important; }
-      .lead-row-header > div:first-child > span:nth-child(2) { white-space: normal !important; word-break: break-word !important; flex: 1 1 60% !important; }
-      .niche-badge { flex-shrink: 0 !important; }
+      .lead-row-header { flex-direction: column !important; align-items: flex-start !important; gap: 6px !important; }
+      .lead-row-header > div { width: 100% !important; flex-wrap: wrap !important; gap: 6px !important; }
+      .lead-row-header > div:first-child > span:nth-child(2) { flex-basis: 100% !important; white-space: normal !important; word-break: break-word !important; }
+      .lead-row-header > div:last-child { gap: 8px !important; }
     }
 
     @media print {
@@ -5650,7 +5649,9 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
     return logs.some(log => log.callback_date && log.callback_date <= today);
   });
 
-  const filteredLeads = leads
+  // "To Call" tab only shows uncalled leads; other tabs show all
+  const tabBaseLeads = tab === 'list' ? leads.filter(l => l.status === 'new') : leads;
+  const filteredLeads = tabBaseLeads
     .filter(l => {
       if (!searchQuery) return true;
       const q = searchQuery.toLowerCase();
@@ -5674,6 +5675,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
     .filter(l => filterPriority === 'all' || l.priority === filterPriority)
     .filter(l => filterStatus === 'all' || l.status === filterStatus)
     .sort((a, b) => (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2) || a.id.localeCompare(b.id));
+  const bookedLeads = leads.filter(l => l.status === 'booked' || l.status === 'discovery_completed');
 
   const bookingRate = stats.today > 0 ? Math.round((stats.booked / stats.week) * 100) : 0;
 
@@ -5701,7 +5703,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
 
         {/* Tab Switcher */}
         <div style={{display:'flex', gap:'6px', marginBottom:'20px', flexWrap:'wrap'}}>
-          {[['list','All Leads'],['mycalls','My Calls'],['quicklog','Quick Log'],['callbacks','Callbacks Due'],['calendar','Calendar'],['stats','My Stats']].map(([key, label]) => (
+          {[['list','To Call'],['mycalls','Called'],['quicklog','Manual Log'],['callbacks','Follow Up'],['calendar','Booked'],['stats','My Stats']].map(([key, label]) => (
             <button key={key} className={`call-tab${tab===key?' active':''}`} onClick={()=>setTab(key)}>
               {label}
               {key === 'callbacks' && callbackLeads.length > 0 && (
