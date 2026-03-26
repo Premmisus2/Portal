@@ -656,7 +656,7 @@ const DIRECTOR_EMAILS = ['elliott@premmisus.ca', 'elliott@premmisus.com'];
 const PRODUCT_LABELS = { 1:'Website Package', 2:'Foundation 1.0', 3:'Authority System 2.0', 4:'Market Domination 3.0' };
 const CALL_LOG_WEBHOOK = 'https://script.google.com/macros/s/AKfycbz2gylsLejcBUe1zjSkuJmE8tWUFcMfqNVzV0ZF-cfCe9tk5U-Feq2SI20xQX1kRQ/exec';
 const CALENDAR_ENDPOINT = ''; // TODO: Connect to Google Calendar API for booked call creation
-const OUTCOME_LABELS = { no_answer:'No Answer', voicemail_left:'Voicemail Left', callback_requested:'Callback Requested', not_interested:'Not Interested', booked_call:'Booked Call', discovery_completed:'Discovery Completed', no_show:'No Show', wrong_number:'Wrong Number' };
+const OUTCOME_LABELS = { no_answer:'No Answer', voicemail_left:'Voicemail Left', callback_requested:'Callback Requested', not_interested:'Not Interested', booked_call:'Booked Call', discovery_completed:'Discovery Booked', no_show:'No Show', wrong_number:'Wrong Number' };
 const OUTCOME_COLORS = { no_answer:'#555', voicemail_left:'#F59E0B', callback_requested:'#F59E0B', not_interested:'#ff6060', booked_call:'#22c55e', discovery_completed:'#00F0FF', no_show:'#ff8800', wrong_number:'#ff6060' };
 const NICHE_LIST = ['Cleaning','Construction','Construction & Handyman','Electrical','Fencing','Flooring','Junk Removal','Landscaping','Moving','Painting','Plumbing','Pressure Washing','Roofing','Snow Removal','Window Washing'];
 
@@ -5885,7 +5885,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                     <option value="contacted">Contacted</option>
                     <option value="callback">Callback</option>
                     <option value="booked">Booked</option>
-                    <option value="discovery_completed">Discovery Done</option>
+                    <option value="discovery_completed">Discovery Booked</option>
                     <option value="no_show">No Show</option>
                     <option value="not_interested">Not Interested</option>
                   </select>
@@ -6083,7 +6083,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                     <option value="contacted">Contacted</option>
                     <option value="callback">Callback</option>
                     <option value="booked">Booked</option>
-                    <option value="discovery_completed">Discovery Done</option>
+                    <option value="discovery_completed">Discovery Booked</option>
                     <option value="no_show">No Show</option>
                     <option value="not_interested">Not Interested</option>
                   </select>
@@ -6232,7 +6232,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                               border: `1px solid ${lead.status === 'discovery_completed' ? 'rgba(0,240,255,.25)' : 'rgba(34,197,94,.25)'}`,
                               color: lead.status === 'discovery_completed' ? '#00F0FF' : '#22c55e',
                               letterSpacing:'.05em', textTransform:'uppercase'}}>
-                              {lead.status === 'discovery_completed' ? 'Discovery Done' : 'Booked'}
+                              {lead.status === 'discovery_completed' ? 'Discovery Booked' : 'Booked'}
                             </span>
                             {lead._bookingType && (
                               <span style={{fontSize:'9px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:'rgba(255,255,255,.04)', border:'1px solid #1e1e1e', color:'#888', letterSpacing:'.05em'}}>
@@ -6849,7 +6849,7 @@ const AllLeadsTable = ({ reps }) => {
 
   const groupColorMap = { HOT:'#ff6060', HIGH:'#F59E0B', MEDIUM:'#888' };
 
-  const statusLabels = { new:'New', contacted:'Contacted', callback:'Callback', not_interested:'Not Interested', booked:'Booked', discovery_completed:'Discovery Done', no_show:'No Show', wrong_number:'Wrong Number', voicemail:'Voicemail' };
+  const statusLabels = { new:'New', contacted:'Contacted', callback:'Callback', not_interested:'Not Interested', booked:'Booked', discovery_completed:'Discovery Booked', no_show:'No Show', wrong_number:'Wrong Number', voicemail:'Voicemail' };
   const statusColors = { new:'#00F0FF', contacted:'#F59E0B', callback:'#F59E0B', not_interested:'#ff6060', booked:'#22c55e', discovery_completed:'#00F0FF', no_show:'#ff8800', wrong_number:'#ff6060', voicemail:'#888' };
 
   const thStyle = (col) => ({
@@ -7295,7 +7295,7 @@ const LeadAssignmentTool = ({ reps, isDirector, currentRepId }) => {
 
   const uniqueCities = [...new Set(leads.map(l => l.city).filter(Boolean))].sort();
   const uniqueSourceTags = [...new Set(leads.map(l => l.source_tag).filter(Boolean))].sort();
-  const statusLabels = { new:'New', contacted:'Contacted', callback:'Callback', not_interested:'Not Interested', booked:'Booked', discovery_completed:'Discovery Done', no_show:'No Show', wrong_number:'Wrong Number', voicemail:'Voicemail' };
+  const statusLabels = { new:'New', contacted:'Contacted', callback:'Callback', not_interested:'Not Interested', booked:'Booked', discovery_completed:'Discovery Booked', no_show:'No Show', wrong_number:'Wrong Number', voicemail:'Voicemail' };
 
   const filtered = leads
     .filter(l => filterNiche === 'all' || l.niche === filterNiche)
@@ -7625,7 +7625,7 @@ const PipelineFunnelView = ({ leads, reps }) => {
     { key: 'contacted', label: 'Contacted', color: '#F59E0B', statuses: ['contacted', 'voicemail'] },
     { key: 'callback', label: 'Callback', color: '#F59E0B', statuses: ['callback'] },
     { key: 'booked', label: 'Booked', color: '#22c55e', statuses: ['booked'] },
-    { key: 'discovery', label: 'Discovery Done', color: '#00F0FF', statuses: ['discovery_completed'] },
+    { key: 'discovery', label: 'Discovery Booked', color: '#00F0FF', statuses: ['discovery_completed'] },
     { key: 'noshow', label: 'No Show', color: '#ff8800', statuses: ['no_show'] },
   ];
   const dropoffs = [
@@ -7798,7 +7798,7 @@ const CallLogTab = ({ callLogs, repId }) => {
     { value: 'not_interested', label: 'Not Interested', color: '#ef4444' },
     { value: 'booked_call', label: 'Call Booked', color: '#00F0FF' },
     { value: 'wrong_number', label: 'Wrong Number', color: '#888' },
-    { value: 'discovery_completed', label: 'Discovery Completed', color: '#22c55e' },
+    { value: 'discovery_completed', label: 'Discovery Booked', color: '#22c55e' },
     { value: 'no_show', label: 'No Show', color: '#F59E0B' },
   ];
 
@@ -7844,7 +7844,7 @@ const CallLogTab = ({ callLogs, repId }) => {
   const bookedCalls = allLogs.filter(l => l.outcome === 'booked_call').length;
 
   const outcomeColors = { no_answer:'#555', voicemail_left:'#F59E0B', callback_requested:'#a855f7', not_interested:'#ef4444', booked_call:'#00F0FF', wrong_number:'#888', discovery_completed:'#22c55e', no_show:'#F59E0B' };
-  const outcomeLabels = { no_answer:'No Answer', voicemail_left:'Voicemail', callback_requested:'Callback', not_interested:'Not Interested', booked_call:'Booked', wrong_number:'Wrong Number', discovery_completed:'Discovery Completed', no_show:'No Show' };
+  const outcomeLabels = { no_answer:'No Answer', voicemail_left:'Voicemail', callback_requested:'Callback', not_interested:'Not Interested', booked_call:'Booked', wrong_number:'Wrong Number', discovery_completed:'Discovery Booked', no_show:'No Show' };
 
   return (
     <div>
@@ -8244,14 +8244,14 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
               const connectRate = repCalls.length > 0 ? Math.round((connects / repCalls.length) * 100) : 0;
               const bookings = repCalls.filter(cl => cl.outcome === 'booked_call' || cl.outcome === 'booked' || cl.outcome === 'discovery_completed').length;
               const daysActive = Math.max(1, Math.ceil((Date.now() - new Date(rep.created_at).getTime()) / 86400000));
-              const outcomeLabels = { no_answer:'No Answer', voicemail_left:'Voicemail', callback_requested:'Callback', not_interested:'Not Interested', booked_call:'Booked Call', discovery_completed:'Discovery Done', no_show:'No Show', wrong_number:'Wrong Number' };
+              const outcomeLabels = { no_answer:'No Answer', voicemail_left:'Voicemail', callback_requested:'Callback', not_interested:'Not Interested', booked_call:'Booked Call', discovery_completed:'Discovery Booked', no_show:'No Show', wrong_number:'Wrong Number' };
               const outcomeColors = { no_answer:'#555', voicemail_left:'#F59E0B', callback_requested:'#F59E0B', not_interested:'#ff6060', booked_call:'#22c55e', discovery_completed:'#00F0FF', no_show:'#ff8800', wrong_number:'#ff6060' };
               const outcomeCounts = {};
               repCalls.forEach(cl => { const o = cl.outcome || 'unknown'; outcomeCounts[o] = (outcomeCounts[o] || 0) + 1; });
               const maxOutcome = Math.max(1, ...Object.values(outcomeCounts));
               const leadsByStatus = {};
               repLeads.forEach(l => { const s = l.status || 'new'; leadsByStatus[s] = (leadsByStatus[s] || 0) + 1; });
-              const statusLabels = { new:'New', contacted:'Contacted', callback:'Callback', booked:'Booked', not_interested:'Not Interested', discovery_completed:'Discovery Done', no_show:'No Show', wrong_number:'Wrong Number', voicemail:'Voicemail' };
+              const statusLabels = { new:'New', contacted:'Contacted', callback:'Callback', booked:'Booked', not_interested:'Not Interested', discovery_completed:'Discovery Booked', no_show:'No Show', wrong_number:'Wrong Number', voicemail:'Voicemail' };
               const statusColors = { new:'#00F0FF', contacted:'#F59E0B', callback:'#a855f7', booked:'#22c55e', not_interested:'#ff6060', discovery_completed:'#00F0FF', no_show:'#ff8800', wrong_number:'#ff6060', voicemail:'#888' };
 
               return (
@@ -8503,7 +8503,7 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                   // Merge call logs, handoffs, and recent leads into a single timeline
                   const events = [];
                   filteredCallLogs.forEach(cl => {
-                    const outcomeLabels = { no_answer:'No Answer', voicemail_left:'Voicemail', callback_requested:'Callback', not_interested:'Not Interested', booked_call:'Booked Call', discovery_completed:'Discovery Done', no_show:'No Show', wrong_number:'Wrong Number' };
+                    const outcomeLabels = { no_answer:'No Answer', voicemail_left:'Voicemail', callback_requested:'Callback', not_interested:'Not Interested', booked_call:'Booked Call', discovery_completed:'Discovery Booked', no_show:'No Show', wrong_number:'Wrong Number' };
                     const outcomeColors = { no_answer:'#555', voicemail_left:'#888', callback_requested:'#F59E0B', not_interested:'#ff6060', booked_call:'#22c55e', discovery_completed:'#00F0FF', no_show:'#ff8800', wrong_number:'#ff6060' };
                     events.push({
                       type: 'call',
