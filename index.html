@@ -7816,7 +7816,8 @@ const App = () => {
             setUserRole(repData.role); setRepId(repData.id);
             await loadCloses(repData.id);
             try { localStorage.setItem('pmss_user', repData.name); localStorage.setItem('pmss_email', repData.email); } catch {}
-            setView('home');
+            const savedView = (() => { try { return localStorage.getItem('pmss_view') || 'home'; } catch { return 'home'; } })();
+            setView(savedView);
           }
         }
       } catch {}
@@ -7885,12 +7886,23 @@ const App = () => {
     await sb.auth.signOut();
     setUserName(''); setUserEmail(''); setRepId(null); setUserRole('rep');
     setTotalCloses(0); setTotalPoints(0); setCloseHistory([]);
-    try { localStorage.removeItem('pmss_user'); localStorage.removeItem('pmss_email'); } catch {}
+    try { localStorage.removeItem('pmss_user'); localStorage.removeItem('pmss_email'); localStorage.removeItem('pmss_view'); } catch {}
     setView('login');
   };
 
-  const handleHome = () => setView('home');
-  const handleNav  = (key) => setView(key);
+  const handleHome = () => { setView('home'); try { localStorage.setItem('pmss_view', 'home'); } catch {} window.history.pushState({ view: 'home' }, '', ''); };
+  const handleNav  = (key) => { setView(key); try { localStorage.setItem('pmss_view', key); } catch {} window.history.pushState({ view: key }, '', ''); };
+
+  // Back button support
+  useEffect(() => {
+    const onPop = (e) => {
+      const v = e.state?.view || 'home';
+      setView(v);
+      try { localStorage.setItem('pmss_view', v); } catch {}
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
   const actuallyDirector = userRole === 'director';
   const isDirector = actuallyDirector && !viewAsRep;
 
