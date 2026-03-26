@@ -15,7 +15,7 @@ export default async function handler(req: any, res: any) {
   const SID = process.env.TWILIO_ACCOUNT_SID || '';
   const TOKEN = process.env.TWILIO_AUTH_TOKEN || '';
   const FROM = process.env.TWILIO_PHONE_NUMBER || '';
-  const BASE = process.env.BASE_URL || '';
+  const BASE = (process.env.BASE_URL || '').trim();
   const SB_KEY = process.env.SUPABASE_SERVICE_KEY || '';
 
   if (!SID || !TOKEN || !FROM || !BASE) {

@@ -5,7 +5,7 @@
 export default function handler(req: any, res: any) {
   const leadPhone = req.query?.leadPhone || '';
   const leadName = req.query?.leadName || 'the lead';
-  const BASE = process.env.BASE_URL || '';
+  const BASE = (process.env.BASE_URL || '').trim();
 
   if (!leadPhone) {
     res.setHeader('Content-Type', 'application/xml');
