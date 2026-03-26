@@ -1283,6 +1283,13 @@ Next Step: ${form.nextStep}${form.notes ? `\nNotes: ${form.notes}` : ''}`;
     setSending(false);
     if (supabaseOk) {
       setSubmitted(true);
+      // Notification triggers for handoff
+      fetch('/api/notify-sms', { method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ type: 'handoff', repName: userName, businessName: form.company, niche: form.niche, nextStep: form.nextStep, painPoint: form.painPoint })
+      }).catch(() => {});
+      fetch('/api/notify-telegram', { method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ type: 'handoff', repName: userName, businessName: form.company, niche: form.niche, nextStep: form.nextStep, painPoint: form.painPoint })
+      }).catch(() => {});
     } else {
       setSendError('Handoff failed to save. Check your connection and try again.');
     }
@@ -5183,7 +5190,7 @@ const TwilioCallModal = ({ lead, repId, repPhone, onClose, onCallComplete }) => 
 /* ══════════════════════════════════════════════════════
    COLD CALL CENTER — CALL LOGGER (inline form)
 ══════════════════════════════════════════════════════ */
-const CallLogger = ({ lead, repId, onLogged, existingCallLogId }) => {
+const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }) => {
   const [outcome, setOutcome] = useState('');
   const [notes, setNotes] = useState('');
   const [callbackDate, setCallbackDate] = useState('');
@@ -5213,6 +5220,20 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId }) => {
         }).catch(()=>{});
       }
       onLogged(lead.id, outcome, statusMap[outcome]);
+      // Notification triggers
+      if (outcome === 'booked_call' || outcome === 'discovery_completed') {
+        fetch('/api/notify-sms', { method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ type: 'booked', repName: userName || 'Rep', businessName: lead.business_name, phone: lead.phone, notes: notes })
+        }).catch(() => {});
+        fetch('/api/notify-telegram', { method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ type: 'booked', repName: userName || 'Rep', businessName: lead.business_name, phone: lead.phone, notes: notes })
+        }).catch(() => {});
+      }
+      if (outcome === 'callback_requested') {
+        fetch('/api/notify-sms', { method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ type: 'callback', repName: userName || 'Rep', businessName: lead.business_name, notes: notes })
+        }).catch(() => {});
+      }
       setOutcome(''); setNotes(''); setCallbackDate('');
     } catch (err) { console.error('Call log error:', err); alert('Failed to save call log: ' + (err.message || 'Unknown error')); }
     setSaving(false);
@@ -5276,7 +5297,7 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId }) => {
 /* ══════════════════════════════════════════════════════
    COLD CALL CENTER — LEAD ROW
 ══════════════════════════════════════════════════════ */
-const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadowMode, repPhone, setToast, leadNumber }) => {
+const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadowMode, repPhone, setToast, leadNumber, userName }) => {
   const [showQuickLog, setShowQuickLog] = useState(false);
   const [expandedNote, setExpandedNote] = useState(null);
   const [showCallModal, setShowCallModal] = useState(false);
@@ -5350,7 +5371,7 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
       {/* Quick Inline Logger — visible without expanding, hidden in shadow mode */}
       {showQuickLog && !isExpanded && !shadowMode && (
         <div className="fadein" onClick={e=>e.stopPropagation()} style={{marginTop:'12px', padding:'12px 16px', background:'rgba(0,240,255,.02)', borderRadius:'8px', border:'1px solid rgba(0,240,255,.08)'}}>
-          <CallLogger lead={lead} repId={repId} onLogged={(leadId, outcome, newStatus) => { setTwilioCallData(null); onLogged(leadId, outcome, newStatus); setShowQuickLog(false); }} existingCallLogId={twilioCallData?.callLogId || null}/>
+          <CallLogger lead={lead} repId={repId} userName={userName} onLogged={(leadId, outcome, newStatus) => { setTwilioCallData(null); onLogged(leadId, outcome, newStatus); setShowQuickLog(false); }} existingCallLogId={twilioCallData?.callLogId || null}/>
         </div>
       )}
 
@@ -5399,7 +5420,7 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
           )}
 
           {/* Call Logger — hidden in shadow mode */}
-          {!shadowMode && <CallLogger lead={lead} repId={repId} onLogged={(leadId, outcome, newStatus) => { setTwilioCallData(null); onLogged(leadId, outcome, newStatus); }} existingCallLogId={twilioCallData?.callLogId || null}/>}
+          {!shadowMode && <CallLogger lead={lead} repId={repId} userName={userName} onLogged={(leadId, outcome, newStatus) => { setTwilioCallData(null); onLogged(leadId, outcome, newStatus); }} existingCallLogId={twilioCallData?.callLogId || null}/>}
         </div>
       )}
 
@@ -5909,7 +5930,8 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                         shadowMode={shadowMode}
                         repPhone={repPhone}
                         setToast={setToast}
-                        leadNumber={idx + 1}/>
+                        leadNumber={idx + 1}
+                        userName={userName}/>
                     ))}
                   </div>
                 )}
@@ -6114,7 +6136,8 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                               shadowMode={shadowMode}
                               repPhone={repPhone}
                               setToast={setToast}
-                              leadNumber={idx + 1}/>
+                              leadNumber={idx + 1}
+                              userName={userName}/>
                           ))}
                         </>
                       )}
@@ -6132,7 +6155,8 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                               shadowMode={shadowMode}
                               repPhone={repPhone}
                               setToast={setToast}
-                              leadNumber={uncalled.length + idx + 1}/>
+                              leadNumber={uncalled.length + idx + 1}
+                              userName={userName}/>
                           ))}
                         </>
                       )}
@@ -8016,8 +8040,17 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
   const [tab, setTab] = useState('pipeline');
   const [selectedRepId, setSelectedRepId] = useState('all');
   const [selectedRepDetail, setSelectedRepDetail] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(Date.now());
+  const [expandedActivity, setExpandedActivity] = useState(null);
+  const [expandedStatCard, setExpandedStatCard] = useState(null);
 
   useEffect(() => { loadData(); }, []);
+
+  // Auto-refresh every 60 seconds
+  useEffect(() => {
+    const interval = setInterval(() => { loadData(); }, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const loadData = async () => {
     const { data: repsData } = await sb.from('reps').select('*').order('created_at', { ascending: true });
@@ -8044,6 +8077,7 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
     });
     setReps(enriched);
     setHandoffs(handoffsData || []);
+    setLastUpdated(Date.now());
     setLoading(false);
   };
 
@@ -8495,24 +8529,200 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
               <PipelineFunnelView leads={filteredLeads} reps={[...reps, { id: repId, name: userName, role: 'director' }]}/>
             )}
 
-            {/* Activity Feed */}
+            {/* Enhanced Activity Feed */}
             {tab === 'activity' && (
               <div className="fadein">
-                <p style={{fontSize:'10px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'#00F0FF', margin:'0 0 16px'}}>Recent Activity</p>
+                {/* ═══ SECTION A: ALERT BAR ═══ */}
                 {(() => {
-                  // Merge call logs, handoffs, and recent leads into a single timeline
+                  const now = new Date();
+                  const hour = now.getHours();
+                  const alerts = [];
+
+                  // Idle detection (only during business hours 8am-6pm)
+                  if (hour >= 8 && hour <= 18) {
+                    reps.filter(r => r.role !== 'director').forEach(rep => {
+                      const repLogs = callLogs.filter(cl => cl.reps?.name === rep.name || cl.rep_id === rep.id);
+                      const todayRepLogs = repLogs.filter(cl => cl.created_at && cl.created_at.startsWith(today));
+                      const latest = todayRepLogs.sort((a,b) => new Date(b.created_at) - new Date(a.created_at))[0];
+                      if (!latest) {
+                        alerts.push({ severity: 'red', message: `${rep.name} has made zero calls today` });
+                        // One-time idle notification
+                        const idleKey = `pmss_idle_alert_${rep.id}_${today}`;
+                        if (!localStorage.getItem(idleKey)) {
+                          localStorage.setItem(idleKey, 'sent');
+                          fetch('/api/notify-sms', { method: 'POST', headers: {'Content-Type':'application/json'},
+                            body: JSON.stringify({ type: 'idle', repName: rep.name })
+                          }).catch(() => {});
+                          fetch('/api/notify-telegram', { method: 'POST', headers: {'Content-Type':'application/json'},
+                            body: JSON.stringify({ type: 'idle', repName: rep.name })
+                          }).catch(() => {});
+                        }
+                      } else {
+                        const gap = (now - new Date(latest.created_at)) / (1000 * 60);
+                        if (gap > 120) {
+                          const hrs = Math.floor(gap / 60);
+                          const mins = Math.floor(gap % 60);
+                          alerts.push({ severity: 'red', message: `${rep.name} hasn't called in ${hrs}h ${mins}m` });
+                          const idleKey = `pmss_idle_alert_${rep.id}_${today}`;
+                          if (!localStorage.getItem(idleKey)) {
+                            localStorage.setItem(idleKey, 'sent');
+                            fetch('/api/notify-sms', { method: 'POST', headers: {'Content-Type':'application/json'},
+                              body: JSON.stringify({ type: 'idle', repName: rep.name })
+                            }).catch(() => {});
+                            fetch('/api/notify-telegram', { method: 'POST', headers: {'Content-Type':'application/json'},
+                              body: JSON.stringify({ type: 'idle', repName: rep.name })
+                            }).catch(() => {});
+                          }
+                        }
+                      }
+                    });
+                  }
+
+                  // Overdue callbacks
+                  const overdue = allLeads.filter(l => {
+                    const logs = callLogs.filter(cl => cl.lead_id === l.id);
+                    return logs.some(log => log.callback_date && log.callback_date < today);
+                  });
+                  if (overdue.length > 0) {
+                    alerts.push({ severity: 'amber', message: `${overdue.length} overdue callback${overdue.length > 1 ? 's' : ''}` });
+                  }
+
+                  // Recent bookings (last hour)
+                  const oneHourAgo = new Date(now - 60 * 60 * 1000).toISOString();
+                  const recentBookings = callLogs.filter(cl =>
+                    (cl.outcome === 'booked_call' || cl.outcome === 'discovery_completed') &&
+                    cl.created_at > oneHourAgo
+                  );
+                  recentBookings.forEach(b => {
+                    alerts.push({ severity: 'green', message: `${b.reps?.name || 'Rep'} booked a call with ${b.business_name || 'Unknown'}` });
+                  });
+
+                  const severityStyles = {
+                    red: { background: 'rgba(255,96,96,.1)', borderLeft: '3px solid #ff6060', color: '#ff6060' },
+                    amber: { background: 'rgba(245,158,11,.1)', borderLeft: '3px solid #F59E0B', color: '#F59E0B' },
+                    green: { background: 'rgba(34,197,94,.1)', borderLeft: '3px solid #22c55e', color: '#22c55e' },
+                  };
+
+                  if (alerts.length === 0) return null;
+
+                  return (
+                    <div style={{display:'flex', flexDirection:'column', gap:'6px', marginBottom:'20px'}}>
+                      {alerts.map((alert, i) => (
+                        <div key={i} style={{...severityStyles[alert.severity], padding:'10px 14px', borderRadius:'0 8px 8px 0', fontSize:'12px', fontWeight:700}}>
+                          {alert.message}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+
+                {/* ═══ SECTION B: LIVE STATS CARDS ═══ */}
+                {(() => {
+                  const todayCallLogs = filteredCallLogs.filter(cl => cl.created_at && cl.created_at.startsWith(today));
+                  const callsToday = todayCallLogs.length;
+                  const bookingsToday = todayCallLogs.filter(cl => cl.outcome === 'booked_call' || cl.outcome === 'discovery_completed').length;
+                  const connects = todayCallLogs.filter(cl => cl.outcome && cl.outcome !== 'no_answer' && cl.outcome !== 'wrong_number').length;
+                  const connectRate = callsToday > 0 ? Math.round((connects / callsToday) * 100) : 0;
+
+                  const statCards = [
+                    { key: 'calls_today', label: 'Calls Today', value: callsToday, color: '#fff', logs: todayCallLogs },
+                    { key: 'bookings_today', label: 'Bookings Today', value: bookingsToday, color: '#22c55e', logs: todayCallLogs.filter(cl => cl.outcome === 'booked_call' || cl.outcome === 'discovery_completed') },
+                    { key: 'connect_rate', label: 'Connect Rate', value: `${connectRate}%`, color: '#00F0FF', logs: todayCallLogs.filter(cl => cl.outcome && cl.outcome !== 'no_answer' && cl.outcome !== 'wrong_number') },
+                  ];
+
+                  return (
+                    <div style={{marginBottom:'20px'}}>
+                      <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(140px, 1fr))', gap:'10px', marginBottom:'10px'}}>
+                        {statCards.map(sc => (
+                          <div key={sc.key} className="stat-card" style={{cursor:'pointer', transition:'all .15s', borderColor: expandedStatCard === sc.key ? 'rgba(0,240,255,.5)' : 'rgba(0,240,255,.22)'}}
+                            onClick={() => setExpandedStatCard(expandedStatCard === sc.key ? null : sc.key)}>
+                            <p className="stat-label">{sc.label}</p>
+                            <p className="stat-number" style={{color: sc.color}}>{sc.value}</p>
+                          </div>
+                        ))}
+                        {/* Active Now card */}
+                        <div className="stat-card" style={{borderColor:'rgba(0,240,255,.22)'}}>
+                          <p className="stat-label">Active Now</p>
+                          <div style={{display:'flex', flexDirection:'column', gap:'6px', marginTop:'6px'}}>
+                            {reps.filter(r => r.role !== 'director').map(rep => {
+                              const repLastCall = callLogs.filter(cl => cl.rep_id === rep.id).sort((a,b) => new Date(b.created_at) - new Date(a.created_at))[0];
+                              const isActive = repLastCall && ((Date.now() - new Date(repLastCall.created_at).getTime()) < 30 * 60 * 1000);
+                              return (
+                                <div key={rep.id} style={{display:'flex', alignItems:'center', gap:'6px'}}>
+                                  <div style={{width:'6px', height:'6px', borderRadius:'50%', background: isActive ? '#22c55e' : '#333', boxShadow: isActive ? '0 0 6px rgba(34,197,94,.5)' : 'none'}}/>
+                                  <span style={{fontSize:'11px', color: isActive ? '#ccc' : '#444', fontWeight:600}}>{rep.name}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                      {/* Expanded stat card detail */}
+                      {expandedStatCard && (() => {
+                        const card = statCards.find(s => s.key === expandedStatCard);
+                        if (!card || card.logs.length === 0) return (
+                          <div className="card" style={{padding:'20px', marginBottom:'10px', textAlign:'center'}}>
+                            <p style={{color:'#444', fontSize:'13px', margin:0}}>No calls in this category.</p>
+                          </div>
+                        );
+                        return (
+                          <div className="card" style={{padding:'16px', marginBottom:'10px', maxHeight:'250px', overflowY:'auto'}}>
+                            <p style={{margin:'0 0 10px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'#00F0FF'}}>{card.label} — Detail</p>
+                            {card.logs.slice(0, 30).map(log => (
+                              <div key={log.id} style={{display:'flex', alignItems:'center', gap:'8px', padding:'6px 0', borderBottom:'1px solid #111'}}>
+                                <div style={{width:'6px', height:'6px', borderRadius:'50%', background: OUTCOME_COLORS[log.outcome] || '#555'}}/>
+                                <span style={{fontSize:'12px', color:'#fff', fontWeight:600}}>{log.business_name || 'Unknown'}</span>
+                                <span style={{fontSize:'10px', color: OUTCOME_COLORS[log.outcome] || '#555', fontWeight:600}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
+                                <span style={{fontSize:'10px', color:'#333', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  );
+                })()}
+
+                {/* ═══ SECTION C: ENHANCED ACTIVITY FEED ═══ */}
+                <div style={{display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'14px'}}>
+                  <p style={{fontSize:'10px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'#00F0FF', margin:0}}>Activity Feed</p>
+                  <span style={{fontSize:'10px', color:'#333', fontFamily:'monospace'}}>Updated {Math.floor((Date.now() - lastUpdated) / 1000)}s ago</span>
+                </div>
+                {(() => {
+                  const lastVisit = localStorage.getItem('pmss_activity_last_visit') || '2000-01-01';
+                  // Update last visit time
+                  if (typeof window !== 'undefined') {
+                    setTimeout(() => { localStorage.setItem('pmss_activity_last_visit', new Date().toISOString()); }, 3000);
+                  }
+
+                  const outcomeLabels = { no_answer:'No Answer', voicemail_left:'Voicemail', callback_requested:'Callback', not_interested:'Not Interested', booked_call:'Booked Call', discovery_completed:'Discovery Booked', no_show:'No Show', wrong_number:'Wrong Number' };
+                  const outcomeColors = { no_answer:'#555', voicemail_left:'#888', callback_requested:'#F59E0B', not_interested:'#ff6060', booked_call:'#22c55e', discovery_completed:'#00F0FF', no_show:'#ff8800', wrong_number:'#ff6060' };
+
+                  const borderColors = {
+                    call: '#00F0FF',
+                    booking: '#22c55e',
+                    handoff: '#a855f7',
+                    callback: '#F59E0B',
+                  };
+
                   const events = [];
                   filteredCallLogs.forEach(cl => {
-                    const outcomeLabels = { no_answer:'No Answer', voicemail_left:'Voicemail', callback_requested:'Callback', not_interested:'Not Interested', booked_call:'Booked Call', discovery_completed:'Discovery Booked', no_show:'No Show', wrong_number:'Wrong Number' };
-                    const outcomeColors = { no_answer:'#555', voicemail_left:'#888', callback_requested:'#F59E0B', not_interested:'#ff6060', booked_call:'#22c55e', discovery_completed:'#00F0FF', no_show:'#ff8800', wrong_number:'#ff6060' };
+                    let evType = 'call';
+                    if (cl.outcome === 'booked_call' || cl.outcome === 'discovery_completed') evType = 'booking';
+                    if (cl.outcome === 'callback_requested') evType = 'callback';
                     events.push({
-                      type: 'call',
+                      type: evType,
                       time: cl.created_at,
-                      icon: '☎',
+                      icon: evType === 'booking' ? '★' : evType === 'callback' ? '↻' : '☎',
                       color: outcomeColors[cl.outcome] || '#555',
+                      borderColor: borderColors[evType],
                       title: `${cl.reps?.name || 'Rep'} called ${cl.business_name || 'Unknown'}`,
                       detail: outcomeLabels[cl.outcome] || cl.outcome || '',
                       sub: cl.notes || '',
+                      recording_url: cl.recording_url || null,
+                      transcript: cl.transcript || null,
+                      isNew: cl.created_at > lastVisit,
+                      id: cl.id,
                     });
                   });
                   filteredHandoffs.forEach(h => {
@@ -8521,13 +8731,19 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                       time: h.created_at,
                       icon: '→',
                       color: '#a855f7',
+                      borderColor: borderColors.handoff,
                       title: `${h.reps?.name || 'Rep'} handed off ${h.company}`,
                       detail: h.next_step,
                       sub: h.pain_point || '',
+                      recording_url: null,
+                      transcript: null,
+                      isNew: h.created_at > lastVisit,
+                      id: h.id,
                     });
                   });
-                  // Sort by time descending
+
                   events.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+
                   if (events.length === 0) {
                     return (
                       <div className="card" style={{padding:'32px', textAlign:'center'}}>
@@ -8535,26 +8751,53 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                       </div>
                     );
                   }
-                  return events.slice(0, 40).map((ev, i) => {
+
+                  return events.slice(0, 50).map((ev, i) => {
                     const time = new Date(ev.time);
                     const timeStr = time.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
                     const dateStr = time.toLocaleDateString('en-CA', { month:'short', day:'numeric' });
+                    const isExpanded = expandedActivity === `${ev.type}-${ev.id}`;
                     return (
-                      <div key={i} style={{display:'flex', gap:'12px', padding:'10px 0', borderBottom:'1px solid #111'}}>
-                        <div style={{width:'32px', height:'32px', borderRadius:'50%', background:`${ev.color}12`, border:`1px solid ${ev.color}33`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'13px', flexShrink:0, color: ev.color}}>
-                          {ev.icon}
-                        </div>
-                        <div style={{flex:1, minWidth:0}}>
-                          <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'2px'}}>
-                            <span style={{fontSize:'12px', fontWeight:700, color:'#fff'}}>{ev.title}</span>
-                            <span style={{fontSize:'9px', fontWeight:700, padding:'2px 6px', borderRadius:'3px', background:`${ev.color}12`, border:`1px solid ${ev.color}33`, color: ev.color}}>{ev.detail}</span>
+                      <div key={`${ev.type}-${ev.id}-${i}`} style={{borderLeft:`3px solid ${ev.borderColor}`, marginBottom:'4px', borderRadius:'0 8px 8px 0', background: isExpanded ? 'rgba(255,255,255,.02)' : 'transparent', cursor:'pointer', transition:'background .15s'}}
+                        onClick={() => setExpandedActivity(isExpanded ? null : `${ev.type}-${ev.id}`)}>
+                        <div style={{display:'flex', gap:'12px', padding:'10px 12px'}}>
+                          <div style={{width:'32px', height:'32px', borderRadius:'50%', background:`${ev.color}12`, border:`1px solid ${ev.color}33`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'13px', flexShrink:0, color: ev.color}}>
+                            {ev.icon}
                           </div>
-                          {ev.sub && <p style={{margin:0, fontSize:'11px', color:'#444', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{ev.sub}</p>}
+                          <div style={{flex:1, minWidth:0}}>
+                            <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'2px', flexWrap:'wrap'}}>
+                              <span style={{fontSize:'12px', fontWeight:700, color:'#fff'}}>{ev.title}</span>
+                              <span style={{fontSize:'9px', fontWeight:700, padding:'2px 6px', borderRadius:'3px', background:`${ev.color}12`, border:`1px solid ${ev.color}33`, color: ev.color}}>{ev.detail}</span>
+                              {ev.isNew && <span style={{fontSize:'8px', fontWeight:800, padding:'2px 5px', borderRadius:'3px', background:'rgba(0,240,255,.15)', border:'1px solid rgba(0,240,255,.4)', color:'#00F0FF', letterSpacing:'.1em'}}>NEW</span>}
+                            </div>
+                            {!isExpanded && ev.sub && <p style={{margin:0, fontSize:'11px', color:'#444', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{ev.sub}</p>}
+                          </div>
+                          <div style={{flexShrink:0, textAlign:'right'}}>
+                            <p style={{margin:0, fontSize:'10px', color:'#555', fontFamily:'monospace'}}>{timeStr}</p>
+                            <p style={{margin:0, fontSize:'9px', color:'#333', fontFamily:'monospace'}}>{dateStr}</p>
+                          </div>
                         </div>
-                        <div style={{flexShrink:0, textAlign:'right'}}>
-                          <p style={{margin:0, fontSize:'10px', color:'#555', fontFamily:'monospace'}}>{timeStr}</p>
-                          <p style={{margin:0, fontSize:'9px', color:'#333', fontFamily:'monospace'}}>{dateStr}</p>
-                        </div>
+                        {/* Expanded detail */}
+                        {isExpanded && (
+                          <div style={{padding:'0 12px 12px 56px'}} className="fadein">
+                            {ev.sub && <p style={{margin:'0 0 8px', fontSize:'12px', color:'#888', lineHeight:1.5}}>{ev.sub}</p>}
+                            {ev.recording_url && (
+                              <div style={{marginBottom:'8px'}}>
+                                <p style={{margin:'0 0 4px', fontSize:'9px', fontWeight:700, color:'#444', letterSpacing:'.12em', textTransform:'uppercase'}}>Recording</p>
+                                <audio controls src={ev.recording_url} style={{width:'100%', height:'32px', borderRadius:'6px'}}/>
+                              </div>
+                            )}
+                            {ev.transcript && (
+                              <div>
+                                <p style={{margin:'0 0 4px', fontSize:'9px', fontWeight:700, color:'#444', letterSpacing:'.12em', textTransform:'uppercase'}}>Transcript</p>
+                                <p style={{margin:0, fontSize:'11px', color:'#666', lineHeight:1.5, maxHeight:'150px', overflowY:'auto', padding:'8px', background:'#080808', borderRadius:'6px', border:'1px solid #151515'}}>{ev.transcript}</p>
+                              </div>
+                            )}
+                            {!ev.sub && !ev.recording_url && !ev.transcript && (
+                              <p style={{margin:0, fontSize:'11px', color:'#333', fontStyle:'italic'}}>No additional details.</p>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   });
