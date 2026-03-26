@@ -5893,13 +5893,15 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                     else if (logDate >= weekStart) groups.thisWeek.push(log);
                     else groups.older.push(log);
                   });
-                  const renderLogEntry = (log) => {
+                  const totalLogs = allMyLogs.length;
+                  const renderLogEntry = (log, groupIdx) => {
                     const logLead = leads.find(l => l.id === log.lead_id);
                     const bizName = log.business_name || (logLead ? logLead.business_name : 'Unknown');
                     const duration = log.duration ? `${Math.floor(log.duration / 60)}m ${log.duration % 60}s` : null;
                     return (
                       <div key={log.id} style={{padding:'14px 18px', background:'#0a0a0a', border:'1px solid #1a1a1a', borderRadius:'8px'}}>
                         <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', marginBottom: (log.notes || log.recording_url || log.transcript) ? '8px' : '0'}}>
+                          <span style={{fontSize:'10px', color:'#333', fontFamily:'JetBrains Mono,monospace', fontWeight:600, minWidth:'28px'}}>#{totalLogs - allMyLogs.indexOf(log)}</span>
                           <div style={{width:'8px', height:'8px', borderRadius:'50%', background: OUTCOME_COLORS[log.outcome] || '#555', flexShrink:0}}/>
                           <span style={{fontSize:'13px', fontWeight:700, color:'#fff'}}>{bizName}</span>
                           <span style={{fontSize:'10px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:`${OUTCOME_COLORS[log.outcome] || '#555'}15`, color: OUTCOME_COLORS[log.outcome] || '#555', letterSpacing:'.05em', textTransform:'uppercase'}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
