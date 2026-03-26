@@ -5612,7 +5612,10 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
   const [expandedStat, setExpandedStat] = useState(null);
   const [playbackSearch, setPlaybackSearch] = useState('');
   const [expandedPlayback, setExpandedPlayback] = useState(null);
+  const [selectedBatch, setSelectedBatch] = useState(() => { try { return localStorage.getItem('pmss_cc_batch') || 'all'; } catch { return 'all'; } });
+  const [batches, setBatches] = useState([]);
 
+  useEffect(() => { try { localStorage.setItem('pmss_cc_batch', selectedBatch); } catch {} }, [selectedBatch]);
   useEffect(() => { try { localStorage.setItem('pmss_cc_tab', tab); } catch {} }, [tab]);
   useEffect(() => { try { localStorage.setItem('pmss_cc_search', searchQuery); } catch {} }, [searchQuery]);
   useEffect(() => { try { localStorage.setItem('pmss_cc_quickFilter', quickFilter); } catch {} }, [quickFilter]);
@@ -5633,6 +5636,10 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
       if (data.length < 1000) break;
       from += 1000;
     }
+
+    // Load import batches
+    const { data: batchData } = await sb.from('import_batches').select('*').order('created_at', { ascending: true });
+    if (batchData) setBatches(batchData);
 
     if (allLeads.length > 0) {
       let allLogs = [], logFrom = 0;
@@ -5703,6 +5710,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
   // "To Call" tab only shows uncalled leads; "All Leads" shows everything
   const tabBaseLeads = tab === 'list' ? leads.filter(l => l.status === 'new') : leads;
   const filteredLeads = tabBaseLeads
+    .filter(l => selectedBatch === 'all' || l.batch_id === selectedBatch)
     .filter(l => {
       if (!searchQuery) return true;
       const q = searchQuery.toLowerCase();
@@ -5789,6 +5797,42 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
             {/* TODAY'S LIST */}
             {tab === 'list' && (
               <div className="fadein">
+                {/* Batch Filter */}
+                {batches.length > 0 && (
+                  <>
+                    <div style={{display:'flex', gap:'6px', marginBottom:'12px', flexWrap:'wrap', alignItems:'center'}}>
+                      <button className={`call-tab${selectedBatch==='all'?' active':''}`} onClick={()=>setSelectedBatch('all')}>
+                        All Batches
+                        <span style={{marginLeft:'6px', fontSize:'10px', opacity:0.7}}>{leads.filter(l => l.status === 'new').length}</span>
+                      </button>
+                      {batches.map(b => {
+                        const batchLeadCount = leads.filter(l => l.batch_id === b.id && l.status === 'new').length;
+                        return (
+                          <button key={b.id} className={`call-tab${selectedBatch===b.id?' active':''}`} onClick={()=>setSelectedBatch(b.id)}>
+                            {b.label || `Batch — ${new Date(b.created_at).toLocaleDateString()}`}
+                            <span style={{marginLeft:'6px', fontSize:'10px', opacity:0.7}}>{batchLeadCount}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {selectedBatch !== 'all' && (() => {
+                      const batch = batches.find(b => b.id === selectedBatch);
+                      if (!batch) return null;
+                      const batchLeads = leads.filter(l => l.batch_id === batch.id);
+                      const calledCount = batchLeads.filter(l => l.status !== 'new').length;
+                      return (
+                        <div style={{display:'flex', alignItems:'center', gap:'12px', padding:'8px 14px', marginBottom:'12px', borderRadius:'8px', background:'rgba(0,240,255,.04)', border:'1px solid rgba(0,240,255,.12)', fontSize:'12px', color:'#888'}}>
+                          <span style={{fontWeight:700, color:'#00F0FF'}}>{batch.label || `Batch ${batch.id.slice(0,6)}`}</span>
+                          <span>{new Date(batch.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric' })}</span>
+                          <span style={{color:'#555'}}>|</span>
+                          <span>{batchLeads.length} leads</span>
+                          <span style={{color:'#555'}}>|</span>
+                          <span>{calledCount} called</span>
+                        </div>
+                      );
+                    })()}
+                  </>
+                )}
                 {/* Search Bar */}
                 <div style={{position:'relative', marginBottom:'14px'}}>
                   <input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Search leads — name, city, phone, niche..."
@@ -5953,6 +5997,42 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
             {/* ALL LEADS — Full lead list with all filters */}
             {tab === 'allleads' && (
               <div className="fadein">
+                {/* Batch Filter */}
+                {batches.length > 0 && (
+                  <>
+                    <div style={{display:'flex', gap:'6px', marginBottom:'12px', flexWrap:'wrap', alignItems:'center'}}>
+                      <button className={`call-tab${selectedBatch==='all'?' active':''}`} onClick={()=>setSelectedBatch('all')}>
+                        All Batches
+                        <span style={{marginLeft:'6px', fontSize:'10px', opacity:0.7}}>{leads.length}</span>
+                      </button>
+                      {batches.map(b => {
+                        const batchLeadCount = leads.filter(l => l.batch_id === b.id).length;
+                        return (
+                          <button key={b.id} className={`call-tab${selectedBatch===b.id?' active':''}`} onClick={()=>setSelectedBatch(b.id)}>
+                            {b.label || `Batch — ${new Date(b.created_at).toLocaleDateString()}`}
+                            <span style={{marginLeft:'6px', fontSize:'10px', opacity:0.7}}>{batchLeadCount}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {selectedBatch !== 'all' && (() => {
+                      const batch = batches.find(b => b.id === selectedBatch);
+                      if (!batch) return null;
+                      const batchLeads = leads.filter(l => l.batch_id === batch.id);
+                      const calledCount = batchLeads.filter(l => l.status !== 'new').length;
+                      return (
+                        <div style={{display:'flex', alignItems:'center', gap:'12px', padding:'8px 14px', marginBottom:'12px', borderRadius:'8px', background:'rgba(0,240,255,.04)', border:'1px solid rgba(0,240,255,.12)', fontSize:'12px', color:'#888'}}>
+                          <span style={{fontWeight:700, color:'#00F0FF'}}>{batch.label || `Batch ${batch.id.slice(0,6)}`}</span>
+                          <span>{new Date(batch.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric' })}</span>
+                          <span style={{color:'#555'}}>|</span>
+                          <span>{batchLeads.length} leads</span>
+                          <span style={{color:'#555'}}>|</span>
+                          <span>{calledCount} called</span>
+                        </div>
+                      );
+                    })()}
+                  </>
+                )}
                 {/* Search Bar */}
                 <div style={{position:'relative', marginBottom:'14px'}}>
                   <input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Search leads — name, city, phone, niche..."
