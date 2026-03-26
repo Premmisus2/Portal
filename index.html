@@ -28,6 +28,14 @@
   ✅ Download PDF fixed — uses html2pdf.js, no more print dialog wonkiness
   ✅ Notes pad added to every section (saves to localStorage per section)
 
+  COMPLETED (Rev 2.2):
+  ✅ Shadow View — Director can view portal as any rep (read-only)
+  ✅ Shadow banner (fixed, amber #F59E0B) shows when shadowing
+  ✅ All data queries use shadow rep's ID when active
+  ✅ All mutation actions disabled in shadow mode (Log Call, +Close, Handoff, etc.)
+  ✅ Shadow rep selector in ProfileDropdown with rep list
+  ✅ Exit Shadow from banner or dropdown
+
   STILL TO DO:
   ☐ Make The Ladder closes counter sync with the global header counter
   ☐ Keyboard shortcuts or hotkeys for quick navigation between sections
@@ -2564,7 +2572,8 @@ const Logo = ({ height = 32 }) => (
    TOP BAR (shared — now includes ClosesTracker)
 ══════════════════════════════════════════════════════ */
 /* ── Profile Dropdown ──────────────────────────────────────────── */
-const ProfileDropdown = ({ userName, userEmail, totalCloses, totalPoints, onLogout, onShortcuts, actuallyDirector, viewAsRep, onToggleView }) => {
+const ProfileDropdown = ({ userName, userEmail, totalCloses, totalPoints, onLogout, onShortcuts, actuallyDirector, viewAsRep, onToggleView, shadowMode, shadowRepName, allReps, enterShadow, exitShadow }) => {
+  const [shadowListOpen, setShadowListOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -2614,13 +2623,51 @@ const ProfileDropdown = ({ userName, userEmail, totalCloses, totalPoints, onLogo
                 <span style={{fontSize:'13px', width:'16px', textAlign:'center'}}>⌨</span> Keyboard Shortcuts
               </button>
             )}
-            {actuallyDirector && (
+            {actuallyDirector && !shadowMode && (
               <button onClick={()=>{ onToggleView(); }}
                 style={{width:'100%', display:'flex', alignItems:'center', gap:'10px', padding:'9px 10px', borderRadius:'7px', background: viewAsRep ? 'rgba(245,158,11,.07)' : 'none', border:'none', cursor:'pointer', color: viewAsRep ? '#F59E0B' : '#666', fontSize:'12px', fontFamily:'Inter,sans-serif', textAlign:'left', transition:'all .15s'}}
                 onMouseEnter={e=>{if(!viewAsRep){e.currentTarget.style.background='#111'; e.currentTarget.style.color='#fff';}}}
                 onMouseLeave={e=>{if(!viewAsRep){e.currentTarget.style.background='none'; e.currentTarget.style.color='#666';}}}>
                 <Icon name={viewAsRep ? 'eye' : 'eyeOff'} size={13}/> {viewAsRep ? 'Rep View Active' : 'Switch to Rep View'}
               </button>
+            )}
+            {/* Shadow View Section */}
+            {actuallyDirector && (
+              <div>
+                {shadowMode ? (
+                  <button onClick={()=>{ setOpen(false); exitShadow(); }}
+                    style={{width:'100%', display:'flex', alignItems:'center', gap:'10px', padding:'9px 10px', borderRadius:'7px', background:'rgba(245,158,11,.1)', border:'none', cursor:'pointer', color:'#F59E0B', fontSize:'12px', fontFamily:'Inter,sans-serif', textAlign:'left', transition:'all .15s'}}>
+                    <Icon name="eye" size={13}/> Exit Shadow: {shadowRepName}
+                  </button>
+                ) : (
+                  <div>
+                    <button onClick={()=>setShadowListOpen(s=>!s)}
+                      style={{width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'10px', padding:'9px 10px', borderRadius:'7px', background: shadowListOpen ? 'rgba(245,158,11,.05)' : 'none', border:'none', cursor:'pointer', color: shadowListOpen ? '#F59E0B' : '#666', fontSize:'12px', fontFamily:'Inter,sans-serif', textAlign:'left', transition:'all .15s'}}
+                      onMouseEnter={e=>{if(!shadowListOpen){e.currentTarget.style.background='#111'; e.currentTarget.style.color='#fff';}}}
+                      onMouseLeave={e=>{if(!shadowListOpen){e.currentTarget.style.background='none'; e.currentTarget.style.color='#666';}}}>
+                      <span style={{display:'flex', alignItems:'center', gap:'10px'}}>
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        Shadow View
+                      </span>
+                      <span style={{fontSize:'10px', transition:'transform .15s', transform: shadowListOpen ? 'rotate(90deg)' : 'rotate(0deg)'}}>▸</span>
+                    </button>
+                    {shadowListOpen && allReps && allReps.length > 0 && (
+                      <div style={{padding:'4px 0 4px 20px', borderLeft:'2px solid rgba(245,158,11,.2)', marginLeft:'18px', marginTop:'2px'}}>
+                        {allReps.map(rep => (
+                          <button key={rep.id} onClick={()=>{ setOpen(false); setShadowListOpen(false); enterShadow(rep.id, rep.name); }}
+                            style={{width:'100%', display:'flex', alignItems:'center', gap:'8px', padding:'7px 10px', borderRadius:'6px', background:'none', border:'none', cursor:'pointer', color:'#888', fontSize:'11px', fontFamily:'Inter,sans-serif', textAlign:'left', transition:'all .15s'}}
+                            onMouseEnter={e=>{e.currentTarget.style.background='rgba(245,158,11,.06)'; e.currentTarget.style.color='#F59E0B';}}
+                            onMouseLeave={e=>{e.currentTarget.style.background='none'; e.currentTarget.style.color='#888';}}>
+                            <div style={{width:'20px', height:'20px', borderRadius:'50%', background:'rgba(245,158,11,.1)', border:'1px solid rgba(245,158,11,.25)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'8px', fontWeight:800, color:'#F59E0B', flexShrink:0}}>{rep.name.trim().split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}</div>
+                            {rep.name}
+                          </button>
+                        ))}
+                        {allReps.length === 0 && <p style={{margin:0, padding:'6px 10px', fontSize:'11px', color:'#444', fontStyle:'italic'}}>No reps found</p>}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
             <div style={{height:'1px', background:'#111', margin:'4px 2px'}}/>
             <button onClick={()=>{setOpen(false); onLogout();}} style={{width:'100%', display:'flex', alignItems:'center', gap:'10px', padding:'9px 10px', borderRadius:'7px', background:'none', border:'none', cursor:'pointer', color:'#ff6060', fontSize:'12px', fontFamily:'Inter,sans-serif', textAlign:'left', transition:'background .15s'}}
@@ -2635,7 +2682,7 @@ const ProfileDropdown = ({ userName, userEmail, totalCloses, totalPoints, onLogo
   );
 };
 
-const TopBar = ({ title, subtitle, userName, userEmail, onHome, onLogout, onPrint, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, onShortcuts, onToggleSidebar, actuallyDirector, viewAsRep, onToggleView }) => (
+const TopBar = ({ title, subtitle, userName, userEmail, onHome, onLogout, onPrint, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, onShortcuts, onToggleSidebar, actuallyDirector, viewAsRep, onToggleView, shadowMode, shadowRepName, allReps, enterShadow, exitShadow }) => (
   <header className="no-print" style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'11px 24px', borderBottom:'1px solid #111', background:'#050505', flexShrink:0, gap:'8px', position:'sticky', top:0, zIndex:100}}>
     <div style={{display:'flex', alignItems:'center', gap:'10px', minWidth:0, flex:1}}>
       <button className="btn-back" onClick={onHome} style={{flexShrink:0}}>
@@ -2660,7 +2707,7 @@ const TopBar = ({ title, subtitle, userName, userEmail, onHome, onLogout, onPrin
         <span style={{fontSize:'10px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'#333'}}>{userName}</span>
       </div>
       {onPrint && <button onClick={onPrint} className="btn-pdf mobile-hide"><Icon name="download" size={13}/>Download PDF</button>}
-      <ProfileDropdown userName={userName} userEmail={userEmail} totalCloses={totalCloses} totalPoints={totalPoints} onLogout={onLogout} onShortcuts={onShortcuts} actuallyDirector={actuallyDirector} viewAsRep={viewAsRep} onToggleView={onToggleView}/>
+      <ProfileDropdown userName={userName} userEmail={userEmail} totalCloses={totalCloses} totalPoints={totalPoints} onLogout={onLogout} onShortcuts={onShortcuts} actuallyDirector={actuallyDirector} viewAsRep={viewAsRep} onToggleView={onToggleView} shadowMode={shadowMode} shadowRepName={shadowRepName} allReps={allReps} enterShadow={enterShadow} exitShadow={exitShadow}/>
     </div>
   </header>
 );
@@ -3015,7 +3062,7 @@ const AnnouncementsBanner = () => {
   );
 };
 
-const HomeView = ({ userName, userEmail, onNav, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, onShortcuts, isDirector, onToggleSidebar, actuallyDirector, viewAsRep, onToggleView }) => {
+const HomeView = ({ userName, userEmail, onNav, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, onShortcuts, isDirector, onToggleSidebar, actuallyDirector, viewAsRep, onToggleView, shadowMode, shadowRepName, allReps, enterShadow, exitShadow }) => {
   const sections = [
     {
       key: 'coldcall',
@@ -3105,7 +3152,7 @@ const HomeView = ({ userName, userEmail, onNav, onLogout, totalCloses, setTotalC
   }
 
   return (
-    <div style={{minHeight:'100vh', background:'#000', display:'flex', flexDirection:'column'}}>
+    <div style={{minHeight:'100vh', background:'#000', display:'flex', flexDirection:'column', paddingTop: shadowMode ? '40px' : 0}}>
       <header className="no-print home-header" style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 20px', borderBottom:'1px solid #0f0f0f', background:'#040404', gap:'12px', flexWrap:'wrap'}}>
         <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
           <button className="hamburger-btn" onClick={onToggleSidebar}>
@@ -3119,7 +3166,7 @@ const HomeView = ({ userName, userEmail, onNav, onLogout, totalCloses, setTotalC
             <div className="pulse"/>
             <span style={{fontSize:'11px', fontWeight:600, color:'#444', letterSpacing:'.08em'}}>{userName}</span>
           </div>
-          <ProfileDropdown userName={userName} userEmail={userEmail} totalCloses={totalCloses} totalPoints={totalPoints} onLogout={onLogout} onShortcuts={onShortcuts} actuallyDirector={actuallyDirector} viewAsRep={viewAsRep} onToggleView={onToggleView}/>
+          <ProfileDropdown userName={userName} userEmail={userEmail} totalCloses={totalCloses} totalPoints={totalPoints} onLogout={onLogout} onShortcuts={onShortcuts} actuallyDirector={actuallyDirector} viewAsRep={viewAsRep} onToggleView={onToggleView} shadowMode={shadowMode} shadowRepName={shadowRepName} allReps={allReps} enterShadow={enterShadow} exitShadow={exitShadow}/>
         </div>
       </header>
 
@@ -3199,8 +3246,8 @@ const HomeView = ({ userName, userEmail, onNav, onLogout, totalCloses, setTotalC
 /* ══════════════════════════════════════════════════════
    VIEW: FOUNDATION
 ══════════════════════════════════════════════════════ */
-const FoundationView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose }) => (
-  <div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>
+const FoundationView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, shadowMode }) => (
+  <div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000', paddingTop: shadowMode ? '40px' : 0}}>
     <TopBar title="Foundation & Blueprint" subtitle="Section 01 — Core Principles"
       userName={userName} userEmail={userEmail} onHome={onHome} onLogout={onLogout} onPrint={()=>downloadPDF('Foundation-Blueprint')}
       totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/>
@@ -3214,13 +3261,13 @@ const FoundationView = ({ userName, userEmail, onHome, onLogout, totalCloses, se
 /* ══════════════════════════════════════════════════════
    VIEW: SCRIPTS (tabbed 02 – 06)
 ══════════════════════════════════════════════════════ */
-const ScriptsView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, scriptTab, setScriptTab, actuallyDirector, viewAsRep, onToggleView }) => {
+const ScriptsView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, scriptTab, setScriptTab, actuallyDirector, viewAsRep, onToggleView, shadowMode, shadowRepName, allReps, enterShadow, exitShadow }) => {
   const activeTab = scriptTab || 'openers';
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const current = SCRIPT_TABS.find(t=>t.id===activeTab);
   const handleTabSelect = (id) => { setScriptTab(id); setSidebarOpen(false); };
   return (
-    <div style={{display:'flex', height:'100vh', overflow:'hidden', background:'#000'}}>
+    <div style={{display:'flex', height:'100vh', overflow:'hidden', background:'#000', paddingTop: shadowMode ? '40px' : 0}}>
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}/>}
       <aside className={`sidebar no-print${sidebarOpen?' sidebar-open':''}`} style={{display:'flex', flexDirection:'column', width:'228px', flexShrink:0, borderRight:'1px solid #111', overflowY:'auto', background:'#050505'}}>
         <div style={{padding:'16px', borderBottom:'1px solid #111'}}>
@@ -3243,7 +3290,7 @@ const ScriptsView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTo
           ))}
         </nav>
         <div style={{padding:'12px 8px', borderTop:'1px solid #111'}}>
-          <ProfileDropdown userName={userName} userEmail={userEmail} totalCloses={totalCloses} totalPoints={totalPoints} onLogout={onLogout} actuallyDirector={actuallyDirector} viewAsRep={viewAsRep} onToggleView={onToggleView}/>
+          <ProfileDropdown userName={userName} userEmail={userEmail} totalCloses={totalCloses} totalPoints={totalPoints} onLogout={onLogout} actuallyDirector={actuallyDirector} viewAsRep={viewAsRep} onToggleView={onToggleView} shadowMode={shadowMode} shadowRepName={shadowRepName} allReps={allReps} enterShadow={enterShadow} exitShadow={exitShadow}/>
         </div>
       </aside>
 
@@ -3266,7 +3313,7 @@ const ScriptsView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTo
             </div>
             <div style={{width:'1px', height:'22px', background:'#1a1a1a'}} className="mobile-hide"/>
             <button onClick={()=>downloadPDF(current?.label||'Scripts')} className="btn-pdf mobile-hide"><Icon name="download" size={13}/>Download PDF</button>
-            <ProfileDropdown userName={userName} userEmail={userEmail} totalCloses={totalCloses} totalPoints={totalPoints} onLogout={onLogout} actuallyDirector={actuallyDirector} viewAsRep={viewAsRep} onToggleView={onToggleView}/>
+            <ProfileDropdown userName={userName} userEmail={userEmail} totalCloses={totalCloses} totalPoints={totalPoints} onLogout={onLogout} actuallyDirector={actuallyDirector} viewAsRep={viewAsRep} onToggleView={onToggleView} shadowMode={shadowMode} shadowRepName={shadowRepName} allReps={allReps} enterShadow={enterShadow} exitShadow={exitShadow}/>
           </div>
         </header>
         <main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px'}}>
@@ -3281,8 +3328,8 @@ const ScriptsView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTo
 /* ══════════════════════════════════════════════════════
    VIEW: POST-CALL
 ══════════════════════════════════════════════════════ */
-const PostCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose }) => (
-  <div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>
+const PostCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, shadowMode }) => (
+  <div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000', paddingTop: shadowMode ? '40px' : 0}}>
     <TopBar title="Post-Call Protocols" subtitle="Section 07 — Follow-Through"
       userName={userName} userEmail={userEmail} onHome={onHome} onLogout={onLogout} onPrint={()=>downloadPDF('Post-Call-Protocols')}
       totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/>
@@ -3296,8 +3343,8 @@ const PostCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, setT
 /* ══════════════════════════════════════════════════════
    VIEW: THE LADDER
 ══════════════════════════════════════════════════════ */
-const LadderView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, closeHistory }) => (
-  <div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>
+const LadderView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, closeHistory, shadowMode }) => (
+  <div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000', paddingTop: shadowMode ? '40px' : 0}}>
     <TopBar title="The Ladder" subtitle="Section 08 — Commission Calculator"
       userName={userName} userEmail={userEmail} onHome={onHome} onLogout={onLogout}
       totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/>
@@ -3310,13 +3357,20 @@ const LadderView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTot
 /* ══════════════════════════════════════════════════════
    VIEW: DIRECTOR HANDOFF
 ══════════════════════════════════════════════════════ */
-const HandoffView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, repId }) => (
-  <div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>
+const HandoffView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, repId, shadowMode }) => (
+  <div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000', paddingTop: shadowMode ? '40px' : 0}}>
     <TopBar title="Director Handoff" subtitle="Section 09 — Internal Ping"
       userName={userName} userEmail={userEmail} onHome={onHome} onLogout={onLogout}
       totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/>
     <main className="section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'700px', width:'100%', margin:'0 auto'}}>
-      <HandoffPanel userName={userName} userEmail={userEmail} repId={repId}/>
+      {shadowMode ? (
+        <div className="card" style={{padding:'40px', textAlign:'center'}}>
+          <p style={{color:'#F59E0B', fontSize:'14px', margin:0, fontWeight:700}}>Read Only — Shadow Mode</p>
+          <p style={{color:'#444', fontSize:'12px', margin:'6px 0 0'}}>Cannot submit handoffs while shadowing a rep.</p>
+        </div>
+      ) : (
+        <HandoffPanel userName={userName} userEmail={userEmail} repId={repId}/>
+      )}
     </main>
   </div>
 );
@@ -4145,12 +4199,12 @@ const AIPitchStrategyPanel = () => (
 /* ──────────────────────────────────────────────────────────
    VIEW: OFFER STACK (Marketing + AI tabs)
 ────────────────────────────────────────────────────────── */
-const OfferStackView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, isDirector, actuallyDirector, viewAsRep, onToggleView }) => {
+const OfferStackView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, isDirector, actuallyDirector, viewAsRep, onToggleView, shadowMode, shadowRepName, allReps, enterShadow, exitShadow }) => {
   const [mainTab, setMainTab] = useState('marketing');
   const [aiSubTab, setAiSubTab] = useState('services');
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000', paddingTop: shadowMode ? '40px' : 0 }}>
       <TopBar title="Offer Stack" subtitle="Section 13 — Pricing & AI Services"
         userName={userName} userEmail={userEmail} onHome={onHome} onLogout={onLogout} onPrint={() => downloadPDF('Offer-Stack')}
         totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose} />
@@ -4276,8 +4330,8 @@ const OfferStackView = ({ userName, userEmail, onHome, onLogout, totalCloses, se
 /* ──────────────────────────────────────────────────────────
    VIEWS: DM / EMAIL / SMS
 ────────────────────────────────────────────────────────── */
-const DMView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, actuallyDirector, viewAsRep, onToggleView }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000' }}>
+const DMView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, actuallyDirector, viewAsRep, onToggleView, shadowMode, shadowRepName, allReps, enterShadow, exitShadow }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000', paddingTop: shadowMode ? '40px' : 0 }}>
     <TopBar title="DM Scripts" subtitle="Section 10 — Instagram · LinkedIn · Facebook"
       userName={userName} userEmail={userEmail} onHome={onHome} onLogout={onLogout} onPrint={() => downloadPDF('DM-Scripts')}
       totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose} />
@@ -4288,8 +4342,8 @@ const DMView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCl
   </div>
 );
 
-const EmailView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, actuallyDirector, viewAsRep, onToggleView }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000' }}>
+const EmailView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, actuallyDirector, viewAsRep, onToggleView, shadowMode, shadowRepName, allReps, enterShadow, exitShadow }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000', paddingTop: shadowMode ? '40px' : 0 }}>
     <TopBar title="Email Outreach" subtitle="Section 11 — 3-Touch Cold Sequence"
       userName={userName} userEmail={userEmail} onHome={onHome} onLogout={onLogout} onPrint={() => downloadPDF('Email-Outreach')}
       totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose} />
@@ -4300,8 +4354,8 @@ const EmailView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTota
   </div>
 );
 
-const SMSView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, actuallyDirector, viewAsRep, onToggleView }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000' }}>
+const SMSView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, actuallyDirector, viewAsRep, onToggleView, shadowMode, shadowRepName, allReps, enterShadow, exitShadow }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000', paddingTop: shadowMode ? '40px' : 0 }}>
     <TopBar title="SMS Sequences" subtitle="Section 12 — Warm Leads Only"
       userName={userName} userEmail={userEmail} onHome={onHome} onLogout={onLogout} onPrint={() => downloadPDF('SMS-Sequences')}
       totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose} />
@@ -4747,7 +4801,7 @@ const ChatWidget = ({ userName, userEmail, currentView, repId, userRole }) => {
 /* ══════════════════════════════════════════════════════
    BOTTOM NAV (mobile)
 ══════════════════════════════════════════════════════ */
-function BottomNav({ currentView, onNav, addClose }) {
+function BottomNav({ currentView, onNav, addClose, shadowMode }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const items = [
     {
@@ -4829,8 +4883,9 @@ function BottomNav({ currentView, onNav, addClose }) {
               {pickerOpen && <div onClick={()=>setPickerOpen(false)} style={{position:'fixed', inset:0, zIndex:499}}/>}
               <button
                 className="bottom-nav-center-btn"
-                onClick={() => setPickerOpen(p=>!p)}
+                onClick={() => { if (!shadowMode) setPickerOpen(p=>!p); }}
                 aria-label="Log a close"
+                style={shadowMode ? {opacity:.4, cursor:'not-allowed', background:'#555', boxShadow:'none'} : {}}
               >
                 {item.icon}
               </button>
@@ -5022,7 +5077,7 @@ const CallLogger = ({ lead, repId, onLogged }) => {
 /* ══════════════════════════════════════════════════════
    COLD CALL CENTER — LEAD ROW
 ══════════════════════════════════════════════════════ */
-const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs }) => {
+const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadowMode }) => {
   const [showQuickLog, setShowQuickLog] = useState(false);
   const priorityClass = lead.priority === 'HOT' ? 'priority-hot' : lead.priority === 'HIGH' ? 'priority-high' : 'priority-medium';
   const lastLog = callLogs && callLogs.length > 0 ? callLogs[0] : null;
@@ -5054,17 +5109,18 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs }) => {
               {isOverdue ? '⚠ Overdue' : isDueToday ? '📞 Today' : `CB: ${lastLog.callback_date}`}
             </span>
           )}
-          <button onClick={e=>{e.stopPropagation(); setShowQuickLog(!showQuickLog);}}
-            style={{padding:'5px 12px', borderRadius:'6px', cursor:'pointer', fontSize:'10px', fontWeight:800, fontFamily:'Inter,sans-serif', letterSpacing:'.06em', textTransform:'uppercase', transition:'all .15s',
-              background: showQuickLog ? 'rgba(0,240,255,.15)' : 'rgba(0,240,255,.06)',
-              border: `1px solid ${showQuickLog ? 'rgba(0,240,255,.4)' : 'rgba(0,240,255,.15)'}`,
-              color: '#00F0FF',
-            }}>Log Call</button>
+          <button onClick={e=>{e.stopPropagation(); if(!shadowMode) setShowQuickLog(!showQuickLog);}}
+            disabled={shadowMode}
+            style={{padding:'5px 12px', borderRadius:'6px', cursor: shadowMode ? 'not-allowed' : 'pointer', fontSize:'10px', fontWeight:800, fontFamily:'Inter,sans-serif', letterSpacing:'.06em', textTransform:'uppercase', transition:'all .15s',
+              background: shadowMode ? 'rgba(255,255,255,.03)' : showQuickLog ? 'rgba(0,240,255,.15)' : 'rgba(0,240,255,.06)',
+              border: `1px solid ${shadowMode ? '#1e1e1e' : showQuickLog ? 'rgba(0,240,255,.4)' : 'rgba(0,240,255,.15)'}`,
+              color: shadowMode ? '#444' : '#00F0FF', opacity: shadowMode ? .5 : 1,
+            }}>{shadowMode ? 'Read Only' : 'Log Call'}</button>
         </div>
       </div>
 
-      {/* Quick Inline Logger — visible without expanding */}
-      {showQuickLog && !isExpanded && (
+      {/* Quick Inline Logger — visible without expanding, hidden in shadow mode */}
+      {showQuickLog && !isExpanded && !shadowMode && (
         <div className="fadein" onClick={e=>e.stopPropagation()} style={{marginTop:'12px', padding:'12px 16px', background:'rgba(0,240,255,.02)', borderRadius:'8px', border:'1px solid rgba(0,240,255,.08)'}}>
           <CallLogger lead={lead} repId={repId} onLogged={(leadId, outcome, newStatus) => { onLogged(leadId, outcome, newStatus); setShowQuickLog(false); }}/>
         </div>
@@ -5099,8 +5155,8 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs }) => {
             </div>
           )}
 
-          {/* Call Logger */}
-          <CallLogger lead={lead} repId={repId} onLogged={onLogged}/>
+          {/* Call Logger — hidden in shadow mode */}
+          {!shadowMode && <CallLogger lead={lead} repId={repId} onLogged={onLogged}/>}
         </div>
       )}
     </div>
@@ -5265,7 +5321,7 @@ const QuickLogForm = ({ repId, onLogged }) => {
   );
 };
 
-const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, totalPoints, addClose, undoClose, repId, isDirector }) => {
+const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, totalPoints, addClose, undoClose, repId, isDirector, shadowMode }) => {
   const [tab, setTab] = useState('list');
   const [leads, setLeads] = useState([]);
   const [callLogs, setCallLogs] = useState({});
@@ -5383,7 +5439,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
   const bookingRate = stats.today > 0 ? Math.round((stats.booked / stats.week) * 100) : 0;
 
   return (
-    <div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>
+    <div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000', paddingTop: shadowMode ? '40px' : 0}}>
       <TopBar title="Call Center" subtitle="Your calling command center"
         userName={userName} userEmail={userEmail} onHome={onHome} onLogout={onLogout}
         totalCloses={totalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/>
@@ -5491,16 +5547,23 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                         isExpanded={expandedLead === lead.id}
                         onToggle={(id) => setExpandedLead(expandedLead === id ? null : id)}
                         onLogged={handleLogged}
-                        callLogs={callLogs[lead.id] || []}/>
+                        callLogs={callLogs[lead.id] || []}
+                        shadowMode={shadowMode}/>
                     ))}
                   </div>
                 )}
               </div>
             )}
 
-            {/* QUICK LOG — Manual Call Entry */}
-            {tab === 'quicklog' && (
+            {/* QUICK LOG — Manual Call Entry (hidden in shadow mode) */}
+            {tab === 'quicklog' && !shadowMode && (
               <QuickLogForm repId={repId} onLogged={() => { loadLeads(); loadStats(); }}/>
+            )}
+            {tab === 'quicklog' && shadowMode && (
+              <div className="card" style={{padding:'40px', textAlign:'center'}}>
+                <p style={{color:'#F59E0B', fontSize:'14px', margin:0, fontWeight:700}}>Read Only — Shadow Mode</p>
+                <p style={{color:'#444', fontSize:'12px', margin:'6px 0 0'}}>Cannot log calls while shadowing a rep.</p>
+              </div>
             )}
 
             {/* CALLBACKS DUE */}
@@ -5517,7 +5580,8 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                         isExpanded={expandedLead === lead.id}
                         onToggle={(id) => setExpandedLead(expandedLead === id ? null : id)}
                         onLogged={handleLogged}
-                        callLogs={callLogs[lead.id] || []}/>
+                        callLogs={callLogs[lead.id] || []}
+                        shadowMode={shadowMode}/>
                     ))}
                   </div>
                 )}
@@ -6696,8 +6760,8 @@ const LeadAssignmentTool = ({ reps, isDirector, currentRepId }) => {
 /* ══════════════════════════════════════════════════════
    VIEW: AI TOOLS (placeholder)
 ══════════════════════════════════════════════════════ */
-const AIToolsView = ({ userName, userEmail, onHome, onLogout, totalCloses, totalPoints, addClose, undoClose }) => (
-  <div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>
+const AIToolsView = ({ userName, userEmail, onHome, onLogout, totalCloses, totalPoints, addClose, undoClose, shadowMode }) => (
+  <div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000', paddingTop: shadowMode ? '40px' : 0}}>
     <TopBar title="AI Tools" subtitle="Voice Assistants, Chatbots & Automation"
       userName={userName} userEmail={userEmail} onHome={onHome} onLogout={onLogout}
       totalCloses={totalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/>
@@ -6730,8 +6794,8 @@ const AIToolsView = ({ userName, userEmail, onHome, onLogout, totalCloses, total
 /* ══════════════════════════════════════════════════════
    VIEW: TRAINING / SOPs (placeholder)
 ══════════════════════════════════════════════════════ */
-const TrainingView = ({ userName, userEmail, onHome, onLogout, totalCloses, totalPoints, addClose, undoClose }) => (
-  <div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>
+const TrainingView = ({ userName, userEmail, onHome, onLogout, totalCloses, totalPoints, addClose, undoClose, shadowMode }) => (
+  <div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000', paddingTop: shadowMode ? '40px' : 0}}>
     <TopBar title="Training / SOPs" subtitle="Learn, Level Up, Operate"
       userName={userName} userEmail={userEmail} onHome={onHome} onLogout={onLogout}
       totalCloses={totalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/>
@@ -7792,6 +7856,12 @@ const App = () => {
   const [viewAsRep, setViewAsRep] = useState(() => { try { return localStorage.getItem('pmss_viewAsRep') === 'true'; } catch { return false; } });
   useEffect(() => { try { localStorage.setItem('pmss_viewAsRep', viewAsRep); } catch {} }, [viewAsRep]);
 
+  // Shadow View — director sees portal as a specific rep (read-only)
+  const [shadowRepId, setShadowRepId] = useState(null);
+  const [shadowRepName, setShadowRepName] = useState('');
+  const [allReps, setAllReps] = useState([]);
+  const shadowMode = shadowRepId !== null;
+
   // Helper: load closes from Supabase for a given rep
   const loadCloses = async (rid) => {
     const { data } = await sb.from('closes').select('*').eq('rep_id', rid).order('created_at', { ascending: true });
@@ -7815,6 +7885,11 @@ const App = () => {
             setUserName(repData.name); setUserEmail(repData.email);
             setUserRole(repData.role); setRepId(repData.id);
             await loadCloses(repData.id);
+            // Load all reps for shadow view if director
+            if (repData.role === 'director') {
+              const { data: repsData } = await sb.from('reps').select('id, name, email, role').order('created_at', { ascending: true });
+              if (repsData) setAllReps(repsData.filter(r => r.role !== 'director'));
+            }
             try { localStorage.setItem('pmss_user', repData.name); localStorage.setItem('pmss_email', repData.email); } catch {}
             const savedView = (() => { try { return localStorage.getItem('pmss_view') || 'home'; } catch { return 'home'; } })();
             setView(savedView);
@@ -7904,13 +7979,43 @@ const App = () => {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
   const actuallyDirector = userRole === 'director';
-  const isDirector = actuallyDirector && !viewAsRep;
+  const isDirector = actuallyDirector && !viewAsRep && !shadowMode;
+
+  // Shadow mode: override repId and disable mutations
+  const effectiveRepId = shadowMode ? shadowRepId : repId;
+  const effectiveIsDirector = shadowMode ? false : isDirector;
+
+  // Shadow mode enter/exit handlers
+  const enterShadow = async (sRepId, sRepName) => {
+    setShadowRepId(sRepId);
+    setShadowRepName(sRepName);
+    setViewAsRep(true);
+    // Load shadow rep's closes for display
+    const { data } = await sb.from('closes').select('*').eq('rep_id', sRepId).order('created_at', { ascending: true });
+    if (data) {
+      setCloseHistory(data.map(c => ({ pts: c.pts, id: c.id })));
+      setTotalCloses(data.length);
+      setTotalPoints(data.reduce((s, c) => s + c.pts, 0));
+      if (data.length > 0) setLastClosePts(data[data.length - 1].pts);
+    }
+  };
+  const exitShadow = async () => {
+    setShadowRepId(null);
+    setShadowRepName('');
+    setViewAsRep(false);
+    // Restore director's own closes
+    if (repId) await loadCloses(repId);
+  };
+
+  // In shadow mode: no-op for addClose/undoClose
+  const shadowAddClose = () => {};
+  const shadowUndoClose = () => {};
 
   const toggleSidebar = () => setGlobalSidebarOpen(s => !s);
-  const shared = { userName, userEmail, onHome: handleHome, onLogout: handleLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, closeHistory, repId, isDirector, onToggleSidebar: toggleSidebar, actuallyDirector, viewAsRep, onToggleView: () => setViewAsRep(v => !v) };
+  const shared = { userName: shadowMode ? shadowRepName : userName, userEmail, onHome: handleHome, onLogout: handleLogout, totalCloses, setTotalCloses, totalPoints, addClose: shadowMode ? shadowAddClose : addClose, undoClose: shadowMode ? shadowUndoClose : undoClose, closeHistory, repId: effectiveRepId, isDirector: effectiveIsDirector, onToggleSidebar: toggleSidebar, actuallyDirector, viewAsRep, onToggleView: () => { if (shadowMode) { exitShadow(); } else { setViewAsRep(v => !v); } }, shadowMode, shadowRepId, shadowRepName, allReps, enterShadow, exitShadow };
   const chat   = <ChatWidget userName={userName} userEmail={userEmail} currentView={view} repId={repId} userRole={userRole} />;
   const shortcuts = showShortcuts ? <ShortcutsModal onClose={() => setShowShortcuts(false)} /> : null;
-  const sidebar = view !== 'login' ? <GlobalSidebar open={globalSidebarOpen} onClose={()=>setGlobalSidebarOpen(false)} onNav={handleNav} currentView={view} isDirector={isDirector}/> : null;
+  const sidebar = view !== 'login' ? <GlobalSidebar open={globalSidebarOpen} onClose={()=>setGlobalSidebarOpen(false)} onNav={handleNav} currentView={view} isDirector={effectiveIsDirector}/> : null;
 
 
   if (appLoading) return (
@@ -7923,29 +8028,46 @@ const App = () => {
   );
 
   if (view === 'login')      return <LoginView      onLogin={handleLogin}/>;
-  const bottomNav = <BottomNav currentView={view} onNav={handleNav} addClose={addClose}/>;
-  if (view === 'home')       return <>{sidebar}{<HomeView       {...shared} onNav={handleNav} onShortcuts={() => setShowShortcuts(true)}/>}{bottomNav}{chat}{shortcuts}</>;
-  if (view === 'coldcall')   return <>{sidebar}{<ColdCallView   {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'foundation') return <>{sidebar}{<FoundationView {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'scripts')    return <>{sidebar}{<ScriptsView    {...shared} scriptTab={scriptTab} setScriptTab={setScriptTab}/>}{bottomNav}{chat}</>;
-  if (view === 'postcall')   return <>{sidebar}{<PostCallView   {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'ladder')     return <>{sidebar}{<LadderView     {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'handoff')    return <>{sidebar}{<HandoffView    {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'dms')        return <>{sidebar}{<DMView         {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'email')      return <>{sidebar}{<EmailView      {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'sms')        return <>{sidebar}{<SMSView        {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'offerstack') return <>{sidebar}{<OfferStackView {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'aitools')    return <>{sidebar}{<AIToolsView    {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'training')   return <>{sidebar}{<TrainingView   {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'voicemail')  return <>{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}><TopBar title="Voicemail Scripts" subtitle="VM — Leave the Right Message" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('Voicemail-Scripts')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><VoicemailPanel/></main></div>}{bottomNav}{chat}</>;
-  if (view === 'discovery')  return <>{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}><TopBar title="Discovery Call Framework" subtitle="DC — The 15-Minute Close" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('Discovery-Call')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><DiscoveryCallPanel/></main></div>}{bottomNav}{chat}</>;
-  if (view === 'upsell')     return <>{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}><TopBar title="0.5 → 1.0 Upsell" subtitle="UP — Turn Websites Into Retainers" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('Upsell-Script')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><UpsellPanel/></main></div>}{bottomNav}{chat}</>;
-  if (view === 'noshow')     return <>{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}><TopBar title="No-Show Recovery" subtitle="NS — Don't Chase. Replace." userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('No-Show-Recovery')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><NoShowPanel/></main></div>}{bottomNav}{chat}</>;
-  if (view === 'proofpoints') return <>{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}><TopBar title="Proof Points & Ammo" subtitle="PP — Confidence Arsenal" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('Proof-Points')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><ProofPointsPanel/><NotesPad storageKey="notes_proofpoints" /></main></div>}{bottomNav}{chat}</>;
-  if (view === 'director' && isDirector) return <>{sidebar}{<DirectorView {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'newupdates' && actuallyDirector) return <>{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}><TopBar title="New Updates" subtitle="Features built — activate when ready" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose} actuallyDirector={actuallyDirector} viewAsRep={viewAsRep} onToggleView={() => setViewAsRep(v => !v)}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><div style={{marginBottom:'8px'}}><span className="tag">NEW UPDATES</span></div><h2 style={{fontSize:'26px',fontWeight:900,color:'#fff',margin:'8px 0 4px'}}>Features Built — Not Yet Active</h2><p style={{color:'#666',fontSize:'14px',lineHeight:1.6,margin:'0 0 24px'}}>Build these once the current sales portal is up to speed. Click any to open.</p><div style={{display:'flex',flexDirection:'column',gap:'12px'}}>{[{key:'upsell',title:'0.5 → 1.0 Upsell',desc:'Post-delivery upsell script — turn websites into recurring revenue'},{key:'voicemail',title:'Voicemail Scripts',desc:'4 voicemail templates under 20 seconds each'},{key:'discovery',title:'Discovery Call Framework',desc:'15-minute discovery call agenda with 5 phases'},{key:'noshow',title:'No-Show Recovery',desc:'3-touch SMS recovery sequence'},{key:'proofpoints',title:'Proof Points & Ammo',desc:'Social proof, competitor ammunition, credibility builders'}].map(f=>(<button key={f.key} onClick={()=>handleNav(f.key)} className="card" style={{padding:'18px 20px',textAlign:'left',cursor:'pointer',border:'1px solid #1e1e1e',font:'inherit',display:'flex',justifyContent:'space-between',alignItems:'center'}}><div><p style={{margin:0,fontWeight:700,color:'#fff',fontSize:'15px'}}>{f.title}</p><p style={{margin:'4px 0 0',color:'#555',fontSize:'12px'}}>{f.desc}</p></div><span style={{color:'#00F0FF',fontSize:'12px',fontWeight:700}}>Open →</span></button>))}</div></main></div>}{bottomNav}{chat}</>;
+
+  // Shadow Banner — persistent bar when shadowing a rep
+  const shadowBanner = shadowMode ? (
+    <div style={{position:'fixed', top:0, left:0, right:0, zIndex:500, background:'#F59E0B', color:'#000', display:'flex', alignItems:'center', justifyContent:'center', gap:'12px', padding:'8px 16px', fontFamily:'Inter,sans-serif', fontSize:'13px', fontWeight:700, letterSpacing:'.03em', boxShadow:'0 2px 12px rgba(245,158,11,.4)'}}>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>SHADOWING: {shadowRepName} — Read Only</span>
+      <button onClick={exitShadow} style={{background:'#000', color:'#F59E0B', border:'none', borderRadius:'5px', padding:'4px 14px', fontSize:'11px', fontWeight:800, cursor:'pointer', letterSpacing:'.08em', textTransform:'uppercase', fontFamily:'Inter,sans-serif', transition:'opacity .15s'}}
+        onMouseEnter={e=>e.currentTarget.style.opacity='.8'}
+        onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+        Exit
+      </button>
+    </div>
+  ) : null;
+
+  // Add top padding when shadow banner is visible
+  const shadowPadding = shadowMode ? <div style={{height:'40px', flexShrink:0}}/> : null;
+
+  const bottomNav = <BottomNav currentView={view} onNav={handleNav} addClose={shadowMode ? shadowAddClose : addClose} shadowMode={shadowMode}/>;
+  if (view === 'home')       return <>{shadowBanner}{sidebar}{<HomeView       {...shared} onNav={handleNav} onShortcuts={() => setShowShortcuts(true)}/>}{bottomNav}{chat}{shortcuts}</>;
+  if (view === 'coldcall')   return <>{shadowBanner}{sidebar}{<ColdCallView   {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'foundation') return <>{shadowBanner}{sidebar}{<FoundationView {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'scripts')    return <>{shadowBanner}{sidebar}{<ScriptsView    {...shared} scriptTab={scriptTab} setScriptTab={setScriptTab}/>}{bottomNav}{chat}</>;
+  if (view === 'postcall')   return <>{shadowBanner}{sidebar}{<PostCallView   {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'ladder')     return <>{shadowBanner}{sidebar}{<LadderView     {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'handoff')    return <>{shadowBanner}{sidebar}{<HandoffView    {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'dms')        return <>{shadowBanner}{sidebar}{<DMView         {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'email')      return <>{shadowBanner}{sidebar}{<EmailView      {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'sms')        return <>{shadowBanner}{sidebar}{<SMSView        {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'offerstack') return <>{shadowBanner}{sidebar}{<OfferStackView {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'aitools')    return <>{shadowBanner}{sidebar}{<AIToolsView    {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'training')   return <>{shadowBanner}{sidebar}{<TrainingView   {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'voicemail')  return <>{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="Voicemail Scripts" subtitle="VM — Leave the Right Message" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('Voicemail-Scripts')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><VoicemailPanel/></main></div>}{bottomNav}{chat}</>;
+  if (view === 'discovery')  return <>{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="Discovery Call Framework" subtitle="DC — The 15-Minute Close" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('Discovery-Call')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><DiscoveryCallPanel/></main></div>}{bottomNav}{chat}</>;
+  if (view === 'upsell')     return <>{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="0.5 → 1.0 Upsell" subtitle="UP — Turn Websites Into Retainers" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('Upsell-Script')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><UpsellPanel/></main></div>}{bottomNav}{chat}</>;
+  if (view === 'noshow')     return <>{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="No-Show Recovery" subtitle="NS — Don't Chase. Replace." userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('No-Show-Recovery')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><NoShowPanel/></main></div>}{bottomNav}{chat}</>;
+  if (view === 'proofpoints') return <>{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="Proof Points & Ammo" subtitle="PP — Confidence Arsenal" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('Proof-Points')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><ProofPointsPanel/><NotesPad storageKey="notes_proofpoints" /></main></div>}{bottomNav}{chat}</>;
+  if (view === 'director' && isDirector) return <>{shadowBanner}{sidebar}{<DirectorView {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'newupdates' && actuallyDirector) return <>{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="New Updates" subtitle="Features built — activate when ready" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose} actuallyDirector={actuallyDirector} viewAsRep={viewAsRep} onToggleView={() => setViewAsRep(v => !v)}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><div style={{marginBottom:'8px'}}><span className="tag">NEW UPDATES</span></div><h2 style={{fontSize:'26px',fontWeight:900,color:'#fff',margin:'8px 0 4px'}}>Features Built — Not Yet Active</h2><p style={{color:'#666',fontSize:'14px',lineHeight:1.6,margin:'0 0 24px'}}>Build these once the current sales portal is up to speed. Click any to open.</p><div style={{display:'flex',flexDirection:'column',gap:'12px'}}>{[{key:'upsell',title:'0.5 → 1.0 Upsell',desc:'Post-delivery upsell script — turn websites into recurring revenue'},{key:'voicemail',title:'Voicemail Scripts',desc:'4 voicemail templates under 20 seconds each'},{key:'discovery',title:'Discovery Call Framework',desc:'15-minute discovery call agenda with 5 phases'},{key:'noshow',title:'No-Show Recovery',desc:'3-touch SMS recovery sequence'},{key:'proofpoints',title:'Proof Points & Ammo',desc:'Social proof, competitor ammunition, credibility builders'}].map(f=>(<button key={f.key} onClick={()=>handleNav(f.key)} className="card" style={{padding:'18px 20px',textAlign:'left',cursor:'pointer',border:'1px solid #1e1e1e',font:'inherit',display:'flex',justifyContent:'space-between',alignItems:'center'}}><div><p style={{margin:0,fontWeight:700,color:'#fff',fontSize:'15px'}}>{f.title}</p><p style={{margin:'4px 0 0',color:'#555',fontSize:'12px'}}>{f.desc}</p></div><span style={{color:'#00F0FF',fontSize:'12px',fontWeight:700}}>Open →</span></button>))}</div></main></div>}{bottomNav}{chat}</>;
   // Fallback — any invalid view goes home instead of blank screen
-  return <>{sidebar}{<HomeView {...shared} onNav={handleNav} onShortcuts={() => setShowShortcuts(true)}/>}{bottomNav}{chat}{shortcuts}</>;
+  return <>{shadowBanner}{sidebar}{<HomeView {...shared} onNav={handleNav} onShortcuts={() => setShowShortcuts(true)}/>}{bottomNav}{chat}{shortcuts}</>;
 };
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
