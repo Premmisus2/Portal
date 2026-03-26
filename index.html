@@ -5187,18 +5187,21 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId }) => {
   const [outcome, setOutcome] = useState('');
   const [notes, setNotes] = useState('');
   const [callbackDate, setCallbackDate] = useState('');
+  const [callbackReason, setCallbackReason] = useState('');
+  const [bookingType, setBookingType] = useState('');
   const [saving, setSaving] = useState(false);
 
   const handleSubmit = async () => {
     if (!outcome) return;
     setSaving(true);
     try {
+      const insertPayload = { lead_id: lead.id, rep_id: repId, outcome, notes: notes || null, callback_date: callbackDate || null, business_name: lead.business_name || null, callback_reason: callbackReason || null, booking_type: bookingType || null };
       if (existingCallLogId) {
         // Update mode — Twilio call already created the row, just add outcome + notes
-        const { error: updateLogErr } = await sb.from('call_logs').update({ outcome, notes: notes || null, callback_date: callbackDate || null }).eq('id', existingCallLogId);
+        const { error: updateLogErr } = await sb.from('call_logs').update({ outcome, notes: notes || null, callback_date: callbackDate || null, callback_reason: callbackReason || null, booking_type: bookingType || null }).eq('id', existingCallLogId);
         if (updateLogErr) { alert('Failed to update call log: ' + updateLogErr.message); setSaving(false); return; }
       } else {
-        const { error: insertErr } = await sb.from('call_logs').insert({ lead_id: lead.id, rep_id: repId, outcome, notes: notes || null, callback_date: callbackDate || null, business_name: lead.business_name || null });
+        const { error: insertErr } = await sb.from('call_logs').insert(insertPayload);
         if (insertErr) { alert('Failed to save call log: ' + insertErr.message); setSaving(false); return; }
       }
       const statusMap = { no_answer:'contacted', voicemail_left:'voicemail', callback_requested:'callback', not_interested:'not_interested', booked_call:'booked', discovery_completed:'discovery_completed', no_show:'no_show', wrong_number:'wrong_number' };
@@ -5233,6 +5236,29 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId }) => {
           <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Callback Date</label>
           <input type="date" value={callbackDate} onChange={e=>setCallbackDate(e.target.value)}
             className="field" style={{maxWidth:'200px', colorScheme:'dark'}}/>
+          <div style={{marginTop:'10px'}}>
+            <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Callback Reason</label>
+            <select value={callbackReason} onChange={e => setCallbackReason(e.target.value)} className="field" style={{maxWidth:'280px', padding:'8px 12px', fontSize:'12px'}}>
+              <option value="">Select reason...</option>
+              <option value="too_busy">Too Busy / On Job Site</option>
+              <option value="has_someone">Has Someone Working On It</option>
+              <option value="call_later">Asked to Call Back Later</option>
+              <option value="interested">Interested But Not Ready</option>
+              <option value="wants_info">Wants More Information</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+      )}
+      {outcome === 'booked_call' && (
+        <div style={{marginBottom:'12px'}}>
+          <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Booking Type</label>
+          <select value={bookingType} onChange={e => setBookingType(e.target.value)} className="field" style={{maxWidth:'280px', padding:'8px 12px', fontSize:'12px'}}>
+            <option value="">Select type...</option>
+            <option value="sales_call">Sales Call (Video/Phone)</option>
+            <option value="discovery">Discovery Call</option>
+            <option value="scheduled_callback">Scheduled Callback</option>
+          </select>
         </div>
       )}
       <textarea value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Quick notes (optional)..."
@@ -5250,7 +5276,7 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId }) => {
 /* ══════════════════════════════════════════════════════
    COLD CALL CENTER — LEAD ROW
 ══════════════════════════════════════════════════════ */
-const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadowMode, repPhone, setToast }) => {
+const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadowMode, repPhone, setToast, leadNumber }) => {
   const [showQuickLog, setShowQuickLog] = useState(false);
   const [expandedNote, setExpandedNote] = useState(null);
   const [showCallModal, setShowCallModal] = useState(false);
@@ -5268,6 +5294,7 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
     <div className={rowClass} onClick={()=>onToggle(lead.id)}>
       <div className="lead-row-header" style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px'}}>
         <div style={{display:'flex', alignItems:'center', gap:'10px', flex:1, minWidth:0}}>
+          {leadNumber && <span style={{fontSize:'10px', color:'#333', fontFamily:'JetBrains Mono,monospace', fontWeight:600, minWidth:'28px'}}>#{leadNumber}</span>}
           <span className={priorityClass}>{lead.priority}</span>
           <span style={{fontSize:'14px', fontWeight:700, color:'#fff', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{lead.business_name}</span>
           <span className="niche-badge">{lead.niche}</span>
@@ -5547,6 +5574,27 @@ const QuickLogForm = ({ repId, onLogged }) => {
   );
 };
 
+/* ── Transcript Toggle helper for Called & Playback tabs ── */
+const CallTranscriptToggle = ({ transcript }) => {
+  const [show, setShow] = React.useState(false);
+  if (!transcript) return null;
+  return (
+    <div style={{marginTop:'6px'}}>
+      <button onClick={e=>{e.stopPropagation(); setShow(!show);}}
+        style={{background:'none', border:'1px solid #1e1e1e', borderRadius:'6px', padding:'4px 10px', cursor:'pointer', fontSize:'10px', fontWeight:700, color:'#666', fontFamily:'Inter,sans-serif', transition:'all .15s'}}
+        onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(0,240,255,.3)'; e.currentTarget.style.color='#00F0FF';}}
+        onMouseLeave={e=>{e.currentTarget.style.borderColor='#1e1e1e'; e.currentTarget.style.color='#666';}}>
+        {show ? 'Hide Transcript' : 'Show Transcript'}
+      </button>
+      {show && (
+        <div style={{marginTop:'8px', padding:'12px', background:'rgba(255,255,255,.02)', border:'1px solid #1e1e1e', borderRadius:'8px', maxHeight:'250px', overflowY:'auto'}}>
+          <p style={{margin:0, fontSize:'12px', color:'#aaa', lineHeight:'1.6', whiteSpace:'pre-wrap'}}>{transcript}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, totalPoints, addClose, undoClose, repId, isDirector, shadowMode, repPhone }) => {
   const [tab, setTab] = useState(() => { try { return localStorage.getItem('pmss_cc_tab') || 'list'; } catch { return 'list'; } });
   const [leads, setLeads] = useState([]);
@@ -5561,6 +5609,9 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [stats, setStats] = useState({ today: 0, week: 0, booked: 0, pending: 0 });
   const [toast, setToast] = useState(null);
+  const [expandedStat, setExpandedStat] = useState(null);
+  const [playbackSearch, setPlaybackSearch] = useState('');
+  const [expandedPlayback, setExpandedPlayback] = useState(null);
 
   useEffect(() => { try { localStorage.setItem('pmss_cc_tab', tab); } catch {} }, [tab]);
   useEffect(() => { try { localStorage.setItem('pmss_cc_search', searchQuery); } catch {} }, [searchQuery]);
@@ -5649,7 +5700,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
     return logs.some(log => log.callback_date && log.callback_date <= today);
   });
 
-  // "To Call" tab only shows uncalled leads; other tabs show all
+  // "To Call" tab only shows uncalled leads; "All Leads" shows everything
   const tabBaseLeads = tab === 'list' ? leads.filter(l => l.status === 'new') : leads;
   const filteredLeads = tabBaseLeads
     .filter(l => {
@@ -5674,7 +5725,12 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
     .filter(l => filterNiche === 'all' || l.niche === filterNiche)
     .filter(l => filterPriority === 'all' || l.priority === filterPriority)
     .filter(l => filterStatus === 'all' || l.status === filterStatus)
-    .sort((a, b) => (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2) || a.id.localeCompare(b.id));
+    .sort((a, b) => {
+      // To Call + All Leads: import order (created_at ascending, never changes)
+      if (tab === 'list' || tab === 'allleads') return new Date(a.created_at) - new Date(b.created_at);
+      // Default: priority then id
+      return (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2) || a.id.localeCompare(b.id);
+    });
   const bookedLeads = leads.filter(l => l.status === 'booked' || l.status === 'discovery_completed');
 
   const bookingRate = stats.today > 0 ? Math.round((stats.booked / stats.week) * 100) : 0;
@@ -5703,14 +5759,20 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
 
         {/* Tab Switcher */}
         <div style={{display:'flex', gap:'6px', marginBottom:'20px', flexWrap:'wrap'}}>
-          {[['list','To Call'],['mycalls','Called'],['quicklog','Manual Log'],['callbacks','Follow Up'],['calendar','Booked'],['stats','My Stats']].map(([key, label]) => (
-            <button key={key} className={`call-tab${tab===key?' active':''}`} onClick={()=>setTab(key)}>
-              {label}
-              {key === 'callbacks' && callbackLeads.length > 0 && (
-                <span style={{marginLeft:'6px', background:'#ff6060', color:'#fff', borderRadius:'10px', padding:'1px 6px', fontSize:'10px', fontWeight:800}}>{callbackLeads.length}</span>
-              )}
-            </button>
-          ))}
+          {[['list','To Call'],['mycalls','Called'],['allleads','All Leads'],['followup','Follow Up'],['booked','Booked'],['quicklog','Manual Log'],['stats','My Stats'],['playback','Playback']].map(([key, label]) => {
+            const toCallCount = leads.filter(l => l.status === 'new').length;
+            const followUpCount = leads.filter(l => { const logs = callLogs[l.id] || []; return logs.some(log => log.outcome === 'callback_requested'); }).length;
+            const bookedCount = leads.filter(l => l.status === 'booked' || l.status === 'discovery_completed').length;
+            const badge = key === 'list' ? toCallCount : key === 'followup' ? followUpCount : key === 'booked' ? bookedCount : 0;
+            return (
+              <button key={key} className={`call-tab${tab===key?' active':''}`} onClick={()=>setTab(key)}>
+                {label}
+                {badge > 0 && (
+                  <span style={{marginLeft:'6px', background: key === 'followup' ? '#ff6060' : key === 'booked' ? '#22c55e' : '#00F0FF', color: key === 'list' ? '#000' : '#fff', borderRadius:'10px', padding:'1px 6px', fontSize:'10px', fontWeight:800}}>{badge}</span>
+                )}
+              </button>
+            );
+          })}
           <button onClick={()=>{ loadLeads(); loadStats(); loadCalendar(); }} style={{marginLeft:'auto', padding:'8px 14px', borderRadius:'7px', cursor:'pointer', border:'1px solid #1e1e1e', background:'transparent', color:'#444', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif', transition:'all .15s'}}
             onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(0,240,255,.3)';e.currentTarget.style.color='#00F0FF';}}
             onMouseLeave={e=>{e.currentTarget.style.borderColor='#1e1e1e';e.currentTarget.style.color='#444';}}>
@@ -5737,16 +5799,16 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
 
                 {/* Quick Filter Buttons */}
                 <div style={{display:'flex', gap:'6px', marginBottom:'14px', flexWrap:'wrap'}}>
-                  {[['all','All'],['HOT','HOT'],['HIGH','HIGH'],['MEDIUM','MEDIUM'],['callbacks','Callbacks'],['new','Not Called']].map(([key, label]) => {
+                  {[['all','All'],['HOT','HOT'],['HIGH','HIGH'],['MEDIUM','MEDIUM'],['callbacks','Callbacks']].map(([key, label]) => {
                     const isActive = quickFilter === key;
-                    const colors = { HOT:'#ff6060', HIGH:'#F59E0B', MEDIUM:'#3B82F6', callbacks:'#A855F7', new:'#22c55e' };
+                    const colors = { HOT:'#ff6060', HIGH:'#F59E0B', MEDIUM:'#3B82F6', callbacks:'#A855F7' };
                     const accentColor = colors[key] || '#00F0FF';
-                    const count = key === 'all' ? leads.length
-                      : key === 'HOT' ? leads.filter(l=>l.priority==='HOT').length
-                      : key === 'HIGH' ? leads.filter(l=>l.priority==='HIGH').length
-                      : key === 'MEDIUM' ? leads.filter(l=>l.priority==='MEDIUM').length
-                      : key === 'callbacks' ? callbackLeads.length
-                      : key === 'new' ? leads.filter(l=>l.status==='new').length : 0;
+                    const toCallBase = leads.filter(l => l.status === 'new');
+                    const count = key === 'all' ? toCallBase.length
+                      : key === 'HOT' ? toCallBase.filter(l=>l.priority==='HOT').length
+                      : key === 'HIGH' ? toCallBase.filter(l=>l.priority==='HIGH').length
+                      : key === 'MEDIUM' ? toCallBase.filter(l=>l.priority==='MEDIUM').length
+                      : key === 'callbacks' ? callbackLeads.length : 0;
                     return (
                       <button key={key} onClick={()=>setQuickFilter(key)}
                         style={{padding:'7px 16px', borderRadius:'8px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif', transition:'all .15s',
@@ -5794,7 +5856,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                   </div>
                 ) : (
                   <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
-                    {filteredLeads.map(lead => (
+                    {filteredLeads.map((lead, idx) => (
                       <LeadRow key={lead.id} lead={lead} repId={repId}
                         isExpanded={expandedLead === lead.id}
                         onToggle={(id) => setExpandedLead(expandedLead === id ? null : id)}
@@ -5802,14 +5864,15 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                         callLogs={callLogs[lead.id] || []}
                         shadowMode={shadowMode}
                         repPhone={repPhone}
-                        setToast={setToast}/>
+                        setToast={setToast}
+                        leadNumber={idx + 1}/>
                     ))}
                   </div>
                 )}
               </div>
             )}
 
-            {/* MY CALLS — Rep's call history */}
+            {/* MY CALLS — Rep's call history grouped by time */}
             {tab === 'mycalls' && (
               <div className="fadein">
                 {(() => {
@@ -5819,24 +5882,55 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                       <p style={{color:'#444', fontSize:'14px', margin:0}}>No calls logged yet. Start dialing.</p>
                     </div>
                   );
-                  return (
-                    <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
-                      {allMyLogs.map(log => {
-                        const logLead = leads.find(l => l.id === log.lead_id);
-                        const bizName = log.business_name || (logLead ? logLead.business_name : 'Unknown');
-                        return (
-                          <div key={log.id} style={{padding:'14px 18px', background:'#0a0a0a', borderBottom:'1px solid #1e1e1e', borderRadius:'8px'}}>
-                            <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom: log.notes ? '8px' : '0'}}>
-                              <div style={{width:'8px', height:'8px', borderRadius:'50%', background: OUTCOME_COLORS[log.outcome] || '#555', flexShrink:0}}/>
-                              <span style={{fontSize:'13px', fontWeight:700, color:'#fff'}}>{bizName}</span>
-                              <span style={{fontSize:'10px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:`${OUTCOME_COLORS[log.outcome] || '#555'}15`, color: OUTCOME_COLORS[log.outcome] || '#555', letterSpacing:'.05em', textTransform:'uppercase'}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
-                              <span style={{fontSize:'11px', color:'#444', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString()} {new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-                              {log.callback_date && <span style={{fontSize:'10px', color:'#F59E0B', fontWeight:600}}>CB: {log.callback_date}</span>}
-                            </div>
-                            {log.notes && <p style={{margin:0, fontSize:'12px', color:'#aaa', lineHeight:'1.5', wordBreak:'break-word'}}>{log.notes}</p>}
+                  const now = new Date();
+                  const todayStr = now.toISOString().split('T')[0];
+                  const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+                  const groups = { today: [], thisWeek: [], older: [] };
+                  allMyLogs.forEach(log => {
+                    const logDate = new Date(log.created_at);
+                    const logDateStr = logDate.toISOString().split('T')[0];
+                    if (logDateStr === todayStr) groups.today.push(log);
+                    else if (logDate >= weekStart) groups.thisWeek.push(log);
+                    else groups.older.push(log);
+                  });
+                  const renderLogEntry = (log) => {
+                    const logLead = leads.find(l => l.id === log.lead_id);
+                    const bizName = log.business_name || (logLead ? logLead.business_name : 'Unknown');
+                    const duration = log.duration ? `${Math.floor(log.duration / 60)}m ${log.duration % 60}s` : null;
+                    return (
+                      <div key={log.id} style={{padding:'14px 18px', background:'#0a0a0a', border:'1px solid #1a1a1a', borderRadius:'8px'}}>
+                        <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', marginBottom: (log.notes || log.recording_url || log.transcript) ? '8px' : '0'}}>
+                          <div style={{width:'8px', height:'8px', borderRadius:'50%', background: OUTCOME_COLORS[log.outcome] || '#555', flexShrink:0}}/>
+                          <span style={{fontSize:'13px', fontWeight:700, color:'#fff'}}>{bizName}</span>
+                          <span style={{fontSize:'10px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:`${OUTCOME_COLORS[log.outcome] || '#555'}15`, color: OUTCOME_COLORS[log.outcome] || '#555', letterSpacing:'.05em', textTransform:'uppercase'}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
+                          {duration && <span style={{fontSize:'10px', color:'#666', fontFamily:'monospace'}}>{duration}</span>}
+                          <span style={{fontSize:'11px', color:'#444', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString()} {new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                          {log.callback_date && <span style={{fontSize:'10px', color:'#F59E0B', fontWeight:600}}>CB: {log.callback_date}</span>}
+                        </div>
+                        {log.notes && <p style={{margin:'0 0 6px', fontSize:'12px', color:'#aaa', lineHeight:'1.5', wordBreak:'break-word'}}>{log.notes}</p>}
+                        {log.recording_url && (
+                          <div style={{marginTop:'6px'}}>
+                            <audio controls src={log.recording_url} style={{width:'100%', height:'32px', borderRadius:'6px'}}/>
                           </div>
-                        );
-                      })}
+                        )}
+                        {log.transcript && (
+                          <CallTranscriptToggle transcript={log.transcript}/>
+                        )}
+                      </div>
+                    );
+                  };
+                  const sectionHeader = (title, count) => (
+                    <div style={{display:'flex', alignItems:'center', gap:'10px', margin:'18px 0 10px'}}>
+                      <span style={{fontSize:'10px', fontWeight:800, letterSpacing:'.18em', textTransform:'uppercase', color:'#00F0FF', whiteSpace:'nowrap'}}>{title}</span>
+                      <span style={{fontSize:'10px', color:'#333'}}>({count})</span>
+                      <div style={{flex:1, height:'1px', background:'linear-gradient(90deg,rgba(0,240,255,.35),transparent)'}}/>
+                    </div>
+                  );
+                  return (
+                    <div>
+                      {groups.today.length > 0 && <>{sectionHeader('Today', groups.today.length)}<div style={{display:'flex', flexDirection:'column', gap:'6px'}}>{groups.today.map(renderLogEntry)}</div></>}
+                      {groups.thisWeek.length > 0 && <>{sectionHeader('This Week', groups.thisWeek.length)}<div style={{display:'flex', flexDirection:'column', gap:'6px'}}>{groups.thisWeek.map(renderLogEntry)}</div></>}
+                      {groups.older.length > 0 && <>{sectionHeader('Older', groups.older.length)}<div style={{display:'flex', flexDirection:'column', gap:'6px'}}>{groups.older.map(renderLogEntry)}</div></>}
                     </div>
                   );
                 })()}
@@ -5854,90 +5948,408 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
               </div>
             )}
 
-            {/* CALLBACKS DUE */}
-            {tab === 'callbacks' && (
+            {/* ALL LEADS — Full lead list with all filters */}
+            {tab === 'allleads' && (
               <div className="fadein">
-                {callbackLeads.length === 0 ? (
+                {/* Search Bar */}
+                <div style={{position:'relative', marginBottom:'14px'}}>
+                  <input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Search leads — name, city, phone, niche..."
+                    className="field" style={{width:'100%', padding:'12px 16px 12px 40px', fontSize:'14px', background:'rgba(255,255,255,.03)', border:'1px solid #1e1e1e', borderRadius:'10px', color:'#fff', fontFamily:'Inter,sans-serif'}}/>
+                  <span style={{position:'absolute', left:'14px', top:'50%', transform:'translateY(-50%)', fontSize:'16px', color:'#333', pointerEvents:'none'}}>🔍</span>
+                  {searchQuery && <button onClick={()=>setSearchQuery('')} style={{position:'absolute', right:'12px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'#555', cursor:'pointer', fontSize:'14px', fontFamily:'Inter'}}>✕</button>}
+                </div>
+                {/* Quick Filter Buttons */}
+                <div style={{display:'flex', gap:'6px', marginBottom:'14px', flexWrap:'wrap'}}>
+                  {[['all','All'],['HOT','HOT'],['HIGH','HIGH'],['MEDIUM','MEDIUM'],['callbacks','Callbacks'],['new','Not Called']].map(([key, label]) => {
+                    const isActive = quickFilter === key;
+                    const colors = { HOT:'#ff6060', HIGH:'#F59E0B', MEDIUM:'#3B82F6', callbacks:'#A855F7', new:'#22c55e' };
+                    const accentColor = colors[key] || '#00F0FF';
+                    const count = key === 'all' ? leads.length
+                      : key === 'HOT' ? leads.filter(l=>l.priority==='HOT').length
+                      : key === 'HIGH' ? leads.filter(l=>l.priority==='HIGH').length
+                      : key === 'MEDIUM' ? leads.filter(l=>l.priority==='MEDIUM').length
+                      : key === 'callbacks' ? callbackLeads.length
+                      : key === 'new' ? leads.filter(l=>l.status==='new').length : 0;
+                    return (
+                      <button key={key} onClick={()=>setQuickFilter(key)}
+                        style={{padding:'7px 16px', borderRadius:'8px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif', transition:'all .15s',
+                          background: isActive ? `${accentColor}15` : 'transparent',
+                          border: `1px solid ${isActive ? accentColor+'55' : '#1e1e1e'}`,
+                          color: isActive ? accentColor : '#555',
+                        }}>
+                        {label}
+                        <span style={{marginLeft:'6px', fontSize:'10px', opacity:0.7}}>{count}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* Advanced Filters */}
+                <div className="cc-filter-bar" style={{display:'flex', gap:'10px', marginBottom:'16px', flexWrap:'wrap'}}>
+                  <select value={filterNiche} onChange={e=>setFilterNiche(e.target.value)} className="field" style={{maxWidth:'180px', padding:'8px 12px', fontSize:'12px'}}>
+                    <option value="all">All Niches</option>
+                    {NICHE_LIST.map(n => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                  <select value={filterPriority} onChange={e=>setFilterPriority(e.target.value)} className="field" style={{maxWidth:'140px', padding:'8px 12px', fontSize:'12px'}}>
+                    <option value="all">All Priority</option>
+                    <option value="HOT">HOT (0-19)</option>
+                    <option value="HIGH">HIGH (20-59)</option>
+                    <option value="MEDIUM">MEDIUM (60-100)</option>
+                  </select>
+                  <select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)} className="field" style={{maxWidth:'160px', padding:'8px 12px', fontSize:'12px'}}>
+                    <option value="all">All Status</option>
+                    <option value="new">New</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="callback">Callback</option>
+                    <option value="booked">Booked</option>
+                    <option value="discovery_completed">Discovery Done</option>
+                    <option value="no_show">No Show</option>
+                    <option value="not_interested">Not Interested</option>
+                  </select>
+                  <span style={{marginLeft:'auto', fontSize:'12px', color:'#444', alignSelf:'center'}}>{filteredLeads.length} leads</span>
+                </div>
+                {filteredLeads.length === 0 ? (
                   <div className="card" style={{padding:'40px', textAlign:'center'}}>
-                    <p style={{color:'#444', fontSize:'14px', margin:0}}>No callbacks due. Keep dialing.</p>
+                    <p style={{color:'#444', fontSize:'14px', margin:0}}>
+                      {leads.length === 0 ? 'No leads assigned yet. Ask your director to assign leads.' : 'No leads match your filters.'}
+                    </p>
                   </div>
-                ) : (
-                  <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
-                    {callbackLeads.map(lead => (
-                      <LeadRow key={lead.id} lead={lead} repId={repId}
-                        isExpanded={expandedLead === lead.id}
-                        onToggle={(id) => setExpandedLead(expandedLead === id ? null : id)}
-                        onLogged={handleLogged}
-                        callLogs={callLogs[lead.id] || []}
-                        shadowMode={shadowMode}
-                        repPhone={repPhone}
-                        setToast={setToast}/>
-                    ))}
-                  </div>
-                )}
+                ) : (() => {
+                  const uncalled = filteredLeads.filter(l => l.status === 'new');
+                  const called = filteredLeads.filter(l => l.status !== 'new');
+                  return (
+                    <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
+                      {uncalled.length > 0 && (
+                        <>
+                          <div style={{padding:'8px 0', borderBottom:'1px solid #1a1a1a', marginBottom:'4px'}}>
+                            <span style={{fontSize:'11px', fontWeight:800, color:'#22c55e', letterSpacing:'.1em', textTransform:'uppercase'}}>TO CALL — {uncalled.length} leads</span>
+                          </div>
+                          {uncalled.map((lead, idx) => (
+                            <LeadRow key={lead.id} lead={lead} repId={repId}
+                              isExpanded={expandedLead === lead.id}
+                              onToggle={(id) => setExpandedLead(expandedLead === id ? null : id)}
+                              onLogged={handleLogged}
+                              callLogs={callLogs[lead.id] || []}
+                              shadowMode={shadowMode}
+                              repPhone={repPhone}
+                              setToast={setToast}
+                              leadNumber={idx + 1}/>
+                          ))}
+                        </>
+                      )}
+                      {called.length > 0 && (
+                        <>
+                          <div style={{padding:'12px 0 8px', borderBottom:'1px solid #1a1a1a', marginTop:'12px', marginBottom:'4px'}}>
+                            <span style={{fontSize:'11px', fontWeight:800, color:'#555', letterSpacing:'.1em', textTransform:'uppercase'}}>CALLED — {called.length} leads</span>
+                          </div>
+                          {called.map((lead, idx) => (
+                            <LeadRow key={lead.id} lead={lead} repId={repId}
+                              isExpanded={expandedLead === lead.id}
+                              onToggle={(id) => setExpandedLead(expandedLead === id ? null : id)}
+                              onLogged={handleLogged}
+                              callLogs={callLogs[lead.id] || []}
+                              shadowMode={shadowMode}
+                              repPhone={repPhone}
+                              setToast={setToast}
+                              leadNumber={uncalled.length + idx + 1}/>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
-            {/* CALENDAR */}
-            {tab === 'calendar' && (
+            {/* FOLLOW UP — Leads with callback_requested outcome */}
+            {tab === 'followup' && (
               <div className="fadein">
-                {!CALENDAR_ENDPOINT ? (
-                  <div style={{padding:'40px 20px', textAlign:'center', color:'#555'}}>
-                    <div style={{fontSize:'14px', fontWeight:600, marginBottom:'8px'}}>Calendar — Coming Soon</div>
-                    <div style={{fontSize:'12px', color:'#444'}}>Google Calendar integration is being built. Callbacks are tracked in the Callbacks Due tab.</div>
-                  </div>
-                ) : calendarEvents.length === 0 ? (
-                  <div className="card" style={{padding:'40px', textAlign:'center'}}>
-                    <p style={{color:'#444', fontSize:'14px', margin:0}}>No calls booked for today.</p>
-                  </div>
-                ) : (
-                  <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
-                    {calendarEvents.map((evt, i) => (
-                      <div key={i} className="card" style={{padding:'14px 18px', display:'flex', alignItems:'center', gap:'12px'}}>
-                        <span style={{fontSize:'14px', fontWeight:800, color:'#00F0FF', fontFamily:'monospace', minWidth:'70px'}}>{evt.time}</span>
-                        <div style={{width:'1px', height:'20px', background:'#1e1e1e'}}/>
-                        <span style={{fontSize:'14px', fontWeight:700, color:'#fff'}}>{evt.title}</span>
-                        {evt.type && <span className="niche-badge">{evt.type}</span>}
+                {(() => {
+                  const CALLBACK_REASON_LABELS = { too_busy:'Too Busy / On Job Site', has_someone:'Has Someone Working On It', call_later:'Asked to Call Back Later', interested:'Interested But Not Ready', wants_info:'Wants More Information', other:'Other' };
+                  const followUpLeads = leads.filter(l => {
+                    const logs = callLogs[l.id] || [];
+                    return logs.some(log => log.outcome === 'callback_requested');
+                  }).map(l => {
+                    const logs = callLogs[l.id] || [];
+                    const lastCbLog = logs.find(log => log.outcome === 'callback_requested');
+                    return { ...l, _cbDate: lastCbLog?.callback_date || null, _cbReason: lastCbLog?.callback_reason || null, _cbNotes: lastCbLog?.notes || null };
+                  });
+                  const todayStr = new Date().toISOString().split('T')[0];
+                  const overdue = followUpLeads.filter(l => l._cbDate && l._cbDate < todayStr).sort((a,b) => (a._cbDate || '').localeCompare(b._cbDate || ''));
+                  const dueToday = followUpLeads.filter(l => l._cbDate === todayStr);
+                  const upcoming = followUpLeads.filter(l => !l._cbDate || l._cbDate > todayStr).sort((a,b) => (a._cbDate || 'z').localeCompare(b._cbDate || 'z'));
+                  if (followUpLeads.length === 0) return (
+                    <div className="card" style={{padding:'40px', textAlign:'center'}}>
+                      <p style={{color:'#444', fontSize:'14px', margin:0}}>No follow-ups pending. Keep dialing.</p>
+                    </div>
+                  );
+                  const renderFollowUpCard = (lead) => {
+                    const borderColor = lead._cbDate && lead._cbDate < todayStr ? '#ff6060' : lead._cbDate === todayStr ? '#F59E0B' : '#1a1a1a';
+                    return (
+                      <div key={lead.id} style={{padding:'16px 18px', background:'#0a0a0a', border:`1px solid ${borderColor}`, borderRadius:'10px', borderLeftWidth:'3px'}}>
+                        <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', marginBottom:'8px'}}>
+                          <span style={{fontSize:'14px', fontWeight:700, color:'#fff'}}>{lead.business_name}</span>
+                          {lead._cbDate && <span style={{fontSize:'11px', color: lead._cbDate < todayStr ? '#ff6060' : lead._cbDate === todayStr ? '#F59E0B' : '#666', fontWeight:600, fontFamily:'monospace'}}>{lead._cbDate}</span>}
+                          <span style={{fontSize:'9px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:'rgba(245,158,11,.08)', border:'1px solid rgba(245,158,11,.25)', color:'#F59E0B', letterSpacing:'.05em', textTransform:'uppercase'}}>
+                            {lead._cbReason ? (CALLBACK_REASON_LABELS[lead._cbReason] || lead._cbReason) : 'No reason given'}
+                          </span>
+                          {!shadowMode && (
+                            <button onClick={()=>{ setTab('list'); setExpandedLead(lead.id); }}
+                              style={{marginLeft:'auto', padding:'5px 12px', borderRadius:'6px', cursor:'pointer', fontSize:'10px', fontWeight:700, fontFamily:'Inter,sans-serif',
+                                background:'transparent', border:'1px solid rgba(0,240,255,.3)', color:'#00F0FF', transition:'all .15s'}}
+                              onMouseEnter={e=>{e.currentTarget.style.background='rgba(0,240,255,.08)';}}
+                              onMouseLeave={e=>{e.currentTarget.style.background='transparent';}}>
+                              Call Again
+                            </button>
+                          )}
+                        </div>
+                        {lead._cbNotes && <p style={{margin:0, fontSize:'12px', color:'#aaa', lineHeight:'1.5'}}>{lead._cbNotes}</p>}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    );
+                  };
+                  const sectionHeader = (title, count, color) => (
+                    <div style={{display:'flex', alignItems:'center', gap:'10px', margin:'16px 0 8px'}}>
+                      <span style={{fontSize:'10px', fontWeight:800, letterSpacing:'.18em', textTransform:'uppercase', color: color || '#00F0FF', whiteSpace:'nowrap'}}>{title}</span>
+                      <span style={{fontSize:'10px', color:'#333'}}>({count})</span>
+                      <div style={{flex:1, height:'1px', background:`linear-gradient(90deg,${color || 'rgba(0,240,255,.35)'},transparent)`}}/>
+                    </div>
+                  );
+                  return (
+                    <div>
+                      {overdue.length > 0 && <>{sectionHeader('Overdue', overdue.length, '#ff6060')}<div style={{display:'flex', flexDirection:'column', gap:'6px'}}>{overdue.map(renderFollowUpCard)}</div></>}
+                      {dueToday.length > 0 && <>{sectionHeader('Today', dueToday.length, '#F59E0B')}<div style={{display:'flex', flexDirection:'column', gap:'6px'}}>{dueToday.map(renderFollowUpCard)}</div></>}
+                      {upcoming.length > 0 && <>{sectionHeader('Upcoming', upcoming.length, '#00F0FF')}<div style={{display:'flex', flexDirection:'column', gap:'6px'}}>{upcoming.map(renderFollowUpCard)}</div></>}
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
-            {/* MY STATS */}
+            {/* BOOKED — Leads with booked or discovery_completed status */}
+            {tab === 'booked' && (
+              <div className="fadein">
+                {(() => {
+                  const BOOKING_TYPE_LABELS = { sales_call:'Sales Call', discovery:'Discovery', scheduled_callback:'Scheduled Callback' };
+                  const bookedList = leads.filter(l => l.status === 'booked' || l.status === 'discovery_completed').map(l => {
+                    const logs = callLogs[l.id] || [];
+                    const bookedLog = logs.find(log => log.outcome === 'booked_call' || log.outcome === 'discovery_completed');
+                    return { ...l, _bookingType: bookedLog?.booking_type || null, _bookingDate: bookedLog?.callback_date || l.updated_at || l.created_at, _bookingNotes: bookedLog?.notes || null };
+                  }).sort((a,b) => (a._bookingDate || '').localeCompare(b._bookingDate || ''));
+                  if (bookedList.length === 0) return (
+                    <div className="card" style={{padding:'40px', textAlign:'center'}}>
+                      <p style={{color:'#444', fontSize:'14px', margin:0}}>No bookings yet. Keep dialing.</p>
+                    </div>
+                  );
+                  return (
+                    <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
+                      {bookedList.map(lead => (
+                        <div key={lead.id} style={{padding:'16px 18px', background:'#0a0a0a', border:'1px solid rgba(34,197,94,.25)', borderRadius:'10px', borderLeftWidth:'3px', borderLeftColor:'#22c55e'}}>
+                          <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', marginBottom: lead._bookingNotes ? '8px' : '0'}}>
+                            <span style={{fontSize:'14px', fontWeight:700, color:'#fff'}}>{lead.business_name}</span>
+                            <span style={{fontSize:'9px', fontWeight:700, padding:'2px 8px', borderRadius:'4px',
+                              background: lead.status === 'discovery_completed' ? 'rgba(0,240,255,.08)' : 'rgba(34,197,94,.08)',
+                              border: `1px solid ${lead.status === 'discovery_completed' ? 'rgba(0,240,255,.25)' : 'rgba(34,197,94,.25)'}`,
+                              color: lead.status === 'discovery_completed' ? '#00F0FF' : '#22c55e',
+                              letterSpacing:'.05em', textTransform:'uppercase'}}>
+                              {lead.status === 'discovery_completed' ? 'Discovery Done' : 'Booked'}
+                            </span>
+                            {lead._bookingType && (
+                              <span style={{fontSize:'9px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:'rgba(255,255,255,.04)', border:'1px solid #1e1e1e', color:'#888', letterSpacing:'.05em'}}>
+                                {BOOKING_TYPE_LABELS[lead._bookingType] || lead._bookingType}
+                              </span>
+                            )}
+                            {lead._bookingDate && (
+                              <span style={{fontSize:'11px', color:'#666', fontFamily:'monospace', marginLeft:'auto'}}>
+                                {new Date(lead._bookingDate).toLocaleDateString()} {new Date(lead._bookingDate).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                              </span>
+                            )}
+                          </div>
+                          {lead._bookingNotes && <p style={{margin:0, fontSize:'12px', color:'#aaa', lineHeight:'1.5'}}>{lead._bookingNotes}</p>}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* MY STATS — Enhanced with outcome breakdown and coaching */}
             {tab === 'stats' && (
               <div className="fadein">
-                <div className="cc-stats-grid" style={{display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'12px', marginBottom:'24px'}}>
-                  <div className="stat-card">
-                    <p className="stat-label">Calls Today</p>
-                    <p className="stat-number">{stats.today}</p>
-                  </div>
-                  <div className="stat-card">
-                    <p className="stat-label">Calls This Week</p>
-                    <p className="stat-number">{stats.week}</p>
-                  </div>
-                  <div className="stat-card">
-                    <p className="stat-label">Total Bookings</p>
-                    <p className="stat-number" style={{color:'#22c55e'}}>{stats.booked}</p>
-                  </div>
-                  <div className="stat-card">
-                    <p className="stat-label">Callbacks Pending</p>
-                    <p className="stat-number" style={{color:'#F59E0B'}}>{stats.pending}</p>
-                  </div>
-                </div>
-                <div className="card-glow" style={{padding:'20px'}}>
-                  <p className="stat-label">Booking Rate</p>
-                  <div style={{display:'flex', alignItems:'center', gap:'16px'}}>
-                    <p style={{fontSize:'36px', fontWeight:900, color:'#22c55e', margin:0, fontFamily:'monospace'}}>{bookingRate}%</p>
-                    <div style={{flex:1}}>
-                      <div style={{height:'8px', background:'#1a1a1a', borderRadius:'4px', overflow:'hidden'}}>
-                        <div style={{height:'100%', background:'#22c55e', width:`${Math.min(bookingRate, 100)}%`, borderRadius:'4px', transition:'width .5s ease'}}/>
+                {(() => {
+                  const allMyLogs = Object.values(callLogs).flat().filter(log => log.rep_id === repId || !isDirector);
+                  const now = new Date();
+                  const todayStr = now.toISOString().split('T')[0];
+                  const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay());
+                  const todayLogs = allMyLogs.filter(l => l.created_at && l.created_at.startsWith(todayStr));
+                  const weekLogs = allMyLogs.filter(l => new Date(l.created_at) >= weekStart);
+                  const outcomeCounts = {};
+                  allMyLogs.forEach(l => { outcomeCounts[l.outcome] = (outcomeCounts[l.outcome] || 0) + 1; });
+                  const totalLogs = allMyLogs.length;
+                  const todayOutcomeCounts = {};
+                  todayLogs.forEach(l => { todayOutcomeCounts[l.outcome] = (todayOutcomeCounts[l.outcome] || 0) + 1; });
+
+                  const statCards = [
+                    { key:'today', label:'Calls Today', value: stats.today, color:'#fff', logs: todayLogs },
+                    { key:'week', label:'Calls This Week', value: stats.week, color:'#fff', logs: weekLogs },
+                    { key:'booked', label:'Total Bookings', value: stats.booked, color:'#22c55e', logs: allMyLogs.filter(l => l.outcome === 'booked_call') },
+                    { key:'pending', label:'Callbacks Pending', value: stats.pending, color:'#F59E0B', logs: allMyLogs.filter(l => l.outcome === 'callback_requested') },
+                  ];
+
+                  return (
+                    <>
+                      <div className="cc-stats-grid" style={{display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'12px', marginBottom:'24px'}}>
+                        {statCards.map(sc => (
+                          <div key={sc.key} className="stat-card" style={{cursor:'pointer', transition:'all .15s', borderColor: expandedStat === sc.key ? 'rgba(0,240,255,.5)' : 'rgba(0,240,255,.22)'}}
+                            onClick={() => setExpandedStat(expandedStat === sc.key ? null : sc.key)}>
+                            <p className="stat-label">{sc.label}</p>
+                            <p className="stat-number" style={{color: sc.color}}>{sc.value}</p>
+                          </div>
+                        ))}
                       </div>
-                      <p style={{margin:'6px 0 0', fontSize:'11px', color:'#444'}}>{stats.booked} bookings / {stats.week} calls this week</p>
+                      {expandedStat && (() => {
+                        const card = statCards.find(s => s.key === expandedStat);
+                        if (!card || card.logs.length === 0) return (
+                          <div className="card" style={{padding:'20px', marginBottom:'16px', textAlign:'center'}}>
+                            <p style={{color:'#444', fontSize:'13px', margin:0}}>No calls in this category.</p>
+                          </div>
+                        );
+                        return (
+                          <div className="card" style={{padding:'16px', marginBottom:'16px', maxHeight:'300px', overflowY:'auto'}}>
+                            <p style={{margin:'0 0 10px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'#00F0FF'}}>{card.label} — Detail</p>
+                            {card.logs.slice(0, 50).map(log => {
+                              const logLead = leads.find(l => l.id === log.lead_id);
+                              return (
+                                <div key={log.id} style={{display:'flex', alignItems:'center', gap:'8px', padding:'6px 0', borderBottom:'1px solid #111'}}>
+                                  <div style={{width:'6px', height:'6px', borderRadius:'50%', background: OUTCOME_COLORS[log.outcome] || '#555'}}/>
+                                  <span style={{fontSize:'12px', color:'#fff', fontWeight:600}}>{log.business_name || logLead?.business_name || 'Unknown'}</span>
+                                  <span style={{fontSize:'10px', color: OUTCOME_COLORS[log.outcome] || '#555', fontWeight:600}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
+                                  <span style={{fontSize:'10px', color:'#333', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
+                      <div className="card-glow" style={{padding:'20px', marginBottom:'20px'}}>
+                        <p className="stat-label">Booking Rate</p>
+                        <div style={{display:'flex', alignItems:'center', gap:'16px'}}>
+                          <p style={{fontSize:'36px', fontWeight:900, color:'#22c55e', margin:0, fontFamily:'monospace'}}>{bookingRate}%</p>
+                          <div style={{flex:1}}>
+                            <div style={{height:'8px', background:'#1a1a1a', borderRadius:'4px', overflow:'hidden'}}>
+                              <div style={{height:'100%', background:'#22c55e', width:`${Math.min(bookingRate, 100)}%`, borderRadius:'4px', transition:'width .5s ease'}}/>
+                            </div>
+                            <p style={{margin:'6px 0 0', fontSize:'11px', color:'#444'}}>{stats.booked} bookings / {stats.week} calls this week</p>
+                          </div>
+                        </div>
+                      </div>
+                      {/* Outcome Breakdown */}
+                      {totalLogs > 0 && (
+                        <div className="card" style={{padding:'20px', marginBottom:'20px'}}>
+                          <p style={{margin:'0 0 14px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'#00F0FF'}}>Outcome Breakdown</p>
+                          <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
+                            {Object.entries(OUTCOME_LABELS).map(([key, label]) => {
+                              const cnt = outcomeCounts[key] || 0;
+                              if (cnt === 0) return null;
+                              const pct = Math.round((cnt / totalLogs) * 100);
+                              return (
+                                <div key={key}>
+                                  <div style={{display:'flex', justifyContent:'space-between', marginBottom:'4px'}}>
+                                    <span style={{fontSize:'11px', fontWeight:600, color:'#ccc'}}>{label}</span>
+                                    <span style={{fontSize:'11px', fontWeight:700, color: OUTCOME_COLORS[key] || '#555', fontFamily:'monospace'}}>{cnt} ({pct}%)</span>
+                                  </div>
+                                  <div style={{height:'6px', background:'#1a1a1a', borderRadius:'3px', overflow:'hidden'}}>
+                                    <div style={{height:'100%', background: OUTCOME_COLORS[key] || '#555', width:`${pct}%`, borderRadius:'3px', transition:'width .4s ease'}}/>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      {/* Coaching Tips */}
+                      {(todayOutcomeCounts.not_interested || 0) >= 2 && (
+                        <div style={{padding:'16px 18px', background:'rgba(245,158,11,.05)', border:'1px solid rgba(245,158,11,.2)', borderRadius:'10px', marginBottom:'16px'}}>
+                          <p style={{margin:'0 0 6px', fontSize:'10px', fontWeight:800, letterSpacing:'.15em', textTransform:'uppercase', color:'#F59E0B'}}>Coaching Tip</p>
+                          <p style={{margin:0, fontSize:'13px', color:'#ccc', lineHeight:'1.5'}}>You've had {todayOutcomeCounts.not_interested} "Not Interested" outcomes today. Review the Objection Handling scripts in section 04 to sharpen your responses.</p>
+                        </div>
+                      )}
+                      {(todayOutcomeCounts.no_answer || 0) >= 5 && (
+                        <div style={{padding:'16px 18px', background:'rgba(0,240,255,.03)', border:'1px solid rgba(0,240,255,.15)', borderRadius:'10px', marginBottom:'16px'}}>
+                          <p style={{margin:'0 0 6px', fontSize:'10px', fontWeight:800, letterSpacing:'.15em', textTransform:'uppercase', color:'#00F0FF'}}>Coaching Tip</p>
+                          <p style={{margin:0, fontSize:'13px', color:'#ccc', lineHeight:'1.5'}}>High no-answer rate today ({todayOutcomeCounts.no_answer} calls). Consider trying different call times or switching to voicemail-first strategy.</p>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* PLAYBACK — Calls with recordings */}
+            {tab === 'playback' && (
+              <div className="fadein">
+                {(() => {
+                  // playbackSearch and expandedPlayback state lifted to ColdCallView
+                  const allMyLogs = Object.values(callLogs).flat().filter(log => (log.rep_id === repId || !isDirector) && log.recording_url).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+                  const filteredPlayback = playbackSearch ? allMyLogs.filter(log => {
+                    const q = playbackSearch.toLowerCase();
+                    const bizName = (log.business_name || '').toLowerCase();
+                    const transcript = (log.transcript || '').toLowerCase();
+                    return bizName.includes(q) || transcript.includes(q);
+                  }) : allMyLogs;
+                  if (allMyLogs.length === 0) return (
+                    <div className="card" style={{padding:'40px', textAlign:'center'}}>
+                      <p style={{color:'#444', fontSize:'14px', margin:0}}>No recorded calls yet. Twilio recordings will appear here.</p>
                     </div>
-                  </div>
-                </div>
+                  );
+                  return (
+                    <div>
+                      <div style={{position:'relative', marginBottom:'16px'}}>
+                        <input value={playbackSearch} onChange={e=>setPlaybackSearch(e.target.value)} placeholder="Search recordings and transcripts..."
+                          className="field" style={{width:'100%', padding:'12px 16px 12px 40px', fontSize:'14px', background:'rgba(255,255,255,.03)', border:'1px solid #1e1e1e', borderRadius:'10px', color:'#fff', fontFamily:'Inter,sans-serif'}}/>
+                        <span style={{position:'absolute', left:'14px', top:'50%', transform:'translateY(-50%)', fontSize:'16px', color:'#333', pointerEvents:'none'}}>🔍</span>
+                        {playbackSearch && <button onClick={()=>setPlaybackSearch('')} style={{position:'absolute', right:'12px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'#555', cursor:'pointer', fontSize:'14px', fontFamily:'Inter'}}>✕</button>}
+                      </div>
+                      <p style={{fontSize:'11px', color:'#444', marginBottom:'12px'}}>{filteredPlayback.length} recording{filteredPlayback.length !== 1 ? 's' : ''}</p>
+                      <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
+                        {filteredPlayback.map(log => {
+                          const logLead = leads.find(l => l.id === log.lead_id);
+                          const bizName = log.business_name || (logLead ? logLead.business_name : 'Unknown');
+                          const duration = log.duration ? `${Math.floor(log.duration / 60)}m ${log.duration % 60}s` : null;
+                          const isExpanded = expandedPlayback === log.id;
+                          return (
+                            <div key={log.id} style={{padding:'14px 18px', background:'#0a0a0a', border:'1px solid #1a1a1a', borderRadius:'10px', cursor:'pointer', transition:'all .15s', borderColor: isExpanded ? 'rgba(0,240,255,.3)' : '#1a1a1a'}}
+                              onClick={()=>setExpandedPlayback(isExpanded ? null : log.id)}>
+                              <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap'}}>
+                                <span style={{fontSize:'14px', fontWeight:700, color:'#fff'}}>{bizName}</span>
+                                <span style={{fontSize:'10px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:`${OUTCOME_COLORS[log.outcome] || '#555'}15`, color: OUTCOME_COLORS[log.outcome] || '#555', letterSpacing:'.05em', textTransform:'uppercase'}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
+                                {duration && <span style={{fontSize:'11px', color:'#666', fontFamily:'monospace'}}>{duration}</span>}
+                                <span style={{fontSize:'11px', color:'#444', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString()} {new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                              </div>
+                              {isExpanded && (
+                                <div style={{marginTop:'12px'}} onClick={e=>e.stopPropagation()}>
+                                  <audio controls src={log.recording_url} style={{width:'100%', height:'36px', borderRadius:'6px', marginBottom:'8px'}}/>
+                                  {log.transcript_status === 'completed' && log.transcript ? (
+                                    <div style={{marginTop:'8px'}}>
+                                      <p style={{margin:'0 0 6px', fontSize:'10px', fontWeight:700, color:'#00F0FF', letterSpacing:'.1em', textTransform:'uppercase'}}>Transcript</p>
+                                      <div style={{padding:'12px', background:'rgba(255,255,255,.02)', border:'1px solid #1e1e1e', borderRadius:'8px', maxHeight:'300px', overflowY:'auto'}}>
+                                        <p style={{margin:0, fontSize:'12px', color:'#aaa', lineHeight:'1.6', whiteSpace:'pre-wrap'}}>{log.transcript}</p>
+                                      </div>
+                                    </div>
+                                  ) : log.transcript_status === 'pending' ? (
+                                    <p style={{margin:'8px 0 0', fontSize:'11px', color:'#F59E0B', fontStyle:'italic'}}>Transcribing...</p>
+                                  ) : (
+                                    <p style={{margin:'8px 0 0', fontSize:'11px', color:'#444', fontStyle:'italic'}}>No transcript</p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </>
