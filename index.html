@@ -44,6 +44,15 @@
   ✅ Recording player + duration + Twilio badge in call history
   ✅ repPhone state in App, passed through shared object to all views
 
+  COMPLETED (Rev 2.4 — Director Notification Popup):
+  ✅ NotificationPopup — "What You Missed" modal on director login
+  ✅ Queries call_logs for bookings, callbacks, and handoffs since last visit
+  ✅ Tracks last director visit in localStorage (pmss_last_director_visit)
+  ✅ Color-coded sections: green (bookings), amber (callbacks), purple (handoffs)
+  ✅ Total calls summary, dismissible with "Got It" button
+  ✅ Red notification badge on Director Dashboard card in Home Hub
+  ✅ Only shows for directors, never reps. Only shows if events exist.
+
   STILL TO DO:
   ☐ Make The Ladder closes counter sync with the global header counter
   ☐ Keyboard shortcuts or hotkeys for quick navigation between sections
@@ -3090,7 +3099,7 @@ const AnnouncementsBanner = () => {
   );
 };
 
-const HomeView = ({ userName, userEmail, onNav, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, onShortcuts, isDirector, onToggleSidebar, actuallyDirector, viewAsRep, onToggleView, shadowMode, shadowRepName, allReps, enterShadow, exitShadow }) => {
+const HomeView = ({ userName, userEmail, onNav, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, onShortcuts, isDirector, onToggleSidebar, actuallyDirector, viewAsRep, onToggleView, shadowMode, shadowRepName, allReps, enterShadow, exitShadow, missedEventCount = 0 }) => {
   const sections = [
     {
       key: 'coldcall',
@@ -3236,6 +3245,10 @@ const HomeView = ({ userName, userEmail, onNav, onLogout, totalCloses, setTotalC
                 opacity: s.locked ? .35 : 1,
                 pointerEvents: s.locked ? 'none' : 'auto',
               }}>
+              {/* Notification badge for Director Dashboard */}
+              {s.key === 'director' && missedEventCount > 0 && (
+                <span style={{position:'absolute', top:'-1px', right:'-1px', background:'#ff4444', color:'#fff', borderRadius:'12px', minWidth:'22px', height:'22px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:800, padding:'0 6px', boxShadow:'0 0 12px rgba(255,68,68,.5)', zIndex:2}}>{missedEventCount}</span>
+              )}
               <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'16px'}}>
                 <span style={{fontSize:'10px', fontWeight:800, letterSpacing:'.2em', color:'#00F0FF'}}>{s.num}</span>
                 <div style={{flex:1, height:'1px', background:'rgba(0,240,255,.15)'}}/>
@@ -8925,6 +8938,137 @@ const DirectorView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
 };
 
 /* ══════════════════════════════════════════════════════
+   NOTIFICATION POPUP — Director "What You Missed" modal
+══════════════════════════════════════════════════════ */
+const NotificationPopup = ({ events, lastVisit, onDismiss }) => {
+  const timeAgo = (iso) => {
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  };
+
+  const lastVisitAgo = lastVisit ? timeAgo(lastVisit) : 'First visit';
+
+  const sectionStyle = (accent) => ({
+    borderLeft: `3px solid ${accent}`,
+    background: 'rgba(255,255,255,.02)',
+    borderRadius: '0 8px 8px 0',
+    padding: '12px 16px',
+    marginBottom: '8px',
+  });
+
+  const eventLine = (text, time) => (
+    <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:'12px', padding:'6px 0'}}>
+      <span style={{color:'#ccc', fontSize:'13px', lineHeight:1.5, flex:1}}>{text}</span>
+      <span style={{color:'#555', fontSize:'11px', whiteSpace:'nowrap', flexShrink:0}}>{timeAgo(time)}</span>
+    </div>
+  );
+
+  return (
+    <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,.85)', zIndex:600, display:'flex', alignItems:'center', justifyContent:'center', padding:'16px'}}
+      onClick={(e) => { if (e.target === e.currentTarget) onDismiss(); }}>
+      <div style={{maxWidth:'500px', width:'100%', background:'#0d0d0d', border:'1px solid #1e1e1e', borderRadius:'12px', padding:'32px', position:'relative', maxHeight:'85vh', display:'flex', flexDirection:'column'}}>
+
+        {/* Close X */}
+        <button onClick={onDismiss} style={{position:'absolute', top:'12px', right:'12px', background:'transparent', border:'none', color:'#555', fontSize:'18px', cursor:'pointer', padding:'4px 8px', lineHeight:1, transition:'color .15s'}}
+          onMouseEnter={e=>e.currentTarget.style.color='#fff'}
+          onMouseLeave={e=>e.currentTarget.style.color='#555'}>✕</button>
+
+        {/* Header */}
+        <div style={{marginBottom:'24px', flexShrink:0}}>
+          <span style={{fontSize:'10px', fontWeight:800, letterSpacing:'.18em', textTransform:'uppercase', color:'#00F0FF', background:'rgba(0,240,255,.08)', border:'1px solid rgba(0,240,255,.25)', borderRadius:'4px', padding:'2px 8px', display:'inline-block', marginBottom:'12px'}}>Activity Report</span>
+          <h2 style={{fontSize:'24px', fontWeight:900, color:'#fff', margin:'0 0 6px', letterSpacing:'-.01em'}}>What You Missed</h2>
+          <p style={{color:'#555', fontSize:'13px', margin:0}}>Last visit: {lastVisitAgo}</p>
+        </div>
+
+        {/* Scrollable content */}
+        <div style={{flex:1, overflowY:'auto', maxHeight:'60vh', marginBottom:'20px', paddingRight:'4px'}}>
+
+          {/* Bookings */}
+          {events.bookings.length > 0 && (
+            <div style={{marginBottom:'16px'}}>
+              <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px'}}>
+                <div style={{width:'8px', height:'8px', borderRadius:'50%', background:'#22c55e', boxShadow:'0 0 8px rgba(34,197,94,.6)'}}/>
+                <span style={{fontSize:'11px', fontWeight:800, letterSpacing:'.14em', textTransform:'uppercase', color:'#22c55e'}}>Bookings ({events.bookings.length})</span>
+              </div>
+              <div style={sectionStyle('#22c55e')}>
+                {events.bookings.map((b, i) => (
+                  <div key={b.id || i}>
+                    {eventLine(
+                      `${b.reps?.name || 'Rep'} booked a call with ${b.business_name || b.lead_name || 'Unknown'} — ${b.outcome === 'discovery_completed' ? 'Discovery completed' : 'Call booked'}`,
+                      b.created_at
+                    )}
+                    {i < events.bookings.length - 1 && <div style={{height:'1px', background:'rgba(255,255,255,.04)'}}/>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Callbacks */}
+          {events.callbacks.length > 0 && (
+            <div style={{marginBottom:'16px'}}>
+              <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px'}}>
+                <div style={{width:'8px', height:'8px', borderRadius:'50%', background:'#F59E0B', boxShadow:'0 0 8px rgba(245,158,11,.6)'}}/>
+                <span style={{fontSize:'11px', fontWeight:800, letterSpacing:'.14em', textTransform:'uppercase', color:'#F59E0B'}}>Callbacks ({events.callbacks.length})</span>
+              </div>
+              <div style={sectionStyle('#F59E0B')}>
+                {events.callbacks.map((c, i) => (
+                  <div key={c.id || i}>
+                    {eventLine(
+                      `${c.reps?.name || 'Rep'} — callback requested: ${c.business_name || c.lead_name || 'Unknown'}${c.notes ? ` — ${c.notes}` : ''}`,
+                      c.created_at
+                    )}
+                    {i < events.callbacks.length - 1 && <div style={{height:'1px', background:'rgba(255,255,255,.04)'}}/>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Handoffs */}
+          {events.handoffs.length > 0 && (
+            <div style={{marginBottom:'16px'}}>
+              <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px'}}>
+                <div style={{width:'8px', height:'8px', borderRadius:'50%', background:'#a855f7', boxShadow:'0 0 8px rgba(168,85,247,.6)'}}/>
+                <span style={{fontSize:'11px', fontWeight:800, letterSpacing:'.14em', textTransform:'uppercase', color:'#a855f7'}}>Handoffs ({events.handoffs.length})</span>
+              </div>
+              <div style={sectionStyle('#a855f7')}>
+                {events.handoffs.map((h, i) => (
+                  <div key={h.id || i}>
+                    {eventLine(
+                      `${h.reps?.name || 'Rep'} handed off ${h.company || 'Unknown'} — ${h.next_step || 'Pending'}`,
+                      h.created_at
+                    )}
+                    {i < events.handoffs.length - 1 && <div style={{height:'1px', background:'rgba(255,255,255,.04)'}}/>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Summary + Dismiss */}
+        <div style={{flexShrink:0}}>
+          {events.totalCalls > 0 && (
+            <p style={{color:'#555', fontSize:'12px', textAlign:'center', margin:'0 0 16px', letterSpacing:'.04em'}}>
+              <span style={{color:'#888', fontWeight:700}}>{events.totalCalls}</span> total call{events.totalCalls !== 1 ? 's' : ''} made since your last visit
+            </p>
+          )}
+          <button onClick={onDismiss} className="btn-primary" style={{fontSize:'13px', padding:'14px 28px', letterSpacing:'.08em'}}>
+            Got It
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ══════════════════════════════════════════════════════
    ROOT APP — STATE MACHINE
 ══════════════════════════════════════════════════════ */
 const App = () => {
@@ -8944,6 +9088,11 @@ const App = () => {
   const [globalSidebarOpen, setGlobalSidebarOpen] = useState(false);
   const [viewAsRep, setViewAsRep] = useState(() => { try { return localStorage.getItem('pmss_viewAsRep') === 'true'; } catch { return false; } });
   useEffect(() => { try { localStorage.setItem('pmss_viewAsRep', viewAsRep); } catch {} }, [viewAsRep]);
+
+  // Notification Popup — director "What You Missed" modal
+  const [showNotifPopup, setShowNotifPopup] = useState(false);
+  const [missedEvents, setMissedEvents] = useState(null);
+  const [lastDirectorVisit, setLastDirectorVisit] = useState(null);
 
   // Shadow View — director sees portal as a specific rep (read-only)
   const [shadowRepId, setShadowRepId] = useState(null);
@@ -8979,6 +9128,28 @@ const App = () => {
             if (repData.role === 'director') {
               const { data: repsData } = await sb.from('reps').select('id, name, email, role').order('created_at', { ascending: true });
               if (repsData) setAllReps(repsData.filter(r => r.role !== 'director'));
+
+              // Director notification popup — query events since last visit
+              try {
+                const lastVisit = localStorage.getItem('pmss_last_director_visit') || new Date(0).toISOString();
+                setLastDirectorVisit(lastVisit);
+                const [bookings, callbacks, handoffs, totalCalls] = await Promise.all([
+                  sb.from('call_logs').select('*, reps(name)').in('outcome', ['booked_call', 'discovery_completed']).gt('created_at', lastVisit),
+                  sb.from('call_logs').select('*, reps(name)').eq('outcome', 'callback_requested').gt('created_at', lastVisit),
+                  sb.from('handoffs').select('*, reps(name)').gt('created_at', lastVisit),
+                  sb.from('call_logs').select('id').gt('created_at', lastVisit),
+                ]);
+                const evts = {
+                  bookings: bookings.data || [],
+                  callbacks: callbacks.data || [],
+                  handoffs: handoffs.data || [],
+                  totalCalls: (totalCalls.data || []).length,
+                };
+                if (evts.bookings.length > 0 || evts.callbacks.length > 0 || evts.handoffs.length > 0) {
+                  setMissedEvents(evts);
+                  setShowNotifPopup(true);
+                }
+              } catch (notifErr) { console.warn('Notification popup query failed:', notifErr); }
             }
             try { localStorage.setItem('pmss_user', repData.name); localStorage.setItem('pmss_email', repData.email); } catch {}
             const savedView = (() => { try { return localStorage.getItem('pmss_view') || 'home'; } catch { return 'home'; } })();
@@ -9151,6 +9322,14 @@ const App = () => {
     </div>
   );
 
+  // Director notification popup
+  const notifPopup = showNotifPopup && missedEvents ? (
+    <NotificationPopup events={missedEvents} lastVisit={lastDirectorVisit} onDismiss={() => {
+      setShowNotifPopup(false);
+      localStorage.setItem('pmss_last_director_visit', new Date().toISOString());
+    }}/>
+  ) : null;
+
   if (view === 'login')      return <LoginView      onLogin={handleLogin}/>;
 
   // Shadow Banner — persistent bar when shadowing a rep
@@ -9170,28 +9349,28 @@ const App = () => {
   const shadowPadding = shadowMode ? <div style={{height:'40px', flexShrink:0}}/> : null;
 
   const bottomNav = <BottomNav currentView={view} onNav={handleNav} addClose={shadowMode ? shadowAddClose : addClose} shadowMode={shadowMode}/>;
-  if (view === 'home')       return <>{shadowBanner}{sidebar}{<HomeView       {...shared} onNav={handleNav} onShortcuts={() => setShowShortcuts(true)}/>}{bottomNav}{chat}{shortcuts}</>;
-  if (view === 'coldcall')   return <>{shadowBanner}{sidebar}{<ColdCallView   {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'foundation') return <>{shadowBanner}{sidebar}{<FoundationView {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'scripts')    return <>{shadowBanner}{sidebar}{<ScriptsView    {...shared} scriptTab={scriptTab} setScriptTab={setScriptTab}/>}{bottomNav}{chat}</>;
-  if (view === 'postcall')   return <>{shadowBanner}{sidebar}{<PostCallView   {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'ladder')     return <>{shadowBanner}{sidebar}{<LadderView     {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'handoff')    return <>{shadowBanner}{sidebar}{<HandoffView    {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'dms')        return <>{shadowBanner}{sidebar}{<DMView         {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'email')      return <>{shadowBanner}{sidebar}{<EmailView      {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'sms')        return <>{shadowBanner}{sidebar}{<SMSView        {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'offerstack') return <>{shadowBanner}{sidebar}{<OfferStackView {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'aitools')    return <>{shadowBanner}{sidebar}{<AIToolsView    {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'training')   return <>{shadowBanner}{sidebar}{<TrainingView   {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'voicemail')  return <>{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="Voicemail Scripts" subtitle="VM — Leave the Right Message" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('Voicemail-Scripts')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><VoicemailPanel/></main></div>}{bottomNav}{chat}</>;
-  if (view === 'discovery')  return <>{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="Discovery Call Framework" subtitle="DC — The 15-Minute Close" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('Discovery-Call')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><DiscoveryCallPanel/></main></div>}{bottomNav}{chat}</>;
-  if (view === 'upsell')     return <>{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="0.5 → 1.0 Upsell" subtitle="UP — Turn Websites Into Retainers" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('Upsell-Script')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><UpsellPanel/></main></div>}{bottomNav}{chat}</>;
-  if (view === 'noshow')     return <>{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="No-Show Recovery" subtitle="NS — Don't Chase. Replace." userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('No-Show-Recovery')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><NoShowPanel/></main></div>}{bottomNav}{chat}</>;
-  if (view === 'proofpoints') return <>{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="Proof Points & Ammo" subtitle="PP — Confidence Arsenal" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('Proof-Points')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><ProofPointsPanel/><NotesPad storageKey="notes_proofpoints" /></main></div>}{bottomNav}{chat}</>;
-  if (view === 'director' && isDirector) return <>{shadowBanner}{sidebar}{<DirectorView {...shared}/>}{bottomNav}{chat}</>;
-  if (view === 'newupdates' && actuallyDirector) return <>{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="New Updates" subtitle="Features built — activate when ready" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose} actuallyDirector={actuallyDirector} viewAsRep={viewAsRep} onToggleView={() => setViewAsRep(v => !v)}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><div style={{marginBottom:'8px'}}><span className="tag">NEW UPDATES</span></div><h2 style={{fontSize:'26px',fontWeight:900,color:'#fff',margin:'8px 0 4px'}}>Features Built — Not Yet Active</h2><p style={{color:'#666',fontSize:'14px',lineHeight:1.6,margin:'0 0 24px'}}>Build these once the current sales portal is up to speed. Click any to open.</p><div style={{display:'flex',flexDirection:'column',gap:'12px'}}>{[{key:'upsell',title:'0.5 → 1.0 Upsell',desc:'Post-delivery upsell script — turn websites into recurring revenue'},{key:'voicemail',title:'Voicemail Scripts',desc:'4 voicemail templates under 20 seconds each'},{key:'discovery',title:'Discovery Call Framework',desc:'15-minute discovery call agenda with 5 phases'},{key:'noshow',title:'No-Show Recovery',desc:'3-touch SMS recovery sequence'},{key:'proofpoints',title:'Proof Points & Ammo',desc:'Social proof, competitor ammunition, credibility builders'}].map(f=>(<button key={f.key} onClick={()=>handleNav(f.key)} className="card" style={{padding:'18px 20px',textAlign:'left',cursor:'pointer',border:'1px solid #1e1e1e',font:'inherit',display:'flex',justifyContent:'space-between',alignItems:'center'}}><div><p style={{margin:0,fontWeight:700,color:'#fff',fontSize:'15px'}}>{f.title}</p><p style={{margin:'4px 0 0',color:'#555',fontSize:'12px'}}>{f.desc}</p></div><span style={{color:'#00F0FF',fontSize:'12px',fontWeight:700}}>Open →</span></button>))}</div></main></div>}{bottomNav}{chat}</>;
+  if (view === 'home')       return <>{notifPopup}{shadowBanner}{sidebar}{<HomeView       {...shared} onNav={handleNav} onShortcuts={() => setShowShortcuts(true)} missedEventCount={missedEvents ? (missedEvents.bookings.length + missedEvents.callbacks.length + missedEvents.handoffs.length) : 0}/>}{bottomNav}{chat}{shortcuts}</>;
+  if (view === 'coldcall')   return <>{notifPopup}{shadowBanner}{sidebar}{<ColdCallView   {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'foundation') return <>{notifPopup}{shadowBanner}{sidebar}{<FoundationView {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'scripts')    return <>{notifPopup}{shadowBanner}{sidebar}{<ScriptsView    {...shared} scriptTab={scriptTab} setScriptTab={setScriptTab}/>}{bottomNav}{chat}</>;
+  if (view === 'postcall')   return <>{notifPopup}{shadowBanner}{sidebar}{<PostCallView   {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'ladder')     return <>{notifPopup}{shadowBanner}{sidebar}{<LadderView     {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'handoff')    return <>{notifPopup}{shadowBanner}{sidebar}{<HandoffView    {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'dms')        return <>{notifPopup}{shadowBanner}{sidebar}{<DMView         {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'email')      return <>{notifPopup}{shadowBanner}{sidebar}{<EmailView      {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'sms')        return <>{notifPopup}{shadowBanner}{sidebar}{<SMSView        {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'offerstack') return <>{notifPopup}{shadowBanner}{sidebar}{<OfferStackView {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'aitools')    return <>{notifPopup}{shadowBanner}{sidebar}{<AIToolsView    {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'training')   return <>{notifPopup}{shadowBanner}{sidebar}{<TrainingView   {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'voicemail')  return <>{notifPopup}{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="Voicemail Scripts" subtitle="VM — Leave the Right Message" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('Voicemail-Scripts')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><VoicemailPanel/></main></div>}{bottomNav}{chat}</>;
+  if (view === 'discovery')  return <>{notifPopup}{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="Discovery Call Framework" subtitle="DC — The 15-Minute Close" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('Discovery-Call')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><DiscoveryCallPanel/></main></div>}{bottomNav}{chat}</>;
+  if (view === 'upsell')     return <>{notifPopup}{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="0.5 → 1.0 Upsell" subtitle="UP — Turn Websites Into Retainers" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('Upsell-Script')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><UpsellPanel/></main></div>}{bottomNav}{chat}</>;
+  if (view === 'noshow')     return <>{notifPopup}{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="No-Show Recovery" subtitle="NS — Don't Chase. Replace." userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('No-Show-Recovery')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><NoShowPanel/></main></div>}{bottomNav}{chat}</>;
+  if (view === 'proofpoints') return <>{notifPopup}{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="Proof Points & Ammo" subtitle="PP — Confidence Arsenal" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} onPrint={()=>downloadPDF('Proof-Points')} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><ProofPointsPanel/><NotesPad storageKey="notes_proofpoints" /></main></div>}{bottomNav}{chat}</>;
+  if (view === 'director' && isDirector) return <>{notifPopup}{shadowBanner}{sidebar}{<DirectorView {...shared}/>}{bottomNav}{chat}</>;
+  if (view === 'newupdates' && actuallyDirector) return <>{notifPopup}{shadowBanner}{sidebar}{<div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000'}}>{shadowPadding}<TopBar title="New Updates" subtitle="Features built — activate when ready" userName={userName} userEmail={userEmail} onHome={handleHome} onLogout={handleLogout} totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose} actuallyDirector={actuallyDirector} viewAsRep={viewAsRep} onToggleView={() => setViewAsRep(v => !v)}/><main className="print-area section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'900px', width:'100%', margin:'0 auto'}}><div style={{marginBottom:'8px'}}><span className="tag">NEW UPDATES</span></div><h2 style={{fontSize:'26px',fontWeight:900,color:'#fff',margin:'8px 0 4px'}}>Features Built — Not Yet Active</h2><p style={{color:'#666',fontSize:'14px',lineHeight:1.6,margin:'0 0 24px'}}>Build these once the current sales portal is up to speed. Click any to open.</p><div style={{display:'flex',flexDirection:'column',gap:'12px'}}>{[{key:'upsell',title:'0.5 → 1.0 Upsell',desc:'Post-delivery upsell script — turn websites into recurring revenue'},{key:'voicemail',title:'Voicemail Scripts',desc:'4 voicemail templates under 20 seconds each'},{key:'discovery',title:'Discovery Call Framework',desc:'15-minute discovery call agenda with 5 phases'},{key:'noshow',title:'No-Show Recovery',desc:'3-touch SMS recovery sequence'},{key:'proofpoints',title:'Proof Points & Ammo',desc:'Social proof, competitor ammunition, credibility builders'}].map(f=>(<button key={f.key} onClick={()=>handleNav(f.key)} className="card" style={{padding:'18px 20px',textAlign:'left',cursor:'pointer',border:'1px solid #1e1e1e',font:'inherit',display:'flex',justifyContent:'space-between',alignItems:'center'}}><div><p style={{margin:0,fontWeight:700,color:'#fff',fontSize:'15px'}}>{f.title}</p><p style={{margin:'4px 0 0',color:'#555',fontSize:'12px'}}>{f.desc}</p></div><span style={{color:'#00F0FF',fontSize:'12px',fontWeight:700}}>Open →</span></button>))}</div></main></div>}{bottomNav}{chat}</>;
   // Fallback — any invalid view goes home instead of blank screen
-  return <>{shadowBanner}{sidebar}{<HomeView {...shared} onNav={handleNav} onShortcuts={() => setShowShortcuts(true)}/>}{bottomNav}{chat}{shortcuts}</>;
+  return <>{notifPopup}{shadowBanner}{sidebar}{<HomeView {...shared} onNav={handleNav} onShortcuts={() => setShowShortcuts(true)} missedEventCount={missedEvents ? (missedEvents.bookings.length + missedEvents.callbacks.length + missedEvents.handoffs.length) : 0}/>}{bottomNav}{chat}{shortcuts}</>;
 };
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
