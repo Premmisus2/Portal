@@ -1,0 +1,7 @@
+{
+  "crons": [
+    { "path": "/api/cron-idle-check", "schedule": "0 13-23 * * 1-5" },
+    { "path": "/api/cron-daily-summary", "schedule": "0 23 * * 1-5" },
+    { "path": "/api/cron-callback-reminder", "schedule": "0 14 * * 1-5" }
+  ]
+}
