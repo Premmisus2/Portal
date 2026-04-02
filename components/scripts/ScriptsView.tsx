@@ -9,6 +9,7 @@ import HooksPanel from '@/components/scripts/HooksPanel';
 import ObjectionsPanel from '@/components/scripts/ObjectionsPanel';
 import MisstepsPanel from '@/components/scripts/MisstepsPanel';
 import ClosePanel from '@/components/scripts/ClosePanel';
+import NicheTracksPanel from '@/components/scripts/NicheTracksPanel';
 import NotesPad from '@/components/ui/NotesPad';
 
 const SCRIPT_TABS = [
@@ -17,6 +18,7 @@ const SCRIPT_TABS = [
   { id: 'objections', label: 'Objection Handling',           num: '3' },
   { id: 'missteps',   label: 'Misstep Corrections',          num: '4' },
   { id: 'close',      label: 'The Pivot & Financial Close',  num: '5' },
+  { id: 'niches',     label: 'Niche Talk Tracks',             num: '6' },
 ];
 
 interface ScriptsViewProps {
@@ -56,6 +58,7 @@ export default function ScriptsView({ scriptTab, setScriptTab, userName, userEma
       case 'objections': return <ObjectionsPanel />;
       case 'missteps':   return <MisstepsPanel />;
       case 'close':      return <ClosePanel />;
+      case 'niches':     return <NicheTracksPanel />;
       default:           return <OpenersPanel />;
     }
   };
@@ -91,7 +94,7 @@ export default function ScriptsView({ scriptTab, setScriptTab, userName, userEma
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Mobile tab bar */}
         <div className="no-print mobile-tab-bar" style={{ display: 'none', padding: '8px 12px', borderBottom: '1px solid #111', background: '#050505', overflowX: 'auto', gap: '4px', flexShrink: 0 }}>
-          <button className="hamburger-btn" onClick={() => setSidebarOpen(true)} style={{ marginRight: '8px' }}>
+          <button className="hamburger-btn" aria-label="Open navigation" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(true)} style={{ marginRight: '8px' }}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="2" y1="4" x2="14" y2="4" /><line x1="2" y1="8" x2="14" y2="8" /><line x1="2" y1="12" x2="14" y2="12" /></svg>
           </button>
         </div>

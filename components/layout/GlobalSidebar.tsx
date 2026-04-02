@@ -18,7 +18,7 @@ export default function GlobalSidebar({ open, onClose, onNav, currentView, isDir
       <nav className={`global-sidebar${open ? ' open' : ''}`}>
         <div style={{padding:'16px 20px', borderBottom:'1px solid #111', display:'flex', alignItems:'center', justifyContent:'space-between'}}>
           <Logo height={22}/>
-          <button onClick={onClose} style={{background:'none', border:'1px solid #1e1e1e', borderRadius:'6px', padding:'4px 8px', cursor:'pointer', color:'#444', fontSize:'11px', fontFamily:'Inter'}}>&#10005;</button>
+          <button aria-label="Close navigation" onClick={onClose} style={{background:'none', border:'1px solid #1e1e1e', borderRadius:'6px', padding:'4px 8px', cursor:'pointer', color:'#444', fontSize:'11px', fontFamily:'Inter'}}>&#10005;</button>
         </div>
 
         <div style={{padding:'12px 0'}}>

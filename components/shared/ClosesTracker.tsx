@@ -48,7 +48,7 @@ const ClosesTracker = ({ totalCloses, totalPoints, addClose, undoClose }: Closes
       {/* Log close picker */}
       <div style={{position:'relative', flexShrink:0}} ref={pickerRef}>
         <div style={{display:'flex', alignItems:'center', gap:'4px'}}>
-          <button onClick={undoClose} title="Undo last close" style={{width:'26px', height:'26px', borderRadius:'6px', background:'#0d0d0d', border:'1px solid #252525', color:'#555', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px', fontWeight:700, lineHeight:1, transition:'color .15s, border-color .15s'}}
+          <button onClick={undoClose} title="Undo last close" aria-label="Undo last close" style={{width:'26px', height:'26px', borderRadius:'6px', background:'#0d0d0d', border:'1px solid #252525', color:'#555', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px', fontWeight:700, lineHeight:1, transition:'color .15s, border-color .15s'}}
             onMouseEnter={e=>{e.currentTarget.style.color='#fff'; e.currentTarget.style.borderColor='#444';}}
             onMouseLeave={e=>{e.currentTarget.style.color='#555'; e.currentTarget.style.borderColor='#252525';}}>−</button>
           <button onClick={()=>setPickerOpen(p=>!p)} style={{padding:'5px 11px', borderRadius:'6px', background:pickerOpen?'rgba(0,240,255,.18)':'rgba(0,240,255,.1)', border:'1px solid rgba(0,240,255,.35)', color:'#00F0FF', cursor:'pointer', fontSize:'11px', fontWeight:800, letterSpacing:'.07em', textTransform:'uppercase', fontFamily:'Inter,sans-serif', transition:'background .15s', whiteSpace:'nowrap'}}>+ Log Close</button>

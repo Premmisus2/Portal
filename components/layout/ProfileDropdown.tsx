@@ -22,7 +22,7 @@ export default function ProfileDropdown({ userName, userEmail, totalCloses, tota
   const tierBorder = tierInfo.badge.border;
   return (
     <div ref={ref} style={{ position: 'relative', flexShrink: 0 }}>
-      <button onClick={() => setOpen(p => !p)} style={{ display: 'flex', alignItems: 'center', gap: '7px', background: 'transparent', border: '1px solid #1e1e1e', borderRadius: '8px', padding: '4px 10px 4px 4px', cursor: 'pointer', transition: 'border-color .2s' }}
+      <button aria-label="Open profile menu" aria-expanded={open} onClick={() => setOpen(p => !p)} style={{ display: 'flex', alignItems: 'center', gap: '7px', background: 'transparent', border: '1px solid #1e1e1e', borderRadius: '8px', padding: '4px 10px 4px 4px', cursor: 'pointer', transition: 'border-color .2s' }}
         onMouseEnter={e => (e.currentTarget.style.borderColor = '#2e2e2e')}
         onMouseLeave={e => (e.currentTarget.style.borderColor = '#1e1e1e')}>
         <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: 'rgba(0,240,255,.12)', border: '1px solid rgba(0,240,255,.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: '#00F0FF', fontFamily: 'Inter,sans-serif', flexShrink: 0 }}>{initials}</div>
