@@ -12,7 +12,7 @@ const AI_SERVICES = [
     id: 'vapi',
     name: 'AI Voice Receptionist',
     tagline: 'Answers every call. Books every appointment. Never misses a lead.',
-    price: '$1,200 - $1,500',
+    price: '$1,200 | $1,350 | $1,500',
     priceSuffix: '/month',
     setupFee: '$1,000',
     repSetup: '$500 flat upfront',
@@ -312,12 +312,19 @@ const KEY_STACKS = [
   { label: 'The Full Menu',      services: 'All 5 services',         mrrTotal: 3675, setupTotal: 3750, margin: '92%', note: 'Director close. Bring in the director for this conversation.' },
 ];
 
+const VAPI_TIERS = [
+  { label: '$1,200', mrr: 1200 },
+  { label: '$1,350', mrr: 1350 },
+  { label: '$1,500', mrr: 1500 },
+];
+
 function AIStackCalculator({ isDirector }: { isDirector: boolean }) {
   const [selected, setSelected] = useState<string[]>([]);
+  const [vapiTier, setVapiTier] = useState(1350);
   const toggle = (id: string) => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
   const selectedServices = CALC_SERVICES.filter(s => selected.includes(s.id));
-  const mrrSubtotal = selectedServices.reduce((s, svc) => s + svc.mrr, 0);
+  const mrrSubtotal = selectedServices.reduce((s, svc) => s + (svc.id === 'vapi' ? vapiTier : svc.mrr), 0);
   const setupSubtotal = selectedServices.reduce((s, svc) => s + svc.setup, 0);
   const discount = selected.length >= 3 ? 250 : 0;
   const mrrTotal = mrrSubtotal - discount;
@@ -329,19 +336,33 @@ function AIStackCalculator({ isDirector }: { isDirector: boolean }) {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
         {CALC_SERVICES.map(svc => {
           const on = selected.includes(svc.id);
+          const displayMrr = svc.id === 'vapi' ? vapiTier : svc.mrr;
           return (
-            <div key={svc.id} onClick={() => toggle(svc.id)}
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '8px', border: `1px solid ${on ? 'rgba(0,240,255,.25)' : '#111'}`, background: on ? 'rgba(0,240,255,.04)' : 'transparent', cursor: 'pointer', transition: 'all .15s' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ width: '18px', height: '18px', borderRadius: '4px', border: `2px solid ${on ? '#00F0FF' : '#333'}`, background: on ? '#00F0FF' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all .15s' }}>
-                  {on && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 13 4 10" /></svg>}
+            <div key={svc.id}>
+              <div onClick={() => toggle(svc.id)}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: on && svc.id === 'vapi' ? '8px 8px 0 0' : '8px', border: `1px solid ${on ? 'rgba(0,240,255,.25)' : '#111'}`, borderBottom: on && svc.id === 'vapi' ? 'none' : undefined, background: on ? 'rgba(0,240,255,.04)' : 'transparent', cursor: 'pointer', transition: 'all .15s' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ width: '18px', height: '18px', borderRadius: '4px', border: `2px solid ${on ? '#00F0FF' : '#333'}`, background: on ? '#00F0FF' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all .15s' }}>
+                    {on && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 13 4 10" /></svg>}
+                  </div>
+                  <span style={{ fontSize: '13px', fontWeight: 600, color: on ? '#fff' : '#666', fontFamily: 'Inter, sans-serif' }}>{svc.name}</span>
                 </div>
-                <span style={{ fontSize: '13px', fontWeight: 600, color: on ? '#fff' : '#666', fontFamily: 'Inter, sans-serif' }}>{svc.name}</span>
+                <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: on ? '#00F0FF' : '#444', fontFamily: 'JetBrains Mono, monospace' }}>${displayMrr.toLocaleString()}/mo</span>
+                  <span style={{ fontSize: '10px', color: '#444', marginLeft: '6px' }}>+ ${svc.setup.toLocaleString()} setup</span>
+                </div>
               </div>
-              <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                <span style={{ fontSize: '13px', fontWeight: 700, color: on ? '#00F0FF' : '#444', fontFamily: 'JetBrains Mono, monospace' }}>${svc.mrr.toLocaleString()}/mo</span>
-                <span style={{ fontSize: '10px', color: '#444', marginLeft: '6px' }}>+ ${svc.setup.toLocaleString()} setup</span>
-              </div>
+              {on && svc.id === 'vapi' && (
+                <div style={{ padding: '8px 14px', background: 'rgba(0,240,255,.03)', border: '1px solid rgba(0,240,255,.25)', borderTop: '1px solid rgba(0,240,255,.1)', borderRadius: '0 0 8px 8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '10px', color: '#555', fontFamily: 'JetBrains Mono, monospace', marginRight: '4px' }}>TIER</span>
+                  {VAPI_TIERS.map(t => (
+                    <button key={t.mrr} onClick={e => { e.stopPropagation(); setVapiTier(t.mrr); }}
+                      style={{ padding: '4px 12px', borderRadius: '5px', border: `1px solid ${vapiTier === t.mrr ? '#00F0FF' : '#222'}`, background: vapiTier === t.mrr ? 'rgba(0,240,255,.15)' : 'transparent', color: vapiTier === t.mrr ? '#00F0FF' : '#555', fontSize: '11px', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace', cursor: 'pointer', transition: 'all .15s' }}>
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}
