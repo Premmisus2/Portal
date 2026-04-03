@@ -2,12 +2,16 @@
 
 import { Rep, Body, SecH } from '@/components/ui/Typography';
 import SMSTemplate from '@/components/shared/SMSTemplate';
+import BookingKit from '@/components/postcall/BookingKit';
 
 const PostCallPanel = () => (
   <div>
     <div style={{marginBottom:'6px'}}><span className="tag">07</span></div>
     <h2 style={{fontSize:'26px',fontWeight:900,color:'#fff',margin:'8px 0 4px'}}>Post-Call Protocols</h2>
     <Body>Execution after the call is what separates closers from order-takers.</Body>
+    <div className="divider" style={{margin:'16px 0'}}/>
+
+    <BookingKit />
     <div className="divider" style={{margin:'16px 0'}}/>
 
     <SecH>The "Anti-Email" SMS Templates</SecH>

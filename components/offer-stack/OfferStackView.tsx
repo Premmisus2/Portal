@@ -4,6 +4,7 @@ import { useState } from 'react';
 import TopBar from '@/components/layout/TopBar';
 import { Body, Li } from '@/components/ui/Typography';
 import NotesPad from '@/components/ui/NotesPad';
+import AIServicesContent from '@/components/ai-tools/AIServicesContent';
 
 const PRICING_TIERS = [
   {
@@ -123,17 +124,28 @@ const PRICING_TIERS = [
 ];
 
 export default function OfferStackView(props: any) {
-  const { userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, shadowMode, actuallyDirector, viewAsRep, onToggleView, shadowRepName, allReps, enterShadow, exitShadow } = props;
+  const { userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, shadowMode, actuallyDirector, viewAsRep, onToggleView, shadowRepName, allReps, enterShadow, exitShadow, isDirector } = props;
   const [expanded, setExpanded] = useState<number | null>(null);
+  const [mainTab, setMainTab] = useState<'marketing' | 'ai'>('marketing');
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000', paddingTop: shadowMode ? '40px' : 0 }}>
-      <TopBar title="Offer Stack" subtitle="Section 13 — Pricing Packages"
+      <TopBar title="Offer Stack" subtitle="Section 13 — Pricing & AI Services"
         userName={userName} userEmail={userEmail} onHome={onHome} onLogout={onLogout} onPrint={() => {}}
         totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}
         actuallyDirector={actuallyDirector} viewAsRep={viewAsRep} onToggleView={onToggleView}
         shadowMode={shadowMode} shadowRepName={shadowRepName} allReps={allReps} enterShadow={enterShadow} exitShadow={exitShadow} />
       <main className="print-area section-main" style={{ flex: 1, overflowY: 'auto', padding: '28px 32px', maxWidth: '900px', width: '100%', margin: '0 auto' }}>
+
+        {/* Main tab toggle */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
+          <button className={`call-tab${mainTab === 'marketing' ? ' active' : ''}`} onClick={() => setMainTab('marketing')}>Marketing Services</button>
+          <button className={`call-tab${mainTab === 'ai' ? ' active' : ''}`} onClick={() => setMainTab('ai')}>AI Services</button>
+        </div>
+
+        {mainTab === 'ai' && <AIServicesContent isDirector={!!isDirector} />}
+
+        {mainTab === 'marketing' && <div className="fadein">
         <div style={{ marginBottom: '6px' }}><span className="tag">13</span></div>
         <h2 style={{ fontSize: '26px', fontWeight: 900, margin: '8px 0 4px', background: 'linear-gradient(135deg, #fff 40%, #00F0FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Offer Stack — Pricing Packages</h2>
         <Body>The complete Premmisus product ladder. Tap any tier to expand full details.</Body>
@@ -213,6 +225,7 @@ export default function OfferStackView(props: any) {
         </div>
 
         <NotesPad storageKey="notes_offerstack" />
+        </div>}
       </main>
     </div>
   );
