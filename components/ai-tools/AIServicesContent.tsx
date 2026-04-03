@@ -490,6 +490,31 @@ function AIPitchStrategyPanel() {
         <Li><strong style={{ color: '#fff' }}>Rule 3:</strong> Vapi first, stack second. If they buy the AI receptionist, follow up in 30 days about SMS sequences. Never dump the whole menu at once.</Li>
         <Li><strong style={{ color: '#fff' }}>Rule 4:</strong> Handoff to the director for any stack above $2,500/mo or any client that needs a custom demo built.</Li>
       </ul>
+
+      <div style={{ marginTop: '28px' }}>
+        <SecH>The Top-Down Principle</SecH>
+        <Body>Customers anchor to the first number they hear. Open at the standard tier — not the floor. Stepping down feels like a win for them. Reps who open low never climb out of it. The floor exists to save a deal, not to start one.</Body>
+        <ul style={{ margin: '12px 0 0', padding: 0 }}>
+          <Li>
+            <strong style={{ color: '#fff' }}>AI Receptionist:</strong> Open at{' '}
+            <strong style={{ color: '#00F0FF' }}>$1,350</strong> (standard build).
+            If they want more, upsell to <strong style={{ color: '#00F0FF' }}>$1,500</strong> (premium — more advanced build).
+            If they push back on price, step to <strong style={{ color: '#888' }}>$1,200</strong> to save the deal.
+          </Li>
+          <Li>
+            <strong style={{ color: '#fff' }}>Marketing:</strong> Open at{' '}
+            <strong style={{ color: '#00F0FF' }}>2.0 ($2,999/mo)</strong>.
+            Step down to <strong style={{ color: '#888' }}>1.0 ($1,599/mo)</strong> if needed.
+            The Website Package ($1,500 one-time) is the catch — never the opener.
+          </Li>
+          <Li>
+            <strong style={{ color: '#fff' }}>AI Bundles:</strong> Lead with the full stack. Let them tell you what to remove — not what to add. Never pitch individual services as the starting point.
+          </Li>
+          <Li>
+            <strong style={{ color: '#fff' }}>The rule:</strong> Never open at the floor. Present the standard. Let them negotiate down. You will close more at a higher number than you will close more deals at a lower number.
+          </Li>
+        </ul>
+      </div>
     </div>
   );
 }
