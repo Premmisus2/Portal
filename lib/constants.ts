@@ -44,10 +44,21 @@ export const NICHE_LIST = [
 export const USD_TO_CAD = 1.38;
 
 export const CLOSE_PRODUCTS = [
-  { id: 'website',    label: 'Website Package',       pts: 1, price: '$1,500 CAD', commission: '$500 CAD flat' },
-  { id: 'foundation', label: 'Foundation 1.0',         pts: 2, price: '$1,599/mo',  commission: '~$112 CAD/mo' },
-  { id: 'authority',  label: 'Authority System 2.0',   pts: 3, price: '$2,999/mo',  commission: '~$210 CAD/mo' },
-  { id: 'domination', label: 'Market Domination 3.0',  pts: 4, price: '$5,999/mo',  commission: '~$420 CAD/mo' },
+  // Marketing tiers
+  { id: 'website',      label: 'Website Package',         pts: 1, price: '$1,500 CAD',        commission: '$500 CAD flat',               setupFee: null },
+  { id: 'foundation',   label: 'Foundation 1.0',           pts: 2, price: '$1,599/mo',          commission: '~$112 CAD/mo',                setupFee: null },
+  { id: 'authority',    label: 'Authority System 2.0',     pts: 3, price: '$2,999/mo',          commission: '~$210 CAD/mo',                setupFee: null },
+  { id: 'domination',   label: 'Market Domination 3.0',   pts: 4, price: '$5,999/mo',          commission: '~$420 CAD/mo',                setupFee: null },
+  // AI services — individual (1 pt each)
+  { id: 'ai_vapi',      label: 'AI Receptionist',          pts: 1, price: '$1,200-1,500/mo',    commission: '$500 upfront + ~$98/mo',      setupFee: '$1,000' },
+  { id: 'ai_sms',       label: 'SMS Sequences',            pts: 1, price: '$500-750/mo',         commission: '$375 upfront + ~$44/mo',      setupFee: '$750' },
+  { id: 'ai_email',     label: 'Email Sequences',          pts: 1, price: '$400-500/mo',         commission: '$250 upfront + ~$31/mo',      setupFee: '$500' },
+  { id: 'ai_chat',      label: 'Website Chatbot',          pts: 1, price: '$500-750/mo',         commission: '$375 upfront + ~$44/mo',      setupFee: '$750' },
+  { id: 'ai_crm',       label: 'CRM Automation',           pts: 1, price: '$500-750/mo',         commission: '$375 upfront + ~$44/mo',      setupFee: '$750' },
+  // AI bundles — pts by total package value
+  { id: 'ai_bundle_2',  label: 'AI Bundle (~$2K/mo)',      pts: 2, price: '~$2,000/mo',          commission: '50% setup + 7% MRR',          setupFee: 'Varies' },
+  { id: 'ai_bundle_3',  label: 'AI Bundle (~$2.5K+/mo)',   pts: 3, price: '~$2,500-5,999/mo',    commission: '50% setup + 7% MRR',          setupFee: 'Varies' },
+  { id: 'ai_bundle_4',  label: 'AI Bundle ($6K+/mo)',      pts: 4, price: '$6,000+/mo',           commission: '50% setup + 7% MRR',          setupFee: 'Varies' },
 ];
 
 export type TierInfo = {

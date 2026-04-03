@@ -90,11 +90,13 @@ function AppShell() {
   const loadCloses = async (rid: string) => {
     const { data } = await supabase.from('closes').select('*').eq('rep_id', rid).order('created_at', { ascending: true });
     if (data) {
-      setCloseHistory(data.map((c: any) => ({ pts: c.pts, id: c.id })));
+      setCloseHistory(data.map((c: any) => ({ pts: c.pts, id: c.id, status: c.status || 'approved', product_label: c.product_label })));
       setTotalCloses(data.length);
-      setTotalPoints(data.reduce((s: number, c: any) => s + c.pts, 0));
+      // Only approved closes count toward points
+      const approvedPts = data.filter((c: any) => (c.status || 'approved') === 'approved').reduce((s: number, c: any) => s + c.pts, 0);
+      setTotalPoints(approvedPts);
       if (data.length > 0) setLastClosePts(data[data.length - 1].pts);
-      try { localStorage.setItem('pmss_closes', String(data.length)); localStorage.setItem('pmss_points', String(data.reduce((s: number, c: any) => s + c.pts, 0))); } catch {}
+      try { localStorage.setItem('pmss_closes', String(data.length)); localStorage.setItem('pmss_points', String(approvedPts)); } catch {}
     }
   };
 
@@ -206,15 +208,17 @@ function AppShell() {
     return () => window.removeEventListener('keydown', handle);
   }, [userRole, showShortcuts]);
 
-  const addClose = async (pts: number) => {
-    setTotalCloses(c => c + 1); setTotalPoints(p => p + pts); setLastClosePts(pts);
+  const addClose = async (pts: number, productId?: string) => {
+    setTotalCloses(c => c + 1);
+    // Points are NOT added until director approves — optimistic UI shows pending
+    setLastClosePts(pts);
     const label = PRODUCT_LABELS[pts] || 'Unknown';
     if (repId) {
-      const { data, error: closeErr } = await supabase.from('closes').insert({ rep_id: repId, pts, product_label: label }).select().single();
-      if (closeErr) { alert('Failed to save close: ' + closeErr.message); setTotalCloses(c => c - 1); setTotalPoints(p => p - pts); return; }
-      setCloseHistory(h => { const n = [...h, { pts, id: data?.id }]; try { localStorage.setItem('pmss_history', JSON.stringify(n)); } catch {} return n; });
+      const { data, error: closeErr } = await supabase.from('closes').insert({ rep_id: repId, pts, product_label: label, status: 'pending' }).select().single();
+      if (closeErr) { alert('Failed to save close: ' + closeErr.message); setTotalCloses(c => c - 1); return; }
+      setCloseHistory(h => { const n = [...h, { pts, id: data?.id, status: 'pending', product_label: label }]; try { localStorage.setItem('pmss_history', JSON.stringify(n)); } catch {} return n; });
     } else {
-      setCloseHistory(h => { const n = [...h, { pts }]; try { localStorage.setItem('pmss_history', JSON.stringify(n)); } catch {} return n; });
+      setCloseHistory(h => { const n = [...h, { pts, status: 'pending', product_label: label }]; try { localStorage.setItem('pmss_history', JSON.stringify(n)); } catch {} return n; });
     }
     try { localStorage.setItem('pmss_last_pts', String(pts)); } catch {}
   };
@@ -269,9 +273,10 @@ function AppShell() {
     setViewAsRep(true);
     const { data } = await supabase.from('closes').select('*').eq('rep_id', sRepId).order('created_at', { ascending: true });
     if (data) {
-      setCloseHistory(data.map((c: any) => ({ pts: c.pts, id: c.id })));
+      setCloseHistory(data.map((c: any) => ({ pts: c.pts, id: c.id, status: c.status || 'approved', product_label: c.product_label })));
       setTotalCloses(data.length);
-      setTotalPoints(data.reduce((s: number, c: any) => s + c.pts, 0));
+      const approvedPts = data.filter((c: any) => (c.status || 'approved') === 'approved').reduce((s: number, c: any) => s + c.pts, 0);
+      setTotalPoints(approvedPts);
       if (data.length > 0) setLastClosePts(data[data.length - 1].pts);
     }
   };

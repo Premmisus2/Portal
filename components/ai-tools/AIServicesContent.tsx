@@ -4,15 +4,19 @@ import { useState } from 'react';
 import Icon from '@/components/ui/Icon';
 import { Body, SecH, Li } from '@/components/ui/Typography';
 import NotesPad from '@/components/ui/NotesPad';
+import CopyBtn from '@/components/ui/CopyBtn';
 
+/* ── AI Service data ── */
 const AI_SERVICES = [
   {
     id: 'vapi',
-    icon: 'phone',
     name: 'AI Voice Receptionist',
     tagline: 'Answers every call. Books every appointment. Never misses a lead.',
     price: '$1,200 - $1,500',
     priceSuffix: '/month',
+    setupFee: '$1,000',
+    repSetup: '$500 flat upfront',
+    repMonthly: '~$84-105/mo',
     highlight: true,
     badge: 'Highest Value',
     badgeBg: '#00F0FF',
@@ -20,8 +24,6 @@ const AI_SERVICES = [
     ourCost: '$150-$300/mo',
     margin: '75-80%',
     clientComparison: 'vs $3,000+/mo hiring a receptionist — and she calls in sick',
-    repInfo: '7% recurring monthly on active clients',
-    repExample: '~$98-$105/mo per client, every month they stay',
     features: [
       "Custom AI voice trained on the client's business, services, and FAQs",
       'Answers inbound calls 24/7 — after hours, weekends, holidays',
@@ -42,11 +44,13 @@ const AI_SERVICES = [
   },
   {
     id: 'sms',
-    icon: 'send',
     name: 'Automated SMS Sequences',
     tagline: 'Every lead gets a response in under 30 seconds. Even at midnight.',
     price: '$500 - $750',
     priceSuffix: '/month',
+    setupFee: '$750',
+    repSetup: '$375 flat upfront',
+    repMonthly: '~$35-52/mo',
     highlight: false,
     badge: null,
     badgeBg: null,
@@ -54,8 +58,6 @@ const AI_SERVICES = [
     ourCost: '$10-$50/mo',
     margin: '90%+',
     clientComparison: 'vs manually texting every single lead — or losing them',
-    repInfo: '7% recurring monthly on active clients',
-    repExample: '~$35-$52/mo per client, every month they stay',
     features: [
       'Instant missed-call text-back — fires within 30 seconds',
       'New lead response sequence — immediate SMS, 24hr follow-up, 72hr revival',
@@ -69,17 +71,19 @@ const AI_SERVICES = [
     pitchHook: "You're generating leads — but how many are you actually catching? Most service businesses lose 40-60% to slow follow-up.",
     whoToPitch: ['Any business running paid ads', 'Businesses with a missed-call problem', "Solo operators who can't respond instantly", 'Anyone on a 1.0 or 2.0 marketing plan'],
     objections: [
-      { q: "I already respond to my leads quickly.", a: "How quickly when you're under a sink at 2pm? This system texts them while you're working." },
+      { q: 'I already respond to my leads quickly.', a: "How quickly when you're under a sink at 2pm? This system texts them while you're working." },
       { q: '$750 a month for texts?', a: "One recovered lead covers 6-12 months of this service. We're not selling texts — we're selling a system that makes sure none of your paid leads go cold." },
     ],
   },
   {
     id: 'email',
-    icon: 'mail',
     name: 'Automated Email Sequences',
     tagline: 'Nurture leads on autopilot. Stay top of mind without lifting a finger.',
     price: '$400 - $500',
     priceSuffix: '/month',
+    setupFee: '$500',
+    repSetup: '$250 flat upfront',
+    repMonthly: '~$28-35/mo',
     highlight: false,
     badge: 'Easiest Stack',
     badgeBg: 'rgba(34,197,94,.15)',
@@ -87,8 +91,6 @@ const AI_SERVICES = [
     ourCost: '~$5/mo',
     margin: '95%+',
     clientComparison: 'vs hiring a VA to manually follow up — and hoping they do it right',
-    repInfo: '7% recurring monthly on active clients',
-    repExample: '~$28-$35/mo per client, every month they stay',
     features: [
       'New lead welcome sequence — automated 3-5 email nurture',
       'Quote follow-up sequence — automatic reminders if quote goes cold',
@@ -108,11 +110,13 @@ const AI_SERVICES = [
   },
   {
     id: 'chatbot',
-    icon: 'send',
     name: 'AI Website Chatbot',
     tagline: 'Converts website visitors into booked leads. Around the clock.',
     price: '$500 - $750',
     priceSuffix: '/month',
+    setupFee: '$750',
+    repSetup: '$375 flat upfront',
+    repMonthly: '~$35-52/mo',
     highlight: false,
     badge: null,
     badgeBg: null,
@@ -120,8 +124,6 @@ const AI_SERVICES = [
     ourCost: '$15-$30/mo',
     margin: '95%+',
     clientComparison: 'vs losing after-hours visitors who leave with no one to answer',
-    repInfo: '7% recurring monthly on active clients',
-    repExample: '~$35-$52/mo per client, every month they stay',
     features: [
       'AI chat widget installed on their website',
       'Trained on their services, pricing ranges, service area, and FAQs',
@@ -136,16 +138,18 @@ const AI_SERVICES = [
     whoToPitch: ['Any client whose website we built', 'Clients running Google or Meta ads', 'Businesses with complex services that need explanation', 'Clients getting traffic but not enough leads'],
     objections: [
       { q: 'Those pop-up chats are annoying.', a: "This only activates when someone scrolls down or has been on the page for 30+ seconds. It acts like a helpful staff member, not a popup." },
-      { q: "We don't get that much traffic.", a: 'Even 10 visitors a month — if two become booked leads, that\'s a job.' },
+      { q: "We don't get that much traffic.", a: "Even 10 visitors a month — if two become booked leads, that's a job." },
     ],
   },
   {
     id: 'crm',
-    icon: 'zap',
     name: 'CRM Workflow Automation',
     tagline: 'The invisible operations engine. Your business runs itself.',
     price: '$500 - $750',
     priceSuffix: '/month',
+    setupFee: '$750',
+    repSetup: '$375 flat upfront',
+    repMonthly: '~$35-52/mo',
     highlight: false,
     badge: null,
     badgeBg: null,
@@ -153,8 +157,6 @@ const AI_SERVICES = [
     ourCost: '~$20/mo',
     margin: '95%+',
     clientComparison: 'vs paying a VA $1,500/mo to manually move leads and send reminders',
-    repInfo: '7% recurring monthly on active clients',
-    repExample: '~$35-$52/mo per client, every month they stay',
     features: [
       'Full CRM pipeline setup and management in GoHighLevel',
       'Lead routing — automatic assignment based on niche, source, or territory',
@@ -174,10 +176,10 @@ const AI_SERVICES = [
   },
 ];
 
+/* ── Service card ── */
 function AIServiceCard({ service, index, isDirector }: { service: typeof AI_SERVICES[0]; index: number; isDirector: boolean }) {
   const [open, setOpen] = useState(false);
   const [objOpen, setObjOpen] = useState<number | null>(null);
-
   const borderColor = service.highlight ? 'rgba(0,240,255,.5)' : '#1e1e1e';
   const glowStyle = service.highlight ? { boxShadow: '0 0 32px rgba(0,240,255,.1), 0 0 0 1px rgba(0,240,255,.15)' } : {};
 
@@ -200,7 +202,7 @@ function AIServiceCard({ service, index, isDirector }: { service: typeof AI_SERV
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
             <div style={{ textAlign: 'right' }}>
               <p style={{ margin: 0, fontWeight: 900, color: service.highlight ? '#00F0FF' : '#fff', fontSize: '19px', fontFamily: 'JetBrains Mono, monospace' }}>{service.price}</p>
-              <p style={{ margin: 0, color: '#555', fontSize: '11px' }}>{service.priceSuffix}</p>
+              <p style={{ margin: 0, color: '#555', fontSize: '11px' }}>{service.priceSuffix} + {service.setupFee} setup</p>
             </div>
             <div style={{ color: '#444', transition: 'transform .2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}>
               <Icon name="chevron" size={18} />
@@ -244,10 +246,17 @@ function AIServiceCard({ service, index, isDirector }: { service: typeof AI_SERV
             </div>
 
             <div>
-              <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#00F0FF', margin: '0 0 8px', fontFamily: 'JetBrains Mono, monospace' }}>Rep Earnings</p>
+              <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#00F0FF', margin: '0 0 8px', fontFamily: 'JetBrains Mono, monospace' }}>Rep Commission</p>
               <div style={{ background: 'rgba(0,240,255,.05)', border: '1px solid rgba(0,240,255,.15)', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
-                <p style={{ margin: '0 0 2px', color: '#e0e0e0', fontSize: '13px', fontWeight: 700 }}>{service.repInfo}</p>
-                <p style={{ margin: 0, color: '#888', fontSize: '12px', fontStyle: 'italic' }}>{service.repExample}</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '11px', color: '#888' }}>Setup (upfront)</span>
+                  <span style={{ fontSize: '14px', fontWeight: 800, color: '#22c55e', fontFamily: 'JetBrains Mono, monospace' }}>{service.repSetup}</span>
+                </div>
+                <div style={{ height: '1px', background: 'rgba(255,255,255,.06)', margin: '6px 0' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '11px', color: '#888' }}>Recurring (7%)</span>
+                  <span style={{ fontSize: '14px', fontWeight: 800, color: '#00F0FF', fontFamily: 'JetBrains Mono, monospace' }}>{service.repMonthly}</span>
+                </div>
               </div>
               <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#555', margin: '0 0 4px', fontFamily: 'JetBrains Mono, monospace' }}>Pitch Angle</p>
               <p style={{ margin: '0 0 16px', color: '#aaa', fontSize: '13px', fontStyle: 'italic', lineHeight: '1.55', background: 'rgba(255,255,255,.02)', border: '1px solid #111', borderRadius: '8px', padding: '10px 12px' }}>{service.pitchAngle}</p>
@@ -287,37 +296,249 @@ function AIServiceCard({ service, index, isDirector }: { service: typeof AI_SERV
   );
 }
 
-export default function AIServicesContent({ isDirector }: { isDirector: boolean }) {
+/* ── Stack Calculator ── */
+const CALC_SERVICES = [
+  { id: 'vapi',    name: 'AI Receptionist',  mrr: 1350, setup: 1000 },
+  { id: 'sms',     name: 'SMS Sequences',     mrr: 625,  setup: 750  },
+  { id: 'email',   name: 'Email Sequences',   mrr: 450,  setup: 500  },
+  { id: 'chatbot', name: 'Website Chatbot',   mrr: 625,  setup: 750  },
+  { id: 'crm',     name: 'CRM Automation',    mrr: 625,  setup: 750  },
+];
+
+const KEY_STACKS = [
+  { label: 'Entry AI Stack',     services: 'Vapi + Email',           mrrTotal: 1800, setupTotal: 1500, margin: '88%', note: 'Lowest barrier. High perceived value from the Vapi demo.' },
+  { label: 'Lead Machine Stack', services: 'SMS + Email + CRM',      mrrTotal: 1700, setupTotal: 2000, margin: '96%', note: 'No demo needed. Pure automation sell. Easy close.' },
+  { label: 'Full Capture Stack', services: 'Vapi + SMS + Chatbot',   mrrTotal: 2600, setupTotal: 2500, margin: '85%', note: 'Every inbound touchpoint covered. Best for ad clients.' },
+  { label: 'The Full Menu',      services: 'All 5 services',         mrrTotal: 3675, setupTotal: 3750, margin: '92%', note: 'Director close. Bring in the director for this conversation.' },
+];
+
+function AIStackCalculator({ isDirector }: { isDirector: boolean }) {
+  const [selected, setSelected] = useState<string[]>([]);
+  const toggle = (id: string) => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+
+  const selectedServices = CALC_SERVICES.filter(s => selected.includes(s.id));
+  const mrrSubtotal = selectedServices.reduce((s, svc) => s + svc.mrr, 0);
+  const setupSubtotal = selectedServices.reduce((s, svc) => s + svc.setup, 0);
+  const discount = selected.length >= 3 ? 250 : 0;
+  const mrrTotal = mrrSubtotal - discount;
+  const repSetup = Math.round(setupSubtotal * 0.5);
+  const repMonthly = Math.round(mrrTotal * 0.07);
+
   return (
-    <div className="fadein">
+    <div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
+        {CALC_SERVICES.map(svc => {
+          const on = selected.includes(svc.id);
+          return (
+            <div key={svc.id} onClick={() => toggle(svc.id)}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '8px', border: `1px solid ${on ? 'rgba(0,240,255,.25)' : '#111'}`, background: on ? 'rgba(0,240,255,.04)' : 'transparent', cursor: 'pointer', transition: 'all .15s' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '18px', height: '18px', borderRadius: '4px', border: `2px solid ${on ? '#00F0FF' : '#333'}`, background: on ? '#00F0FF' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all .15s' }}>
+                  {on && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 13 4 10" /></svg>}
+                </div>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: on ? '#fff' : '#666', fontFamily: 'Inter, sans-serif' }}>{svc.name}</span>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: on ? '#00F0FF' : '#444', fontFamily: 'JetBrains Mono, monospace' }}>${svc.mrr.toLocaleString()}/mo</span>
+                <span style={{ fontSize: '10px', color: '#444', marginLeft: '6px' }}>+ ${svc.setup.toLocaleString()} setup</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {selected.length > 0 ? (
+        <div className="fadein" style={{ background: '#0a0a0a', border: '1px solid rgba(0,240,255,.2)', borderRadius: '10px', padding: '16px 20px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '12px', color: '#666' }}>Setup fees ({selected.length} service{selected.length > 1 ? 's' : ''})</span>
+              <span style={{ fontSize: '13px', fontFamily: 'JetBrains Mono, monospace', color: '#888' }}>${setupSubtotal.toLocaleString()}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '12px', color: '#666' }}>MRR subtotal</span>
+              <span style={{ fontSize: '13px', fontFamily: 'JetBrains Mono, monospace', color: '#888' }}>${mrrSubtotal.toLocaleString()}/mo</span>
+            </div>
+            {discount > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '12px', color: '#22c55e' }}>Bundle discount (3+ services)</span>
+                <span style={{ fontSize: '13px', fontFamily: 'JetBrains Mono, monospace', color: '#22c55e' }}>-${discount}</span>
+              </div>
+            )}
+            <div style={{ height: '1px', background: '#1a1a1a', margin: '4px 0' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>Client Pays</span>
+              <span style={{ fontSize: '22px', fontWeight: 900, color: '#00F0FF', fontFamily: 'JetBrains Mono, monospace' }}>${mrrTotal.toLocaleString()}/mo</span>
+            </div>
+            <div style={{ height: '1px', background: '#1a1a1a', margin: '4px 0' }} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(34,197,94,.05)', borderRadius: '6px', border: '1px solid rgba(34,197,94,.15)' }}>
+              <span style={{ fontSize: '11px', color: '#22c55e', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '.1em', textTransform: 'uppercase' }}>You Earn — Upfront</span>
+              <span style={{ fontSize: '16px', fontWeight: 800, color: '#22c55e', fontFamily: 'JetBrains Mono, monospace' }}>${repSetup.toLocaleString()}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(0,240,255,.05)', borderRadius: '6px', border: '1px solid rgba(0,240,255,.1)' }}>
+              <span style={{ fontSize: '11px', color: '#00F0FF', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '.1em', textTransform: 'uppercase' }}>You Earn — Monthly (7%)</span>
+              <span style={{ fontSize: '16px', fontWeight: 800, color: '#00F0FF', fontFamily: 'JetBrains Mono, monospace' }}>${repMonthly.toLocaleString()}/mo</span>
+            </div>
+            {selected.length < 3 && (
+              <p style={{ fontSize: '11px', color: '#555', margin: '4px 0 0', fontStyle: 'italic' }}>Add {3 - selected.length} more service{3 - selected.length > 1 ? 's' : ''} to unlock the $250 bundle discount.</p>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div style={{ textAlign: 'center', padding: '20px', color: '#333', fontSize: '13px', fontStyle: 'italic' }}>
+          Select services above to calculate the stack total.
+        </div>
+      )}
+
+      <div style={{ marginTop: '24px' }}>
+        <SecH>Key Stack Scenarios</SecH>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {KEY_STACKS.map((s, i) => (
+            <div key={i} style={{ background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '10px', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '16px' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#fff', fontFamily: 'Inter, sans-serif' }}>{s.label}</span>
+                  {isDirector && <span className="tag" style={{ fontSize: '9px', padding: '1px 7px' }}>{s.margin} margin</span>}
+                </div>
+                <p style={{ margin: '0 0 4px', fontSize: '12px', color: '#666' }}>{s.services}</p>
+                <p style={{ margin: 0, fontSize: '12px', color: '#555', fontStyle: 'italic' }}>{s.note}</p>
+              </div>
+              <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                <p style={{ margin: 0, fontWeight: 900, color: '#00F0FF', fontSize: '15px', fontFamily: 'JetBrains Mono, monospace' }}>${s.mrrTotal.toLocaleString()}/mo</p>
+                <p style={{ margin: '2px 0 0', fontSize: '10px', color: '#444' }}>+ ${s.setupTotal.toLocaleString()} setup</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Pitch Strategy ── */
+const stackingScript = "You're already on our Foundation system and it's working. Here's something a lot of our clients do — they add the AI receptionist layer on top. You stay on the same marketing plan, but now you're also answering every call automatically, even when you're on a job site. It's a separate menu — no changes to what you're already getting. Want me to show you what that looks like?";
+
+const coldScript = "Hi, I'm calling from Premmisus. I'll be straight with you — I'm not here to pitch you a new marketing agency. I actually want to ask you one question: when a potential customer calls your business after hours, what happens? (Wait for answer) ... That's exactly why I'm calling. We have an AI system that answers every call, answers their questions, and books the appointment — while you're on a job site or asleep. We work alongside whatever agency you already have. Is that worth 5 minutes?";
+
+function AIPitchStrategyPanel() {
+  return (
+    <div>
+      <SecH>The Two-Menu Model</SecH>
+      <Body>Marketing and AI are sold from two separate menus. Assess which door to enter on every call. Most go through the marketing door. But some — especially already-busy owners — only need the AI menu. Master both.</Body>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '14px', marginBottom: '24px' }}>
+        <div style={{ background: '#0a0a0a', border: '1px solid #1e1e1e', borderRadius: '10px', padding: '16px' }}>
+          <p style={{ margin: '0 0 6px', fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#555', fontFamily: 'JetBrains Mono, monospace' }}>Marketing Door</p>
+          <p style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: 700, color: '#fff' }}>Offer Stack 1.0 – 3.0</p>
+          <p style={{ margin: 0, fontSize: '12px', color: '#666', lineHeight: 1.5 }}>For businesses that need leads. Weak online presence. Under 100 Google reviews. Wants to grow.</p>
+        </div>
+        <div style={{ background: '#0a0a0a', border: '1px solid rgba(0,240,255,.2)', borderRadius: '10px', padding: '16px', boxShadow: '0 0 20px rgba(0,240,255,.04)' }}>
+          <p style={{ margin: '0 0 6px', fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#00F0FF', fontFamily: 'JetBrains Mono, monospace' }}>AI Door</p>
+          <p style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: 700, color: '#fff' }}>AI Services Menu</p>
+          <p style={{ margin: 0, fontSize: '12px', color: '#666', lineHeight: 1.5 }}>For businesses that are already busy. Wants to free up time. Has a current agency. Missing inbound calls.</p>
+        </div>
+      </div>
+
+      <SecH>The Stacking Play</SecH>
+      <Body>When a client is on 2.0 ($2,999/mo) and needs more without committing to 3.0 — the AI menu fills the gap. They go from $2,999 to $4,499+ without the full 3.0 commitment. Plant the AI seed, they grow into it.</Body>
+      <div style={{ marginTop: '12px', marginBottom: '24px' }}>
+        <div className="rep-block">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+            <div className="rep-label" style={{ marginBottom: 0 }}>REP — Existing Client Upsell</div>
+            <CopyBtn text={stackingScript} />
+          </div>
+          <p className="rep-text">{stackingScript}</p>
+        </div>
+      </div>
+
+      <SecH>The Cold Pitch — AI Only</SecH>
+      <Body>Key line: "Keep your current agency for marketing. Add us for the AI layer they can't do." Use this when they already have marketing handled.</Body>
+      <div style={{ marginTop: '12px', marginBottom: '24px' }}>
+        <div className="rep-block">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+            <div className="rep-label" style={{ marginBottom: 0 }}>REP — Cold Open (AI Only)</div>
+            <CopyBtn text={coldScript} />
+          </div>
+          <p className="rep-text">{coldScript}</p>
+        </div>
+      </div>
+
+      <SecH>Rules of the AI Close</SecH>
+      <ul style={{ margin: '8px 0 0', padding: 0 }}>
+        <Li><strong style={{ color: '#fff' }}>Rule 1:</strong> Always demo before you price. A 90-second voice demo of the AI receptionist closes faster than any pricing conversation.</Li>
+        <Li><strong style={{ color: '#fff' }}>Rule 2:</strong> Lead with the outcome, not the technology. "You'll never miss a lead after hours" lands better than explaining the tech stack.</Li>
+        <Li><strong style={{ color: '#fff' }}>Rule 3:</strong> Vapi first, stack second. If they buy the AI receptionist, follow up in 30 days about SMS sequences. Never dump the whole menu at once.</Li>
+        <Li><strong style={{ color: '#fff' }}>Rule 4:</strong> Handoff to the director for any stack above $2,500/mo or any client that needs a custom demo built.</Li>
+      </ul>
+    </div>
+  );
+}
+
+/* ── Main export ── */
+export default function AIServicesContent({ isDirector }: { isDirector: boolean }) {
+  const [subTab, setSubTab] = useState<'services' | 'calculator' | 'strategy'>('services');
+
+  return (
+    <div>
       <div style={{ marginBottom: '6px' }}><span className="tag">AI Menu</span></div>
       <h2 style={{ fontSize: '26px', fontWeight: 900, margin: '8px 0 4px', background: 'linear-gradient(135deg, #fff 40%, #00F0FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AI Offer Stack</h2>
-      <Body>5 AI services. Sold separately or stacked on top of any marketing tier. Handoff to director at $2,500+/mo.</Body>
+      <Body>5 AI services. Sold separately or stacked. Setup fee + 7% monthly recurring. Handoff to director at $2,500+/mo.</Body>
       <div className="divider" style={{ margin: '16px 0' }} />
 
-      <div style={{ background: 'rgba(0,240,255,.04)', border: '1px solid rgba(0,240,255,.15)', borderRadius: '12px', padding: '16px 20px', marginBottom: '24px', display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-        <div style={{ color: '#00F0FF', flexShrink: 0, marginTop: '2px' }}><Icon name="info" size={18} /></div>
-        <div>
-          <p style={{ margin: '0 0 4px', fontSize: '13px', fontWeight: 700, color: '#fff' }}>The One Line That Sells Everything</p>
-          <p style={{ margin: 0, fontSize: '13px', color: '#aaa', lineHeight: 1.55, fontStyle: 'italic' }}>"Keep your current agency for marketing. Add us for the AI layer they can't do." — This is the entire AI pitch in one sentence.</p>
+      {/* Sub-tabs */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+        <button className={`call-tab${subTab === 'services' ? ' active' : ''}`} onClick={() => setSubTab('services')}>AI Services</button>
+        <button className={`call-tab${subTab === 'calculator' ? ' active' : ''}`} style={{ fontSize: '11px', padding: '6px 14px' }} onClick={() => setSubTab('calculator')}>Stack Calculator</button>
+        <button className={`call-tab${subTab === 'strategy' ? ' active' : ''}`} style={{ fontSize: '11px', padding: '6px 14px' }} onClick={() => setSubTab('strategy')}>Pitch Strategy</button>
+      </div>
+
+      {/* AI Services tab */}
+      {subTab === 'services' && (
+        <div className="fadein">
+          <div style={{ background: 'rgba(0,240,255,.04)', border: '1px solid rgba(0,240,255,.15)', borderRadius: '12px', padding: '16px 20px', marginBottom: '24px', display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+            <div style={{ color: '#00F0FF', flexShrink: 0, marginTop: '2px' }}><Icon name="info" size={18} /></div>
+            <div>
+              <p style={{ margin: '0 0 4px', fontSize: '13px', fontWeight: 700, color: '#fff' }}>The One Line That Sells Everything</p>
+              <p style={{ margin: 0, fontSize: '13px', color: '#aaa', lineHeight: 1.55, fontStyle: 'italic' }}>"Keep your current agency for marketing. Add us for the AI layer they can't do."</p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {AI_SERVICES.map((service, i) => (
+              <AIServiceCard key={service.id} service={service} index={i} isDirector={isDirector} />
+            ))}
+          </div>
+          <div style={{ margin: '24px 0 0', background: '#0a0a0a', border: '1px solid rgba(34,197,94,.2)', borderRadius: '12px', padding: '16px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+              <span className="tag" style={{ borderColor: 'rgba(34,197,94,.35)', color: '#22c55e', background: 'rgba(34,197,94,.06)' }}>Bundle Discount</span>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>$250 off MRR when bundling any 3+ AI services</span>
+            </div>
+            <p style={{ margin: 0, fontSize: '13px', color: '#666', lineHeight: 1.5 }}>Example: Vapi ($1,350) + SMS ($625) + Email ($450) = $2,425 → <strong style={{ color: '#22c55e' }}>$2,175/mo after discount</strong>.{isDirector ? ' Setup fees are separate and paid in full.' : ' Handoff to director for custom scoping at $2,500+/mo.'}</p>
+          </div>
+          <NotesPad storageKey="notes_aitools" />
         </div>
-      </div>
+      )}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {AI_SERVICES.map((service, i) => (
-          <AIServiceCard key={service.id} service={service} index={i} isDirector={isDirector} />
-        ))}
-      </div>
-
-      <div style={{ margin: '24px 0 0', background: '#0a0a0a', border: '1px solid rgba(34,197,94,.2)', borderRadius: '12px', padding: '16px 20px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-          <span className="tag" style={{ borderColor: 'rgba(34,197,94,.35)', color: '#22c55e', background: 'rgba(34,197,94,.06)' }}>Bundle Discount</span>
-          <span style={{ fontSize: '13px', fontWeight: 700, color: '#fff' }}>$250 off when bundling any 3+ AI services</span>
+      {/* Stack Calculator tab */}
+      {subTab === 'calculator' && (
+        <div className="fadein">
+          <div style={{ marginBottom: '6px' }}><span className="tag">Calculator</span></div>
+          <h2 style={{ fontSize: '24px', fontWeight: 900, margin: '8px 0 4px', background: 'linear-gradient(135deg, #fff 40%, #00F0FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Stack Builder</h2>
+          <Body>Select AI services to build a client package. Shows client total, your upfront commission, and monthly recurring.</Body>
+          <div style={{ padding: '20px', marginTop: '20px', background: '#0d0d0d', border: '1px solid #1e1e1e', borderRadius: '12px' }}>
+            <AIStackCalculator isDirector={isDirector} />
+          </div>
         </div>
-        <p style={{ margin: 0, fontSize: '13px', color: '#666', lineHeight: 1.5 }}>Example: Vapi ($1,500) + SMS ($750) + Email ($500) = $2,750 → <strong style={{ color: '#22c55e' }}>$2,500/mo after discount</strong>.{isDirector ? ' Your cost: ~$350/mo. Margin: 86%.' : ' Handoff to director for custom scoping.'}</p>
-      </div>
+      )}
 
-      <NotesPad storageKey="notes_aitools" />
+      {/* Pitch Strategy tab */}
+      {subTab === 'strategy' && (
+        <div className="fadein">
+          <div style={{ marginBottom: '6px' }}><span className="tag">Strategy</span></div>
+          <h2 style={{ fontSize: '24px', fontWeight: 900, margin: '8px 0 4px', background: 'linear-gradient(135deg, #fff 40%, #00F0FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Pitch Strategy</h2>
+          <Body>How to position, open, and close AI services. From cold call to stacked client.</Body>
+          <div className="divider" style={{ margin: '16px 0' }} />
+          <AIPitchStrategyPanel />
+        </div>
+      )}
     </div>
   );
 }

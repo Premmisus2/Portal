@@ -9,6 +9,14 @@ import { getTierInfo, fmtCAD } from '@/lib/constants';
 
 const EARN_BY_PTS: Record<number, {label:string;flat:boolean;cad:number}> = { 1:{label:'Website Package',flat:true,cad:500}, 2:{label:'Foundation 1.0',flat:false,cad:112}, 3:{label:'Authority System 2.0',flat:false,cad:210}, 4:{label:'Market Domination 3.0',flat:false,cad:420} };
 
+const AI_COMMISSION_TABLE = [
+  { service: 'AI Receptionist',  setup: '$1,000', repSetup: '$500',  mrr: '$1,200-1,500/mo', repMrr: '~$84-105/mo' },
+  { service: 'SMS Sequences',    setup: '$750',   repSetup: '$375',  mrr: '$500-750/mo',     repMrr: '~$35-52/mo'  },
+  { service: 'Email Sequences',  setup: '$500',   repSetup: '$250',  mrr: '$400-500/mo',     repMrr: '~$28-35/mo'  },
+  { service: 'Website Chatbot',  setup: '$750',   repSetup: '$375',  mrr: '$500-750/mo',     repMrr: '~$35-52/mo'  },
+  { service: 'CRM Automation',   setup: '$750',   repSetup: '$375',  mrr: '$500-750/mo',     repMrr: '~$35-52/mo'  },
+];
+
 const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHistory }: any) => {
   const [closesPerWeek, setClosesPerWeek] = useState(5);
   const [recurringClients, setRecurringClients] = useState(5);
@@ -16,9 +24,11 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
   const [repsClosesPerWeek, setRepsClosesPerWeek] = useState(4);
 
   const history = closeHistory || [];
-  // Tally earned by product
+  const pendingCloses = history.filter((c: any) => c.status === 'pending');
+  const approvedCloses = history.filter((c: any) => (c.status || 'approved') === 'approved');
+  // Tally earned by product (approved only)
   const earned: Record<number, number> = {};
-  history.forEach(({pts}: any) => { earned[pts] = (earned[pts]||0) + 1; });
+  approvedCloses.forEach(({pts}: any) => { earned[pts] = (earned[pts]||0) + 1; });
   const flatTotal  = (earned[1]||0) * 500;
   const recurringTotal = ((earned[2]||0)*145) + ((earned[3]||0)*290) + ((earned[4]||0)*580);
 
@@ -85,6 +95,16 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
           </div>
         </div>
       </div>
+
+      {/* Pending closes alert */}
+      {pendingCloses.length > 0 && (
+        <div style={{padding:'12px 18px', borderRadius:'10px', border:'1px solid rgba(245,158,11,.3)', background:'rgba(245,158,11,.05)', marginBottom:'16px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px'}}>
+          <div>
+            <p style={{margin:'0 0 3px', fontSize:'13px', fontWeight:700, color:'#F59E0B'}}>⏳ {pendingCloses.length} close{pendingCloses.length > 1 ? 's' : ''} pending director approval</p>
+            <p style={{margin:0, fontSize:'11px', color:'#666'}}>Points will be added once approved. {pendingCloses.map((c: any) => c.product_label || `${c.pts}pt`).join(', ')}</p>
+          </div>
+        </div>
+      )}
 
       <div className="ladder-grid" style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap:'16px'}}>
         {/* Left: Controls */}
@@ -193,6 +213,38 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
           </table>
         </div>
         <p style={{fontSize:'10px', color:'#333', marginTop:'10px'}}>Recurring and override income not included above. Field Commander+ stacks significantly exceed these figures.</p>
+      </div>
+
+      {/* AI Commission Reference */}
+      <div className="card" style={{padding:'20px', marginTop:'16px'}}>
+        <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'4px'}}>
+          <Icon name="zap" size={14} style={{color:'#00F0FF'}}/>
+          <span style={{fontSize:'13px', fontWeight:700, color:'#fff'}}>AI Services — Commission Reference</span>
+        </div>
+        <p style={{fontSize:'11px', color:'#444', margin:'0 0 14px'}}>Setup commission (50%) paid upfront on close. Recurring 7% paid monthly while client stays. Both require director approval.</p>
+        <div style={{overflowX:'auto'}}>
+          <table style={{width:'100%', fontSize:'12px', minWidth:'480px', borderCollapse:'collapse'}}>
+            <thead>
+              <tr style={{borderBottom:'1px solid #1e1e1e'}}>
+                {['Service','Client Setup','You Earn','Client MRR','You Earn/mo'].map((h,i)=>(
+                  <th key={i} style={{padding:'0 0 10px', textAlign:i===0?'left':'right', fontWeight:700, color:'#555'}}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {AI_COMMISSION_TABLE.map((row, i) => (
+                <tr key={i} style={{borderBottom:'1px solid #111'}}>
+                  <td style={{padding:'10px 0', fontWeight:700, color:'#fff'}}>{row.service}</td>
+                  <td style={{padding:'10px 0', textAlign:'right', fontFamily:'monospace', color:'#888'}}>{row.setup}</td>
+                  <td style={{padding:'10px 0', textAlign:'right', fontFamily:'monospace', fontWeight:700, color:'#22c55e'}}>{row.repSetup}</td>
+                  <td style={{padding:'10px 0', textAlign:'right', fontFamily:'monospace', color:'#888'}}>{row.mrr}</td>
+                  <td style={{padding:'10px 0', textAlign:'right', fontFamily:'monospace', fontWeight:700, color:'#00F0FF'}}>{row.repMrr}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p style={{fontSize:'10px', color:'#333', marginTop:'10px'}}>Bundle discount ($250 off MRR) applies when client buys 3+ AI services. Your 7% is calculated on the discounted total.</p>
       </div>
     </div>
   );

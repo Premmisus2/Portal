@@ -56,7 +56,8 @@ const ClosesTracker = ({ totalCloses, totalPoints, addClose, undoClose }: Closes
         {pickerOpen && (
           <div style={{position:'absolute', top:'calc(100% + 8px)', right:0, width:'268px', background:'#0a0a0a', border:'1px solid #1e1e1e', borderRadius:'10px', boxShadow:'0 16px 48px rgba(0,0,0,.9)', zIndex:600, padding:'6px'}} className="fadein">
             <p style={{margin:'4px 8px 6px', fontSize:'9px', fontWeight:700, color:'#444', letterSpacing:'.15em', textTransform:'uppercase', fontFamily:'JetBrains Mono,monospace'}}>What did you close?</p>
-            {CLOSE_PRODUCTS.map(prod => (
+            <p style={{margin:'0 8px 4px', fontSize:'8px', fontWeight:700, color:'#333', letterSpacing:'.12em', textTransform:'uppercase', fontFamily:'JetBrains Mono,monospace'}}>— Marketing</p>
+            {CLOSE_PRODUCTS.filter(p => !p.id.startsWith('ai')).map(prod => (
               <button key={prod.id} onClick={()=>{ addClose(prod.pts); setPickerOpen(false); }}
                 style={{width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 10px', borderRadius:'7px', background:'none', border:'none', cursor:'pointer', transition:'background .15s', textAlign:'left'}}
                 onMouseEnter={e=>e.currentTarget.style.background='#111'}
@@ -64,6 +65,19 @@ const ClosesTracker = ({ totalCloses, totalPoints, addClose, undoClose }: Closes
                 <div>
                   <p style={{margin:0, fontSize:'12px', fontWeight:700, color:'#fff', fontFamily:'Inter,sans-serif'}}>{prod.label}</p>
                   <p style={{margin:'1px 0 0', fontSize:'10px', color:'#444', fontFamily:'Roboto,sans-serif'}}>{prod.price} · {prod.commission}</p>
+                </div>
+                <span style={{fontSize:'10px', fontWeight:800, padding:'3px 8px', borderRadius:'20px', background:'rgba(0,240,255,.08)', border:'1px solid rgba(0,240,255,.2)', color:'#00F0FF', fontFamily:'JetBrains Mono,monospace', flexShrink:0, marginLeft:'10px', whiteSpace:'nowrap'}}>+{prod.pts}pt{prod.pts>1?'s':''}</span>
+              </button>
+            ))}
+            <p style={{margin:'6px 8px 4px', fontSize:'8px', fontWeight:700, color:'#00F0FF', letterSpacing:'.12em', textTransform:'uppercase', fontFamily:'JetBrains Mono,monospace'}}>— AI Services</p>
+            {CLOSE_PRODUCTS.filter(p => p.id.startsWith('ai')).map(prod => (
+              <button key={prod.id} onClick={()=>{ addClose(prod.pts); setPickerOpen(false); }}
+                style={{width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'9px 10px', borderRadius:'7px', background:'none', border:'none', cursor:'pointer', transition:'background .15s', textAlign:'left'}}
+                onMouseEnter={e=>e.currentTarget.style.background='#111'}
+                onMouseLeave={e=>e.currentTarget.style.background='none'}>
+                <div>
+                  <p style={{margin:0, fontSize:'12px', fontWeight:700, color:'#fff', fontFamily:'Inter,sans-serif'}}>{prod.label}</p>
+                  <p style={{margin:'1px 0 0', fontSize:'10px', color:'#555', fontFamily:'Roboto,sans-serif'}}>{prod.price}{(prod as any).setupFee ? ` · Setup: ${(prod as any).setupFee}` : ''}</p>
                 </div>
                 <span style={{fontSize:'10px', fontWeight:800, padding:'3px 8px', borderRadius:'20px', background:'rgba(0,240,255,.08)', border:'1px solid rgba(0,240,255,.2)', color:'#00F0FF', fontFamily:'JetBrains Mono,monospace', flexShrink:0, marginLeft:'10px', whiteSpace:'nowrap'}}>+{prod.pts}pt{prod.pts>1?'s':''}</span>
               </button>
