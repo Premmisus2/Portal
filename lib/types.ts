@@ -60,6 +60,7 @@ export interface Close {
   rep_id: string;
   pts: number;
   product_label: string;
+  status: 'pending' | 'approved' | 'rejected';
   created_at: string;
 }
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { PRODUCT_LABELS, DIRECTOR_EMAILS } from '@/lib/constants';
+import { PRODUCT_LABELS, CLOSE_PRODUCTS, DIRECTOR_EMAILS } from '@/lib/constants';
 import { downloadPDF } from '@/lib/pdf';
 
 // Auth
@@ -212,7 +212,8 @@ function AppShell() {
     setTotalCloses(c => c + 1);
     // Points are NOT added until director approves — optimistic UI shows pending
     setLastClosePts(pts);
-    const label = PRODUCT_LABELS[pts] || 'Unknown';
+    const product = CLOSE_PRODUCTS.find(p => p.id === productId);
+    const label = product?.label || PRODUCT_LABELS[pts] || 'Unknown';
     if (repId) {
       const { data, error: closeErr } = await supabase.from('closes').insert({ rep_id: repId, pts, product_label: label, status: 'pending' }).select().single();
       if (closeErr) { alert('Failed to save close: ' + closeErr.message); setTotalCloses(c => c - 1); return; }

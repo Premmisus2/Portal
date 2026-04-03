@@ -149,7 +149,7 @@ async function executeTool(name: string, args: any): Promise<string> {
     }
     case 'query_reps': {
       const reps = await sbQuery('reps?select=id,name,email,role,created_at&order=created_at.asc');
-      const closes = await sbQuery('closes?select=id,rep_id,pts,created_at&order=created_at.desc');
+      const closes = await sbQuery('closes?select=id,rep_id,pts,status,product_label,created_at&status=eq.approved&order=created_at.desc');
       const closesMap: Record<string, any[]> = {};
       (closes as any[]).forEach((c: any) => {
         if (!closesMap[c.rep_id]) closesMap[c.rep_id] = [];

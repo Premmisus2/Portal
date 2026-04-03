@@ -25,7 +25,7 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
 
   const history = closeHistory || [];
   const pendingCloses = history.filter((c: any) => c.status === 'pending');
-  const approvedCloses = history.filter((c: any) => (c.status || 'approved') === 'approved');
+  const approvedCloses = history.filter((c: any) => c.status === 'approved');
   // Tally earned by product (approved only)
   const earned: Record<number, number> = {};
   approvedCloses.forEach(({pts}: any) => { earned[pts] = (earned[pts]||0) + 1; });

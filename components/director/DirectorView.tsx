@@ -121,11 +121,21 @@ export default function DirectorView(props: any) {
       <main style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
         {tab === 'pipeline' && <PipelineFunnelView leads={leads} reps={allReps} />}
         {tab === 'closes' && <PendingClosesTab closes={pendingCloses} onApprove={async (id: string) => {
+          const close = pendingCloses.find((c: any) => c.id === id);
           await supabase.from('closes').update({ status: 'approved' }).eq('id', id);
           await loadPendingCloses();
+          if (close) {
+            fetch('/api/notify-telegram', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: 'close_approved', repName: close.reps?.name || 'Rep', businessName: close.product_label || `${close.pts}pt close` }) }).catch(() => {});
+          }
         }} onReject={async (id: string) => {
+          const close = pendingCloses.find((c: any) => c.id === id);
           await supabase.from('closes').update({ status: 'rejected' }).eq('id', id);
           await loadPendingCloses();
+          if (close) {
+            fetch('/api/notify-telegram', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ type: 'close_rejected', repName: close.reps?.name || 'Rep', businessName: close.product_label || `${close.pts}pt close` }) }).catch(() => {});
+          }
         }} />}
         {tab === 'leads' && <AllLeadsTable reps={allReps} />}
         {tab === 'calls' && <CallLogTab callLogs={callLogs} repId={repId || ''} />}

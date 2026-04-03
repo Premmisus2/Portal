@@ -24,6 +24,12 @@ export async function POST(request: Request) {
     case 'daily_summary':
       message = `📊 *DAILY SUMMARY*\n${stats || 'No stats available.'}`;
       break;
+    case 'close_approved':
+      message = `✅ *CLOSE APPROVED*\nRep: ${repName || 'Unknown'}\nProduct: ${businessName || 'Close'}\n\n_Points have been added to their account._`;
+      break;
+    case 'close_rejected':
+      message = `❌ *CLOSE REJECTED*\nRep: ${repName || 'Unknown'}\nProduct: ${businessName || 'Close'}\n\n_No points added. Rep has been notified._`;
+      break;
     default:
       message = `📋 *${type?.toUpperCase() || 'UPDATE'}*\n${repName || 'Rep'}: ${businessName || 'Activity update'}`;
   }
