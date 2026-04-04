@@ -114,7 +114,8 @@ function AppShell() {
             await loadCloses(repData.id);
             if (repData.role === 'director') {
               const { data: repsData } = await supabase.from('reps').select('id, name, email, role').order('created_at', { ascending: true });
-              if (repsData) setAllReps(repsData.filter((r: any) => r.role !== 'director'));
+              // Include directors in allReps so they can be assigned leads (e.g. Elliott assigning to himself in rep view)
+              if (repsData) setAllReps(repsData);
               try {
                 const lastVisit = localStorage.getItem('pmss_last_director_visit') || new Date(0).toISOString();
                 setLastDirectorVisit(lastVisit);

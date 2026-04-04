@@ -31,7 +31,7 @@ const EDITABLE_FIELDS = (reps: Rep[]) => [
   { key: 'outreach_channel', label: 'Outreach Channel' },
   { key: 'notes', label: 'Notes', type: 'textarea' },
   { key: 'source_tag', label: 'Source Tag' },
-  { key: 'assigned_rep_id', label: 'Assigned Rep', type: 'select', options: reps.map(r => ({ value: r.id, label: r.name })) },
+  { key: 'assigned_rep_id', label: 'Assigned Rep', type: 'select', options: reps.map(r => ({ value: r.id, label: r.role === 'director' ? `${r.name} (You)` : r.name })) },
 ];
 
 interface LeadModalProps {
@@ -283,7 +283,7 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
         <select value={filterNiche} onChange={e => { setFilterNiche(e.target.value); setPage(0); }} className="field" style={{ maxWidth: '150px', padding: '8px 12px', fontSize: '12px' }}><option value="all">All Niches</option>{NICHE_LIST.map(n => <option key={n} value={n}>{n}</option>)}</select>
         <select value={filterPriority} onChange={e => { setFilterPriority(e.target.value); setPage(0); }} className="field" style={{ maxWidth: '120px', padding: '8px 12px', fontSize: '12px' }}><option value="all">All Priority</option><option value="HOT">HOT</option><option value="HIGH">HIGH</option><option value="MEDIUM">MEDIUM</option></select>
         <select value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(0); }} className="field" style={{ maxWidth: '140px', padding: '8px 12px', fontSize: '12px' }}><option value="all">All Status</option>{Object.entries(statusLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
-        <select value={filterRep} onChange={e => { setFilterRep(e.target.value); setPage(0); }} className="field" style={{ maxWidth: '150px', padding: '8px 12px', fontSize: '12px' }}><option value="all">All Reps</option><option value="unassigned">Unassigned</option>{reps.filter(r => r.role !== 'director').map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select>
+        <select value={filterRep} onChange={e => { setFilterRep(e.target.value); setPage(0); }} className="field" style={{ maxWidth: '150px', padding: '8px 12px', fontSize: '12px' }}><option value="all">All Reps</option><option value="unassigned">Unassigned</option>{reps.map(r => <option key={r.id} value={r.id}>{r.name}{r.role === 'director' ? ' (You)' : ''}</option>)}</select>
         <button onClick={() => setEditingLead({})} style={{ marginLeft: 'auto', padding: '6px 16px', borderRadius: '4px', border: 'none', background: '#00F0FF', color: '#000', cursor: 'pointer', fontSize: '11px', fontWeight: 800, fontFamily: 'Inter,sans-serif' }}>+ Add Lead</button>
         <span style={{ fontSize: '12px', color: '#444', fontFamily: 'monospace' }}>{sorted.length} results</span>
       </div>
