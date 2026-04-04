@@ -6,13 +6,11 @@ import { NextResponse } from 'next/server';
 const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 
 export async function POST(request: Request) {
-  // Optional cron auth check
+  // Required cron auth check
   const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const auth = request.headers.get('authorization');
-    if (auth !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  const auth = request.headers.get('authorization');
+  if (!cronSecret || auth !== `Bearer ${cronSecret}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const SB_KEY = process.env.SUPABASE_SERVICE_KEY || '';

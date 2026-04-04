@@ -12,7 +12,7 @@ export default function TopBar({ title, subtitle, userName, userEmail, onHome, o
           <Icon name="chevron" size={13} /> Home
         </button>
         <div style={{ width: '1px', height: '22px', background: '#1a1a1a', flexShrink: 0 }} className="mobile-hide" />
-        <div className="top-bar-title" style={{ minWidth: 0 }}>
+        <div className="top-bar-title" style={{ minWidth: '120px' }}>
           <p style={{ margin: 0, color: '#fff', fontWeight: 700, fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{title}</p>
           <p style={{ margin: 0, color: '#333', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{subtitle}</p>
         </div>
@@ -20,9 +20,7 @@ export default function TopBar({ title, subtitle, userName, userEmail, onHome, o
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <div className="closes-tracker-full"><ClosesTracker totalCloses={totalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose} /></div>
         <div className="closes-tracker-mini" style={{ display: 'none', alignItems: 'center', gap: '5px' }}>
-          <button onClick={undoClose} style={{ padding: '5px 8px', borderRadius: '6px', background: 'rgba(255,255,255,.04)', border: '1px solid #333', color: '#666', cursor: 'pointer', fontSize: '11px', fontWeight: 800, fontFamily: 'Inter,sans-serif' }}>−1</button>
-          <span style={{ fontSize: '12px', fontWeight: 800, color: '#fff', fontFamily: 'monospace', minWidth: '22px', textAlign: 'center' }}>{totalCloses}</span>
-          <button onClick={() => addClose(1)} style={{ padding: '5px 8px', borderRadius: '6px', background: 'rgba(0,240,255,.1)', border: '1px solid rgba(0,240,255,.3)', color: '#00F0FF', cursor: 'pointer', fontSize: '11px', fontWeight: 800, fontFamily: 'Inter,sans-serif' }}>+1</button>
+          <span style={{ fontSize: '12px', fontWeight: 800, color: '#fff', fontFamily: 'monospace', minWidth: '22px', textAlign: 'center' }}>{totalCloses} <span style={{ color: '#444', fontSize: '10px' }}>cls</span></span>
         </div>
         <div style={{ width: '1px', height: '22px', background: '#1a1a1a' }} className="mobile-hide" />
         <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }} className="mobile-hide">

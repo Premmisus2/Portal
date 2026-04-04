@@ -73,6 +73,12 @@ export async function POST(request: Request) {
       }),
     });
 
+    if (!logRes.ok) {
+      const logErr = await logRes.text();
+      console.error('call_log insert failed:', logErr);
+      return NextResponse.json({ error: 'Call initiated but failed to create log: ' + logErr }, { status: 500 });
+    }
+
     const logData = await logRes.json();
 
     return NextResponse.json({
