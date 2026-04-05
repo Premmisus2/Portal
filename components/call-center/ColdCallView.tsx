@@ -279,6 +279,14 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
         <p style={{color:'#555', fontSize:'13px', margin:'0 0 16px'}}>Your leads, your calls, your numbers. All in one place.</p>
         <div className="divider" style={{margin:'16px 0'}}/>
 
+        {/* No-phone warning — Twilio calling disabled */}
+        {!repPhone && !shadowMode && (
+          <div style={{marginBottom:'16px', padding:'12px 16px', borderRadius:'8px', background:'rgba(245,158,11,.08)', border:'1px solid rgba(245,158,11,.3)', display:'flex', alignItems:'center', gap:'12px'}}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span style={{fontSize:'12px', color:'#F59E0B', fontWeight:600}}>Twilio calling disabled — no phone number on your account. Director: set it in Dashboard → Settings.</span>
+          </div>
+        )}
+
         {/* Tab Switcher */}
         <div style={{display:'flex', gap:'6px', marginBottom:'20px', flexWrap:'wrap'}}>
           {[['list','To Call'],['mycalls','Called'],['allleads','All Leads'],['followup','Follow Up'],['booked','Booked'],['quicklog','Manual Log'],['stats','My Stats'],['playback','Playback']].map(([key, label]) => {
