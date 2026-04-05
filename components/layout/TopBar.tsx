@@ -7,7 +7,7 @@ import ProfileDropdown from '@/components/layout/ProfileDropdown';
 export default function TopBar({ title, subtitle, userName, userEmail, onHome, onLogout, onPrint, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, onShortcuts, onToggleSidebar, actuallyDirector, viewAsRep, onToggleView, shadowMode, shadowRepName, allReps, enterShadow, exitShadow }: any) {
   return (
     <header className="no-print" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 24px', borderBottom: '1px solid #111', background: '#050505', flexShrink: 0, gap: '8px', position: 'sticky', top: 0, zIndex: 100 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1, overflow: 'hidden' }}>
         <button className="btn-back" onClick={onHome} style={{ flexShrink: 0 }}>
           <Icon name="chevron" size={13} /> Home
         </button>
