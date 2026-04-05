@@ -7,7 +7,7 @@ import AllLeadsTable from '@/components/director/AllLeadsTable';
 import CallLogTab from '@/components/director/CallLogTab';
 import LeadImportTool from '@/components/director/LeadImportTool';
 import PipelineFunnelView from '@/components/director/PipelineFunnelView';
-import RepPhoneEditor from '@/components/director/RepPhoneEditor';
+import PhoneSettings from '@/components/director/PhoneSettings';
 import type { Lead, CallLog } from '@/lib/types';
 
 const DIRECTOR_TABS = [
@@ -19,63 +19,6 @@ const DIRECTOR_TABS = [
   { id: 'settings', label: 'Settings' },
 ];
 
-function RepPhoneEditorForRep({ rep }: { rep: any }) {
-  const [phone, setPhone] = useState<string>('');
-  const [loaded, setLoaded] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    supabase.from('reps').select('phone').eq('id', rep.id).single()
-      .then(({ data }) => { setPhone(data?.phone || ''); setLoaded(true); });
-  }, [rep.id]);
-
-  const handleSave = async () => {
-    setSaving(true);
-    const { error } = await supabase.from('reps').update({ phone: phone || null }).eq('id', rep.id);
-    setSaving(false);
-    if (error) { alert('Failed to save: ' + error.message); return; }
-    setSaved(true); setEditing(false);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
-  if (!loaded) return null;
-
-  return (
-    <div style={{ marginBottom: '10px', padding: '14px 16px', background: '#080808', border: '1px solid #1a1a1a', borderRadius: '10px' }}>
-      <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 700, color: '#555', letterSpacing: '.08em', textTransform: 'uppercase' }}>{rep.name || rep.email}</p>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <span style={{ fontSize: '9px', fontWeight: 700, color: '#444', letterSpacing: '.1em', textTransform: 'uppercase', minWidth: '60px' }}>Phone</span>
-        {editing ? (
-          <>
-            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1234567890"
-              style={{ flex: 1, maxWidth: '180px', padding: '5px 10px', background: '#111', border: '1px solid #333', borderRadius: '6px', color: '#fff', fontSize: '12px', fontFamily: 'JetBrains Mono,monospace', outline: 'none' }}
-              onFocus={e => (e.currentTarget.style.borderColor = 'rgba(0,240,255,.4)')}
-              onBlur={e => (e.currentTarget.style.borderColor = '#333')} />
-            <button onClick={handleSave} disabled={saving}
-              style={{ padding: '4px 12px', borderRadius: '5px', cursor: 'pointer', border: '1px solid rgba(0,240,255,.3)', background: 'rgba(0,240,255,.08)', color: '#00F0FF', fontSize: '10px', fontWeight: 700, fontFamily: 'Inter,sans-serif' }}>
-              {saving ? '...' : 'Save'}
-            </button>
-            <button onClick={() => setEditing(false)}
-              style={{ padding: '4px 8px', borderRadius: '5px', cursor: 'pointer', border: '1px solid #333', background: 'transparent', color: '#555', fontSize: '10px', fontWeight: 700, fontFamily: 'Inter,sans-serif' }}>×</button>
-          </>
-        ) : (
-          <>
-            <span style={{ fontSize: '12px', color: phone ? '#ccc' : '#555', fontFamily: 'JetBrains Mono,monospace' }}>{phone || 'No phone set'}</span>
-            <button onClick={() => setEditing(true)}
-              style={{ padding: '3px 8px', borderRadius: '4px', cursor: 'pointer', border: '1px solid #1e1e1e', background: 'transparent', color: '#555', fontSize: '9px', fontWeight: 700, fontFamily: 'Inter,sans-serif', transition: 'all .15s' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(0,240,255,.3)'; e.currentTarget.style.color = '#00F0FF'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#1e1e1e'; e.currentTarget.style.color = '#555'; }}>
-              Edit
-            </button>
-            {saved && <span style={{ fontSize: '9px', color: '#22c55e', fontWeight: 700 }}>Saved</span>}
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
 
 function PendingClosesTab({ closes, onApprove, onReject }: { closes: any[]; onApprove: (id: string) => void; onReject: (id: string) => void }) {
   if (closes.length === 0) return (
@@ -198,21 +141,7 @@ export default function DirectorView(props: any) {
         {tab === 'leads' && <AllLeadsTable reps={allReps} />}
         {tab === 'calls' && <CallLogTab callLogs={callLogs} repId={repId || ''} />}
         {tab === 'import' && <LeadImportTool />}
-        {tab === 'settings' && (
-          <div>
-            <p style={{ margin: '0 0 16px', fontSize: '11px', fontWeight: 700, color: '#444', letterSpacing: '.12em', textTransform: 'uppercase' }}>Rep Phone Numbers</p>
-            <p style={{ margin: '0 0 20px', fontSize: '12px', color: '#555', lineHeight: 1.6 }}>Phone numbers are used for Twilio click-to-call. Each rep must have one set for the dialer button to appear in their Call Center.</p>
-            {/* Director's own phone */}
-            <div style={{ marginBottom: '16px', padding: '14px 16px', background: '#080808', border: '1px solid #1a1a1a', borderRadius: '10px' }}>
-              <p style={{ margin: '0 0 8px', fontSize: '11px', fontWeight: 700, color: '#00F0FF', letterSpacing: '.08em' }}>YOU</p>
-              <RepPhoneEditor repId={repId || ''} currentPhone={repPhone || ''} />
-            </div>
-            {/* All other reps */}
-            {(allReps || []).filter((r: any) => r.id !== repId).map((rep: any) => (
-              <RepPhoneEditorForRep key={rep.id} rep={rep} />
-            ))}
-          </div>
-        )}
+        {tab === 'settings' && <PhoneSettings />}
       </main>
     </div>
   );
