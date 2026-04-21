@@ -20,7 +20,7 @@ const outcomes = [
   { value: 'no_show', label: 'No Show', color: '#F59E0B' },
 ];
 
-const niches = ['Cleaning', 'Landscaping', 'Plumbing', 'Window Washing', 'Pressure Washing', 'Construction', 'HVAC', 'Roofing', 'Electrical', 'Painting', 'Pest Control', 'Moving', 'Auto Detailing', 'Flooring', 'Pool Cleaning'];
+const niches = ['Cleaning', 'Landscaping', 'Plumbing', 'Window Washing', 'Pressure Washing', 'Construction', 'Roofing', 'Electrical', 'Painting', 'Pest Control', 'Moving', 'Auto Detailing', 'Flooring', 'Pool Cleaning'];
 
 const outcomeColors: Record<string, string> = { no_answer: '#555', voicemail_left: '#F59E0B', callback_requested: '#a855f7', not_interested: '#ef4444', booked_call: '#00F0FF', wrong_number: '#888', discovery_completed: '#22c55e', no_show: '#F59E0B' };
 const outcomeLabels: Record<string, string> = { no_answer: 'No Answer', voicemail_left: 'Voicemail', callback_requested: 'Callback', not_interested: 'Not Interested', booked_call: 'Booked', wrong_number: 'Wrong Number', discovery_completed: 'Discovery Booked', no_show: 'No Show' };

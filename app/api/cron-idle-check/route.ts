@@ -4,6 +4,7 @@
 // Must be GET to be callable by Vercel cron (fixed 2026-04-21 after silent 405 failures)
 
 import { NextResponse } from 'next/server';
+import { startRun, finishRun } from '@/lib/cron-tracker';
 
 const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 
@@ -45,13 +46,18 @@ export async function GET(request: Request) {
   const SB_KEY = process.env.SUPABASE_SERVICE_KEY || '';
   if (!SB_KEY) return NextResponse.json({ error: 'Not configured' }, { status: 500 });
 
+  const runId = await startRun('cron-idle-check');
+
   try {
     const now = new Date();
     const today = now.toISOString().split('T')[0];
 
     // Get all non-director reps
     const reps = await sbQuery('reps?select=id,name,role&role=eq.rep', SB_KEY);
-    if (!Array.isArray(reps) || reps.length === 0) return NextResponse.json({ message: 'No reps found' });
+    if (!Array.isArray(reps) || reps.length === 0) {
+      await finishRun(runId, { status: 'success', rowsProcessed: 0, metadata: { reason: 'no_reps_found' } });
+      return NextResponse.json({ message: 'No reps found' });
+    }
 
     // Check already-sent notifications today
     const sentToday = await sbQuery(`notifications_log?select=recipient&type=eq.idle&created_at=gte.${today}T00:00:00`, SB_KEY);
@@ -93,9 +99,15 @@ export async function GET(request: Request) {
       }
     }
 
+    await finishRun(runId, {
+      status: 'success',
+      rowsProcessed: idleReps.length,
+      metadata: { checked: reps.length, idle_reps: idleReps },
+    });
     return NextResponse.json({ checked: reps.length, idle: idleReps });
 
   } catch (err: any) {
+    await finishRun(runId, { status: 'failure', errorMessage: err?.message || String(err) });
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

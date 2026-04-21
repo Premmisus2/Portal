@@ -3,6 +3,7 @@
 // Must be GET to be callable by Vercel cron (fixed 2026-04-21 after silent 405 failures)
 
 import { NextResponse } from 'next/server';
+import { startRun, finishRun } from '@/lib/cron-tracker';
 
 const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 
@@ -20,6 +21,8 @@ export async function GET(request: Request) {
 
   if (!SB_KEY || !BOT_TOKEN || !CHAT_ID) return NextResponse.json({ error: 'Not configured' }, { status: 500 });
 
+  const runId = await startRun('cron-daily-summary');
+
   try {
     const today = new Date().toISOString().split('T')[0];
 
@@ -35,7 +38,10 @@ export async function GET(request: Request) {
     });
     const logs = await logsRes.json();
 
-    if (!Array.isArray(logs)) return NextResponse.json({ message: 'No logs' });
+    if (!Array.isArray(logs)) {
+      await finishRun(runId, { status: 'success', rowsProcessed: 0, metadata: { reason: 'no_logs' } });
+      return NextResponse.json({ message: 'No logs' });
+    }
 
     // Build summary per rep
     let summary = `📊 *DAILY SUMMARY — ${today}*\n`;
@@ -99,9 +105,15 @@ export async function GET(request: Request) {
       body: JSON.stringify({ type: 'daily_summary', recipient: 'director', channel: 'telegram', message: `${totalCalls} calls, ${totalBookings} bookings` }),
     });
 
+    await finishRun(runId, {
+      status: 'success',
+      rowsProcessed: totalCalls,
+      metadata: { totalCalls, totalBookings, telegram_ok: teleData.ok },
+    });
     return NextResponse.json({ success: teleData.ok, totalCalls, totalBookings });
 
   } catch (err: any) {
+    await finishRun(runId, { status: 'failure', errorMessage: err?.message || String(err) });
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

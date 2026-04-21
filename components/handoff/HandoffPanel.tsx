@@ -96,12 +96,12 @@ Next Step: ${form.nextStep}${form.notes ? `\nNotes: ${form.notes}` : ''}`;
           </div>
           <div>
             {fieldLabel('Lead Name / Company')}
-            <input className="field" placeholder="e.g. John Smith / Smith HVAC" required
+            <input className="field" placeholder="e.g. John Smith / Smith Plumbing" required
               value={form.company} onChange={(e: any)=>setForm((p: any)=>({...p,company:e.target.value}))}/>
           </div>
           <div>
             {fieldLabel('Niche')}
-            <input className="field" placeholder="e.g. HVAC, Plumbing, Construction"
+            <input className="field" placeholder="e.g. Plumbing, Construction, Landscaping"
               value={form.niche} onChange={(e: any)=>setForm((p: any)=>({...p,niche:e.target.value}))}/>
           </div>
           <div>

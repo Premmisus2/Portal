@@ -4,6 +4,7 @@
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { startRun, finishRun } from '@/lib/cron-tracker';
 
 const REQUIRED_ENV_VARS = [
   'NEXT_PUBLIC_SUPABASE_URL',
@@ -32,6 +33,7 @@ export async function GET(request: Request) {
   const BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
   const CHAT_ID = (process.env.TELEGRAM_CHAT_ID || '').trim();
   const results: CheckResult[] = [];
+  const runId = await startRun('cron-health-check');
 
   // ── 1. ENV VARS ─────────────────────────────────────────────────────────
   const missingEnv = REQUIRED_ENV_VARS.filter(v => !process.env[v]);
@@ -179,6 +181,13 @@ export async function GET(request: Request) {
       console.error('[health-check] Telegram send failed');
     }
   }
+
+  await finishRun(runId, {
+    status: allGood ? 'success' : 'failure',
+    rowsProcessed: passed,
+    errorMessage: allGood ? undefined : failed.map(r => r.name).join(', '),
+    metadata: { passed, total: results.length, failed: failed.length },
+  });
 
   return NextResponse.json({
     status: allGood ? 'healthy' : 'issues_found',
