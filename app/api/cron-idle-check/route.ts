@@ -1,6 +1,7 @@
 // Premmisus Nerve Center — Idle Detection Cron
-// Runs every hour during business hours (8am-6pm ET, Mon-Fri)
+// Runs hourly 11am-6pm ET (Mon-Fri) — grace period before first check to avoid 9am false positives
 // Checks if any rep has been idle for 2+ hours, sends SMS + Telegram
+// Must be GET to be callable by Vercel cron (fixed 2026-04-21 after silent 405 failures)
 
 import { NextResponse } from 'next/server';
 
@@ -33,7 +34,7 @@ async function sendTelegram(body: any) {
   }).catch(() => {});
 }
 
-export async function POST(request: Request) {
+export async function GET(request: Request) {
   // Required cron auth check
   const cronSecret = process.env.CRON_SECRET;
   const auth = request.headers.get('authorization');

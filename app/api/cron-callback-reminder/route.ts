@@ -1,11 +1,12 @@
 // Premmisus Nerve Center — Callback Reminder Cron
 // Runs at 9am ET (Mon-Fri), sends SMS with overdue callbacks
+// Must be GET to be callable by Vercel cron (fixed 2026-04-21 after silent 405 failures)
 
 import { NextResponse } from 'next/server';
 
 const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 
-export async function POST(request: Request) {
+export async function GET(request: Request) {
   // Required cron auth check
   const cronSecret = process.env.CRON_SECRET;
   const auth = request.headers.get('authorization');
