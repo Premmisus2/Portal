@@ -40,7 +40,7 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 - `deploy/lib/error-reporting.ts` (added optional `tag` param)
 - `deploy/app/api/notify-telegram/route.ts` (added journal tag rendering)
 
-**Commit:** _(filled in after commit)_
+**Commit:** `e87fe6d` ([git log](https://github.com/Premmisus2/Portal/commit/e87fe6d))
 
 **Rollback:**
 ```bash
