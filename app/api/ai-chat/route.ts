@@ -500,9 +500,16 @@ export async function POST(request: Request) {
 
     let toolResults: string[] = [];
 
-    // Handle tool use (up to 3 rounds)
+    // Handle tool use. Up to 5 rounds — bumped from 3 in #tier-2-hardening.
+    // Director queries that need to chain (e.g. "find leads matching X then assign
+    // to rep Y" = query_leads + bulk_assign_by_filter) routinely use 2-3 rounds;
+    // 5 leaves headroom for more complex chains. If even 5 isn't enough, the
+    // round-N fallback below explains the limit to the user instead of returning
+    // an empty "No response generated." string.
+    const MAX_ROUNDS = 5;
     let rounds = 0;
-    while (data.stop_reason === 'tool_use' && rounds < 3) {
+    let exhausted = false;
+    while (data.stop_reason === 'tool_use' && rounds < MAX_ROUNDS) {
       rounds++;
       const toolUseBlocks = (data.content || []).filter((b: any) => b.type === 'tool_use');
 
@@ -544,9 +551,19 @@ export async function POST(request: Request) {
       data = await response.json();
     }
 
+    // If the loop exited because we hit MAX_ROUNDS while Claude was still
+    // requesting more tool calls, surface that explicitly instead of falling
+    // through to "No response generated." (which used to confuse users).
+    if (data.stop_reason === 'tool_use' && rounds >= MAX_ROUNDS) {
+      exhausted = true;
+    }
+
     // Extract text from response content blocks
     const textBlocks = (data.content || []).filter((b: any) => b.type === 'text');
-    const reply = textBlocks.map((b: any) => b.text).join('\n') || 'No response generated.';
+    const fallback = exhausted
+      ? `I needed more steps than I'm allowed in one turn (used ${rounds} of ${MAX_ROUNDS}). Tools so far: ${toolResults.join(', ')}. Ask me again with more specifics or break it into two questions.`
+      : 'No response generated.';
+    const reply = textBlocks.map((b: any) => b.text).join('\n') || fallback;
 
     return NextResponse.json({
       reply,

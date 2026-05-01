@@ -88,7 +88,8 @@ export interface ImportBatch {
 export interface Announcement {
   id: string;
   title: string;
-  body: string;
+  message: string;
   type?: string;
+  priority?: 'normal' | 'urgent';
   created_at: string;
 }

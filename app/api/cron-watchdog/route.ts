@@ -105,7 +105,7 @@ function shouldAlertForJob(
 }
 
 export async function GET(request: Request) {
-  const cronSecret = process.env.CRON_SECRET;
+  const cronSecret = (process.env.CRON_SECRET || '').trim();
   const auth = request.headers.get('authorization');
   if (!cronSecret || auth !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

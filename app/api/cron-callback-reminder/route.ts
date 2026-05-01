@@ -1,5 +1,14 @@
 // Premmisus Nerve Center — Callback Reminder Cron
-// Runs at 9am ET (Mon-Fri), sends SMS with overdue callbacks
+//
+// Schedule: vercel.json `"0 14 * * 1-5"` — 14:00 UTC, Mon-Fri
+//   - EDT (Mar-Nov, ~8 mo/yr): 10:00 AM ET
+//   - EST (Nov-Mar, ~4 mo/yr):  9:00 AM ET
+// One-hour drift across DST is intentional (Vercel cron schedules are
+// UTC-only, no TZ option). Reps are dialing by 10 ET regardless, so the
+// reminder lands during their workday in both seasons. Documented in
+// BUILD-JOURNAL #tier-2-hardening.
+//
+// Sends SMS with overdue callbacks.
 // Must be GET to be callable by Vercel cron (fixed 2026-04-21 after silent 405 failures)
 
 import { NextResponse } from 'next/server';
@@ -9,7 +18,7 @@ const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 
 export async function GET(request: Request) {
   // Required cron auth check
-  const cronSecret = process.env.CRON_SECRET;
+  const cronSecret = (process.env.CRON_SECRET || '').trim();
   const auth = request.headers.get('authorization');
   if (!cronSecret || auth !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

@@ -25,7 +25,6 @@ const EDITABLE_FIELDS = (reps: Rep[]) => [
   { key: 'email', label: 'Email' },
   { key: 'instagram', label: 'Instagram' },
   { key: 'google_reviews', label: 'Reviews', type: 'number' },
-  { key: 'rating', label: 'Rating', type: 'number' },
   { key: 'priority', label: 'Priority', type: 'select', options: ['HOT', 'HIGH', 'MEDIUM'] },
   { key: 'status', label: 'Status', type: 'select', options: Object.keys(statusLabels) },
   { key: 'outreach_channel', label: 'Outreach Channel' },
@@ -241,7 +240,6 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
         <td style={{ ...tdStyle, maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{lead.website ? <a href={lead.website.startsWith('http') ? lead.website : `https://${lead.website}`} target="_blank" rel="noopener noreferrer" style={{ color: '#4da6ff', textDecoration: 'underline', textDecorationColor: '#4da6ff44', fontSize: '11px' }}>{lead.website.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '').slice(0, 30)}</a> : <span style={{ color: '#333' }}>&mdash;</span>}</td>
         <td style={{ ...tdStyle, color: '#aaa', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px' }}>{lead.email ? <a href={`mailto:${lead.email}`} style={{ color: '#aaa', textDecoration: 'none' }}>{lead.email}</a> : <span style={{ color: '#333' }}>&mdash;</span>}</td>
         <td style={{ ...tdStyle, textAlign: 'center', color: '#fff', fontFamily: 'monospace', fontWeight: 600 }}>{lead.google_reviews ?? '\u2014'}</td>
-        <td style={{ ...tdStyle, textAlign: 'center', color: (lead.google_reviews ?? 0) >= 4.5 ? '#22c55e' : (lead.google_reviews ?? 0) >= 4.0 ? '#F59E0B' : lead.google_reviews ? '#ff6060' : '#333', fontFamily: 'monospace', fontWeight: 600 }}>{String((lead as unknown as Record<string, unknown>).rating ?? '\u2014')}</td>
         <td style={{ ...tdStyle, textAlign: 'center' }}><span className={`priority-${lead.priority?.toLowerCase()}`}>{lead.priority}</span></td>
         <td style={{ ...tdStyle, textAlign: 'center' }}><span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, background: `${statusColors[lead.status] || '#555'}20`, color: statusColors[lead.status] || '#555' }}>{statusLabels[lead.status] || lead.status}</span></td>
         <td style={{ ...tdStyle, color: lead.reps?.name ? '#00F0FF' : '#444', fontSize: '11px' }}>{lead.reps?.name || 'Unassigned'}</td>
@@ -309,7 +307,7 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
           <thead>
             <tr>
               <th style={{ ...thStyle('_'), cursor: 'default', width: '40px', minWidth: '40px', textAlign: 'center', borderRight: '2px solid #333' }}>#</th>
-              {[['business_name', 'Business'], ['contact_name', 'Contact'], ['niche', 'Niche'], ['city', 'City'], ['phone', 'Phone'], ['website', 'Website'], ['email', 'Email'], ['google_reviews', 'Reviews'], ['rating', 'Rating'], ['priority', 'Priority'], ['status', 'Status'], ['assigned_rep', 'Assigned'], ['last_outcome', 'Last Call'], ['callback_date', 'Callback']].map(([col, label]) => (
+              {[['business_name', 'Business'], ['contact_name', 'Contact'], ['niche', 'Niche'], ['city', 'City'], ['phone', 'Phone'], ['website', 'Website'], ['email', 'Email'], ['google_reviews', 'Reviews'], ['priority', 'Priority'], ['status', 'Status'], ['assigned_rep', 'Assigned'], ['last_outcome', 'Last Call'], ['callback_date', 'Callback']].map(([col, label]) => (
                 <th key={col} onClick={() => handleSort(col)} style={thStyle(col)}>{label} {sortCol === col ? (sortDir === 'asc' ? '\u2191' : '\u2193') : ''}</th>
               ))}
               <th style={{ ...thStyle('_'), cursor: 'default', textAlign: 'center', borderRight: 'none', width: '80px' }}>Actions</th>

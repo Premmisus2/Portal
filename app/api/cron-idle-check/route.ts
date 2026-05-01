@@ -47,7 +47,7 @@ async function sendTelegram(body: any): Promise<{ ok: boolean; error?: string }>
 
 export async function GET(request: Request) {
   // Required cron auth check
-  const cronSecret = process.env.CRON_SECRET;
+  const cronSecret = (process.env.CRON_SECRET || '').trim();
   const auth = request.headers.get('authorization');
   if (!cronSecret || auth !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
