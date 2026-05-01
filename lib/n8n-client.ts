@@ -35,23 +35,26 @@ export type N8nExecutionCheck = {
 
 const DEFAULT_BASE = 'https://elliott-premmisus.app.n8n.cloud';
 
-async function fetchLatestExecution(
-  workflowId: string,
-): Promise<{ startedAt: string; status: string } | null> {
+type FetchOutcome =
+  | { kind: 'ok'; startedAt: string; status: string }
+  | { kind: 'no_key' }
+  | { kind: 'no_data' };
+
+async function fetchLatestExecution(workflowId: string): Promise<FetchOutcome> {
   const apiKey = process.env.N8N_API_KEY;
   const baseUrl = (process.env.N8N_BASE_URL || DEFAULT_BASE).replace(/\/$/, '');
-  if (!apiKey) return null;
+  if (!apiKey) return { kind: 'no_key' };
   try {
     const res = await fetch(
       `${baseUrl}/api/v1/executions?workflowId=${workflowId}&limit=1`,
       { headers: { 'X-N8N-API-KEY': apiKey, Accept: 'application/json' } },
     );
-    if (!res.ok) return null;
+    if (!res.ok) return { kind: 'no_data' };
     const json = (await res.json()) as { data?: Array<{ startedAt: string; status: string }> };
     const exec = json.data?.[0];
-    return exec ? { startedAt: exec.startedAt, status: exec.status } : null;
+    return exec ? { kind: 'ok', startedAt: exec.startedAt, status: exec.status } : { kind: 'no_data' };
   } catch {
-    return null;
+    return { kind: 'no_data' };
   }
 }
 
@@ -72,8 +75,22 @@ export async function checkMonitoredN8nWorkflows(now: Date = new Date()): Promis
       continue;
     }
 
-    const exec = await fetchLatestExecution(spec.id);
-    if (!exec) {
+    const outcome = await fetchLatestExecution(spec.id);
+    if (outcome.kind === 'no_key') {
+      // n8n monitoring not configured in this Vercel project — silent skip
+      // rather than false-positive alerts.
+      results.push({
+        spec,
+        lastExecutionAt: null,
+        ageHours: null,
+        overdue: false,
+        detail: 'n8n API key not configured — monitoring skipped',
+      });
+      continue;
+    }
+    if (outcome.kind === 'no_data') {
+      // API responded but no executions exist (or transient error). Treat as
+      // overdue so the operator notices, but with a clear detail string.
       results.push({
         spec,
         lastExecutionAt: null,
@@ -84,7 +101,7 @@ export async function checkMonitoredN8nWorkflows(now: Date = new Date()): Promis
       continue;
     }
 
-    const startedAt = new Date(exec.startedAt);
+    const startedAt = new Date(outcome.startedAt);
     const ageHours = (now.getTime() - startedAt.getTime()) / 3_600_000;
     const overdue = ageHours > spec.expectedIntervalHours;
     results.push({
