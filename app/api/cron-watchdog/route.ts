@@ -207,7 +207,7 @@ export async function GET(request: Request) {
           }
           return d.line;
         }),
-        `Check command.premmisus.com/cron-health for detail.`,
+        `Check command.premmisus.ca/cron-health for detail.`,
       ];
       const body = lines.join('\n');
       smsResult = await sendAlertSMS(body);

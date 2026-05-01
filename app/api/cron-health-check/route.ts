@@ -250,7 +250,7 @@ export async function GET(request: Request) {
       month: 'short',
       day: 'numeric',
     });
-    const message = `${header}\n\n${results.map(renderCheck).join('\n\n')}\n\n_${passed}/${results.length} checks passed · ${etTime} ET · command.premmisus.com/cron-health_`;
+    const message = `${header}\n\n${results.map(renderCheck).join('\n\n')}\n\n_${passed}/${results.length} checks passed · ${etTime} ET · command.premmisus.ca/cron-health_`;
 
     // Telegram delivery
     let telegramSent = false;

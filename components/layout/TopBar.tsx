@@ -30,7 +30,7 @@ export default function TopBar({ title, subtitle, userName, userEmail, onHome, o
         {onPrint && <button onClick={onPrint} className="btn-pdf mobile-hide"><Icon name="download" size={13} />Download PDF</button>}
         {actuallyDirector && (
           <a
-            href="https://command.premmisus.com/cron-health"
+            href="https://command.premmisus.ca/cron-health"
             target="_blank"
             rel="noreferrer"
             className="mobile-hide"
