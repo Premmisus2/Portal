@@ -17,6 +17,81 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 ---
 
 <!-- ENTRIES BELOW -->
+## 2026-05-01 [sentry-bootstrap] Sentry bug-tracking layer (dormant until DSN set)
+
+**Status:** ✅ enriched — installed and committed; **awaiting Elliott to activate by adding DSN**
+
+**Idea (Elliott's intent):** From the original audit conversation: *"We also need to create an account with a bug-identifying software that can identify bugs in real time very soon. Not yet, but very soon."* Phase 3 of the audit. After shipping Tier 1 + Tier 2 (which gave us structural error reporting via `lib/error-reporting.ts` and `lib/server-error.ts` for *expected* failure paths), the remaining gap is *unexpected* errors — React render crashes, unhandled promise rejections, route handler exceptions, third-party script errors. Those bypass our wrappers. Sentry catches them and gives us full stack traces, breadcrumbs, and release-tagged event grouping.
+
+**What shipped:**
+
+1. **`@sentry/nextjs@^10.51.0` installed.** Modern Sentry Next.js SDK. Compatible with Next.js 14.2.35.
+
+2. **`sentry.client.config.ts`, `sentry.server.config.ts`, `instrumentation.ts`.** Standard Next.js + Sentry pattern. Performance tracing disabled (`tracesSampleRate: 0`) — Elliott asked for bug catching, not perf. Session Replay disabled (bundle bloat we don't need). Both configs gated on `NEXT_PUBLIC_SENTRY_DSN` / `SENTRY_DSN` — when env vars are unset, the SDK initializes but produces no events. Safe to ship dormant.
+
+3. **`next.config.mjs` wrapped with `withSentryConfig`.** `silent: true` so builds don't fail when `SENTRY_AUTH_TOKEN` isn't set yet (source map upload becomes a no-op without the token; build still completes). When the token is added later, source maps will start uploading automatically — making Sentry stack traces readable instead of minified.
+
+4. **`lib/error-reporting.ts` + `lib/server-error.ts` wired to Sentry.** Every `reportClientError` and `reportServerError` call now also fires `Sentry.captureException` with `context` and `journal_tag` as Sentry tags, plus rep email as Sentry user (client-side only). The Telegram alert path is unchanged — Sentry is *additive*, not a replacement. Reasoning: Telegram for "wake me up at 2am" alerts; Sentry for "investigate later with full context."
+
+5. **Bundle impact:** First Load JS went from 87.5KB → 158KB (+70KB). Slightly higher than the ~35KB I initially estimated — Sentry's auto-instrumentation, breadcrumbs, browser performance monitoring (even when disabled, the SDK plumbing ships), and integrations contribute. Reasonable for the safety net it provides.
+
+**Files:**
+- `deploy/package.json` (+ `@sentry/nextjs` dependency)
+- `deploy/package-lock.json` (transitive deps; ~3K lines)
+- `deploy/next.config.mjs` (`withSentryConfig` wrap)
+- `deploy/sentry.client.config.ts` (new, 37 lines — browser SDK init)
+- `deploy/sentry.server.config.ts` (new, 28 lines — Node runtime SDK init)
+- `deploy/instrumentation.ts` (new, 19 lines — Next.js observability hook)
+- `deploy/lib/error-reporting.ts` (added Sentry import + `withScope` block in `reportClientError`)
+- `deploy/lib/server-error.ts` (same pattern for server-side)
+
+**Commit:** `c1431ce` ([git log](https://github.com/Premmisus2/Portal/commit/c1431ce))
+
+**Activation steps (REQUIRED for Sentry to actually catch anything):**
+
+1. Sign up at https://sentry.io (Elliott — free tier covers our event volume — 5K events/month, 1 user, plenty for current needs).
+2. Create a new project → choose `Next.js` framework.
+3. Sentry will show you a DSN that looks like `https://abc123@o123456.ingest.sentry.io/789`.
+4. In Vercel dashboard (or via `vercel env add`), add:
+   - `NEXT_PUBLIC_SENTRY_DSN` = (paste DSN) — for all 3 scopes (Production, Preview, Development).
+5. Optional but recommended (unlocks readable stack traces from minified bundles):
+   - In Sentry: Settings → Account → API → Auth Tokens → Create. Scopes: `project:releases`, `org:read`. Copy token.
+   - Vercel: add `SENTRY_AUTH_TOKEN`, `SENTRY_ORG` (your org slug from Sentry URL), `SENTRY_PROJECT` (project slug from Sentry URL). Production scope only is fine.
+6. Trigger any deploy (push any commit, or manually redeploy from Vercel UI).
+7. Once deployed, deliberately throw a test error from any client component to verify it shows up in Sentry's Issues tab within ~30s.
+
+After activation, errors flow to:
+- 🐛 CLIENT ERROR / 🔧 SERVER ERROR Telegram alerts (unchanged — for explicit failure paths Claude wrote `reportClientError`/`reportServerError` for)
+- Sentry (additive — for both explicit failures AND uncaught exceptions/rejections that bypass our wrappers)
+- Browser console / Vercel runtime logs (unchanged)
+
+**Rollback:**
+```bash
+cd "/Users/elliottcuthbert/Documents/Premmisus/Premmisus Assets/Sales Portal/deploy"
+git revert c1431ce
+git push origin main
+# This fully removes Sentry from the build. Bundle drops back to 87.5KB.
+# If Sentry is later activated and then removed, also remove the env vars
+# from Vercel (NEXT_PUBLIC_SENTRY_DSN, SENTRY_AUTH_TOKEN, etc.) to keep
+# things clean.
+```
+
+**Verification:**
+- `npx tsc --noEmit` clean
+- `npm run build` passed (bundle 87.5KB → 158KB, expected)
+- Auto-deploy via push to `main`
+- DORMANT verification: until DSN is set, no events should reach Sentry. Verifiable post-activation by checking the Sentry "Issues" tab is empty before the first deliberate test error.
+
+**Watch for:**
+- **The +70KB bundle cost is paid right now even though the SDK is dormant.** If first-load performance regresses for reps on slow connections, this is the culprit. The 70KB is mostly browser instrumentation that initializes regardless of DSN. Removing it requires reverting this commit. Net cost is worth it for the safety net, but worth knowing.
+- **Sentry has a free-tier event quota: 5K events/month.** If a hot bug starts firing thousands of events, the quota burns and additional events drop silently. The Telegram alerts are NOT subject to this (they're our system, not Sentry's). So Telegram = guaranteed delivery, Sentry = best-effort detail. Don't rely on Sentry alone for critical alerting.
+- **Source maps need `SENTRY_AUTH_TOKEN` + `SENTRY_ORG` + `SENTRY_PROJECT` to upload.** Without them, Sentry stack traces show minified JS that's nearly unreadable (`a` calling `b` calling `c`). Stack traces work either way for Telegram (we send raw `errStr`), but Sentry UI is dramatically more useful with source maps. Activate these env vars when convenient.
+- **`withSentryConfig` is `silent: true`** which suppresses build-time warnings about missing config. If a future Sentry feature requires a config value we haven't set, the warning won't fire — silent failures hide. Periodic check: every Sentry minor version update, run `npm run build` and watch for errors that may have been silenced.
+- **The `tag: 'foo'` parameter** to `reportClientError` / `reportServerError` now ALSO becomes a Sentry tag. Once activated, you can filter in Sentry by `journal_tag:shadow-view` to find all errors related to a specific feature. Tag your future error-reporting calls intentionally — they're queryable forever.
+- **If Sentry ever throws inside `captureException`** (extremely rare — the SDK is hardened), our defensive `try/catch` wrapper around `Sentry.withScope` swallows it. The Telegram + console paths still fire. This is by design — Sentry must never break a /api route or break a React render.
+
+---
+
 ## 2026-05-01 [tier-2-hardening] Tier 2 hardening bundle (cron trim, dead column, type drift, DST docs, tool loop)
 
 **Status:** ✅ enriched
