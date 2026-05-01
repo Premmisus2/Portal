@@ -17,6 +17,60 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 ---
 
 <!-- ENTRIES BELOW -->
+## 2026-05-01 [twilio-webhook-hardening] Twilio webhook + modal poll hardening (call-status, recording-callback, new poll route, modal refactor)
+
+**Status:** ✅ enriched
+
+**Idea (Elliott's intent):** Tier 1 #2-5 from the May 1 audit. Same anti-pattern that lost Isaiah's ~50 Day 1 logs (bare `try/catch`, unchecked fetch results, anon-key reads against RLS) was still present in the Twilio click-to-call flow. With Isaiah back on the phones and new reps about to onboard, silent webhook failures are existential — calls show "ringing" forever, recordings never link to call_logs, transcripts never fire, and nobody knows until Elliott manually notices the divergence days later. This commit applies the same structural fix (replace bare catches, destructure errors, surface failures to Telegram) across the Twilio surface area.
+
+**What shipped:**
+
+1. **`lib/server-error.ts` (new) — server-side counterpart to `lib/error-reporting.ts`.** Posts to the Telegram bot directly via `TELEGRAM_BOT_TOKEN` (no HTTP round-trip through `/api/notify-telegram`). Renders 🔧 SERVER ERROR alerts (different emoji from 🐛 CLIENT ERROR so we can tell them apart at a glance). Same `tag` parameter for journal cross-reference.
+
+2. **`app/api/call-status/route.ts` — was: bare `catch {}` swallowed everything; PATCH `res.ok` never checked.** Now: explicit `if (!res.ok)` check, missing `SUPABASE_SERVICE_KEY` triggers an alert (instead of silently no-op'ing all webhook updates), parse failures alert, every catch path uses `reportServerError`. Twilio still gets `200 OK` regardless of internal failure — Twilio retries on non-200, which would compound the problem.
+
+3. **`app/api/recording-callback/route.ts` — was: `updateCallLog` never returned a status; failures silently dropped.** Now: `updateCallLog` returns `boolean` and reports PATCH failures with the call_sid + which fields it tried to update. Outer handler catches and reports any unexpected exception during the recording-store flow.
+
+4. **`app/api/call-status-poll/route.ts` (new) — server route the active-call modal polls.** Uses `SUPABASE_SERVICE_KEY` (bypasses RLS — no more silent empty results). Validates `sid` format (alphanumeric only — Twilio SIDs are 32-char). Returns `{ row }` or appropriate error status. Reports failures.
+
+5. **`components/call-center/TwilioCallModal.tsx` — was: hit Supabase directly with anon key; on any error the empty `catch {}` swallowed everything; modal stuck on "Ringing..." for the full 5-minute timeout.** Now: polls `/api/call-status-poll?sid=<sid>` (server route); on `!res.ok` or thrown errors, calls `reportClientError` with the `twilio-webhook-hardening` tag so Telegram alerts include `_See journal: #twilio-webhook-hardening_`. Removed the `supabase` import — no longer needs client-side DB access for this flow.
+
+**Files:**
+- `deploy/lib/server-error.ts` (new — 65 lines)
+- `deploy/app/api/call-status/route.ts` (rewrote handler with explicit error reporting on every failure path)
+- `deploy/app/api/recording-callback/route.ts` (rewrote `updateCallLog` to return boolean + report failures; outer catch now reports)
+- `deploy/app/api/call-status-poll/route.ts` (new — 65 lines)
+- `deploy/components/call-center/TwilioCallModal.tsx` (replaced direct Supabase poll with `/api/call-status-poll` fetch; replaced empty `catch {}` with `reportClientError`)
+
+**Commit:** `e0ef54d` ([git log](https://github.com/Premmisus2/Portal/commit/e0ef54d))
+
+**Rollback:**
+```bash
+cd "/Users/elliottcuthbert/Documents/Premmisus/Premmisus Assets/Sales Portal/deploy"
+git revert e0ef54d
+git push origin main
+# Rolling back re-introduces the silent-failure pattern in the Twilio flow.
+# The active-call modal would go back to anon-key Supabase polling and could
+# silently stuck on "Ringing..." again. Don't roll back unless this commit
+# is causing a NEW problem worse than the silent failures it eliminates.
+```
+
+**Verification:**
+- `npx tsc --noEmit` clean
+- `npm run build` passed
+- Auto-deploy via push to `main`
+- Hook fired correctly on this commit (auto-stubbed — confirms the hook from `journal-bootstrap` works on a real Tier 1 commit, not just a self-test)
+- TODO post-deploy: live click-to-call test. Initiate a call → confirm modal goes `initiating → ringing → connected → completed` with non-zero duration. Hang up → confirm `recording_url` populates within ~10s, `transcript_status` goes from `processing` → `completed`. If anything goes wrong silently, expect a 🔧 SERVER ERROR or 🐛 CLIENT ERROR Telegram alert with `#twilio-webhook-hardening` pointer.
+
+**Watch for:**
+- **`SUPABASE_SERVICE_KEY` is now load-bearing in 4 server routes** (`call-status`, `recording-callback`, `call-status-poll`, plus existing `initiate-call`). If the env var ever gets the trailing-whitespace bug treatment (April 4-5 / May 1 incident class), all 4 routes degrade. The new code at least alerts on missing key — but not on whitespace-corrupted key. If you see a burst of 🔧 SERVER ERROR alerts referencing all 4 routes simultaneously, run `xxd` on the env var first (see `feedback_env_var_whitespace.md`).
+- **Telegram alert volume**: if a Twilio webhook is genuinely broken (e.g. Supabase outage, bad RLS migration), you'll get one alert per webhook hit. During an active calling session that could be dozens per minute. The `reportServerError` doesn't dedupe across requests (serverless functions are short-lived, in-memory dedupe doesn't help). If alerts get noisy in an incident, the fix is to fix the underlying issue, not silence the alerts.
+- **The `call-status-poll` route's `sid` regex (`/^[A-Za-z0-9]+$/`) is conservative.** Twilio SIDs are alphanumeric so this is correct, but if Twilio ever introduces a SID format with hyphens or underscores, the validation will reject legitimate polls. If reps start reporting "modal stuck on ringing" en masse with no Telegram alerts, check whether Twilio changed their SID format.
+- **`TwilioCallModal` no longer imports `supabase`.** If anyone reintroduces a `supabase.from(...)` call in this file (for a feature that genuinely needs client-side DB access), that's fine — but they need to add the import back. Don't add anon-key DB reads to client-side polling loops in general; route them through a server endpoint.
+- **Twilio always gets 200 even on internal failure.** This is intentional (avoids retry storms), but means a broken webhook can stay broken indefinitely without Twilio escalating. The Telegram alerts are the only signal. If alerts stop firing entirely, check the bot token + chat id env vars are still clean.
+
+---
+
 ## 2026-05-01 [ai-coach-transcript] AI Sales Coach reads call transcripts + director role detection fix
 
 **Status:** ✅ enriched
