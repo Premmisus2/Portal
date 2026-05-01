@@ -15,24 +15,34 @@ async function sbQuery(path: string, sbKey: string) {
   return res.json();
 }
 
-async function sendSMS(body: any) {
+async function sendSMS(body: any): Promise<{ ok: boolean; error?: string }> {
   const BASE = (process.env.BASE_URL || '').trim();
-  if (!BASE) return;
-  await fetch(`${BASE}/api/notify-sms`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  }).catch(() => {});
+  if (!BASE) return { ok: false, error: 'BASE_URL not configured' };
+  try {
+    const res = await fetch(`${BASE}/api/notify-sms`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    return res.ok ? { ok: true } : { ok: false, error: `notify-sms HTTP ${res.status}` };
+  } catch (e: unknown) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
 }
 
-async function sendTelegram(body: any) {
+async function sendTelegram(body: any): Promise<{ ok: boolean; error?: string }> {
   const BASE = (process.env.BASE_URL || '').trim();
-  if (!BASE) return;
-  await fetch(`${BASE}/api/notify-telegram`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  }).catch(() => {});
+  if (!BASE) return { ok: false, error: 'BASE_URL not configured' };
+  try {
+    const res = await fetch(`${BASE}/api/notify-telegram`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    return res.ok ? { ok: true } : { ok: false, error: `notify-telegram HTTP ${res.status}` };
+  } catch (e: unknown) {
+    return { ok: false, error: e instanceof Error ? e.message : String(e) };
+  }
 }
 
 export async function GET(request: Request) {
@@ -64,6 +74,7 @@ export async function GET(request: Request) {
     const alreadyNotified = new Set((Array.isArray(sentToday) ? sentToday : []).map((n: any) => n.recipient));
 
     const idleReps: string[] = [];
+    const deliveryFailures: string[] = [];
 
     for (const rep of reps) {
       if (alreadyNotified.has(rep.id)) continue;
@@ -83,28 +94,51 @@ export async function GET(request: Request) {
       if (isIdle) {
         idleReps.push(rep.name);
 
-        // Log notification to prevent duplicates
-        await fetch(`${SUPABASE_URL}/rest/v1/notifications_log`, {
-          method: 'POST',
-          headers: {
-            'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ type: 'idle', recipient: rep.id, channel: 'sms+telegram', message: `${rep.name} idle 2+ hours` }),
-        });
+        // Send notifications FIRST. Previously the notifications_log row was
+        // written before sending — so if SMS/Telegram failed, the dedupe row
+        // was already in place and the rep would never be notified that day.
+        // Now: only log on at-least-one-channel-success. If both fail, the
+        // next idle-check tick will retry.
+        const smsOutcome = await sendSMS({ type: 'idle', repName: rep.name });
+        const tgOutcome = await sendTelegram({ type: 'idle', repName: rep.name });
 
-        // Send notifications
-        await sendSMS({ type: 'idle', repName: rep.name });
-        await sendTelegram({ type: 'idle', repName: rep.name });
+        if (!smsOutcome.ok) deliveryFailures.push(`sms:${rep.name}:${smsOutcome.error}`);
+        if (!tgOutcome.ok) deliveryFailures.push(`telegram:${rep.name}:${tgOutcome.error}`);
+
+        if (smsOutcome.ok || tgOutcome.ok) {
+          await fetch(`${SUPABASE_URL}/rest/v1/notifications_log`, {
+            method: 'POST',
+            headers: {
+              'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              type: 'idle',
+              recipient: rep.id,
+              channel: smsOutcome.ok && tgOutcome.ok ? 'sms+telegram' : (smsOutcome.ok ? 'sms' : 'telegram'),
+              message: `${rep.name} idle 2+ hours`,
+            }),
+          });
+        }
       }
     }
 
+    // Status reflects whether every idle rep got at least one channel through.
+    // Per-channel failures still surface in metadata.delivery_failures.
+    const allChannelsFailed = idleReps.length > 0 && deliveryFailures.length >= idleReps.length * 2;
     await finishRun(runId, {
-      status: 'success',
+      status: allChannelsFailed ? 'failure' : 'success',
       rowsProcessed: idleReps.length,
-      metadata: { checked: reps.length, idle_reps: idleReps },
+      errorMessage: allChannelsFailed
+        ? `All notification channels failed: ${deliveryFailures.slice(0, 3).join('; ')}`
+        : undefined,
+      metadata: {
+        checked: reps.length,
+        idle_reps: idleReps,
+        delivery_failures: deliveryFailures,
+      },
     });
-    return NextResponse.json({ checked: reps.length, idle: idleReps });
+    return NextResponse.json({ checked: reps.length, idle: idleReps, delivery_failures: deliveryFailures.length });
 
   } catch (err: any) {
     await finishRun(runId, { status: 'failure', errorMessage: err?.message || String(err) });

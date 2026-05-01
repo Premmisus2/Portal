@@ -13,7 +13,12 @@ const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 const DEDUPE_WINDOW_HOURS = 12;
 const ESCALATION_HOURS = 24;
 
-export type AlertReason = 'no_recent_success' | 'stuck_running' | 'n8n_overdue';
+export type AlertReason =
+  | 'no_recent_success'
+  | 'stuck_running'
+  | 'n8n_overdue'
+  | 'n8n_errored'
+  | 'n8n_stuck';
 
 export type AlertDecision =
   | { action: 'skip'; reason: string }

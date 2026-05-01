@@ -143,7 +143,12 @@ export async function GET(request: Request) {
 
     // ── n8n coverage ─────────────────────────────────────────────────────────
     const n8nChecks: N8nExecutionCheck[] = await checkMonitoredN8nWorkflows(now);
-    const n8nOverdue = n8nChecks.filter((c) => c.overdue);
+    // n8n now reports three independent failure modes. Each maps to a distinct
+    // alert reason so dedupe can track them separately (a workflow that goes
+    // from overdue → errored should re-alert).
+    const n8nOverdue = n8nChecks.filter((c) => c.overdue && !c.errored && !c.stuck);
+    const n8nErrored = n8nChecks.filter((c) => c.errored);
+    const n8nStuck = n8nChecks.filter((c) => c.stuck);
 
     // ── Decide what (if anything) to alert ───────────────────────────────────
     const alertingJobs = checks.filter((c) => c.alert);
@@ -165,6 +170,20 @@ export async function GET(request: Request) {
       pending.push({
         jobName: `n8n:${c.spec.id}`,
         reason: 'n8n_overdue',
+        line: `• ${c.spec.name}: ${c.detail}`,
+      });
+    }
+    for (const c of n8nErrored) {
+      pending.push({
+        jobName: `n8n:${c.spec.id}`,
+        reason: 'n8n_errored',
+        line: `• ${c.spec.name}: ${c.detail}`,
+      });
+    }
+    for (const c of n8nStuck) {
+      pending.push({
+        jobName: `n8n:${c.spec.id}`,
+        reason: 'n8n_stuck',
         line: `• ${c.spec.name}: ${c.detail}`,
       });
     }
@@ -212,35 +231,57 @@ export async function GET(request: Request) {
       const body = lines.join('\n');
       smsResult = await sendAlertSMS(body);
 
-      // Persist whether or not SMS succeeded — operator can still see open
-      // alerts on the cron-health page.
-      for (const d of decided) {
-        await recordAlert({
-          jobName: d.jobName,
-          reason: d.reason,
-          message: body,
-          smsSid: smsResult?.sid ?? null,
-          escalation: d.mode === 'escalate' && d.openAlertId
-            ? { openAlertId: d.openAlertId }
-            : undefined,
-        });
+      // Only persist alert rows when SMS delivery actually succeeded. If
+      // Twilio fails (rate limit, auth, balance), writing the row would let
+      // dedupe suppress the next watchdog tick's retry — meaning Elliott
+      // never gets the alert at all. Instead: leave cron_alerts empty for
+      // these reasons so the next tick re-attempts; mark this watchdog run
+      // as 'failure' so the operator can see the SMS pipeline is broken.
+      if (smsResult?.ok) {
+        for (const d of decided) {
+          await recordAlert({
+            jobName: d.jobName,
+            reason: d.reason,
+            message: body,
+            smsSid: smsResult.sid ?? null,
+            escalation: d.mode === 'escalate' && d.openAlertId
+              ? { openAlertId: d.openAlertId }
+              : undefined,
+          });
+        }
       }
     }
 
     // ── Resolve any open alerts whose underlying cron has recovered ─────────
+    // A cron is "healthy" only if all three failure modes are clear (overdue,
+    // errored, stuck). Resolving on age-only would prematurely close an open
+    // alert for an n8n workflow that's running on time but still erroring.
     const healthyVercel = checks.filter((c) => !c.alert).map((c) => c.job);
-    const healthyN8n = n8nChecks.filter((c) => !c.overdue).map((c) => `n8n:${c.spec.id}`);
+    const healthyN8n = n8nChecks
+      .filter((c) => !c.overdue && !c.errored && !c.stuck)
+      .map((c) => `n8n:${c.spec.id}`);
     const resolved = await resolveAlertsForHealthyJobs([...healthyVercel, ...healthyN8n]);
 
+    // Propagate SMS delivery failure into watchdog status — same bug class
+    // we fixed in cron-daily-summary. A failed Twilio send means Elliott did
+    // not get the alert; surfacing it as cron_runs.status='failure' lets the
+    // cron-health UI flag it without needing a meta-watchdog.
+    const smsFailed = decided.length > 0 && !smsResult?.ok;
     await finishRun(runId, {
-      status: 'success',
+      status: smsFailed ? 'failure' : 'success',
       rowsProcessed: checks.length,
+      errorMessage: smsFailed
+        ? `SMS delivery failed: ${smsResult?.error ?? 'unknown'}`
+        : undefined,
       metadata: {
         vercel_alerting: alertingJobs.length,
         stuck_count: stuckRows.length,
         n8n_overdue: n8nOverdue.length,
+        n8n_errored: n8nErrored.length,
+        n8n_stuck: n8nStuck.length,
         sms_sent: !!smsResult?.ok,
         sms_sid: smsResult?.sid || null,
+        sms_error: smsResult?.error || null,
         decided_count: decided.length,
         skipped_count: skipped.length,
         resolved_count: resolved,

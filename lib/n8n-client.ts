@@ -1,7 +1,7 @@
 // Premmisus Sales Portal — n8n API client
-// Thin wrapper for the watchdog to query last execution time of monitored
-// Premmisus workflows. TraDelier workflows are explicitly excluded; this
-// monitor only covers Premmisus business automation.
+// Thin wrapper for the watchdog to detect three failure modes per monitored
+// workflow: (1) didn't run on schedule, (2) ran but errored, (3) stuck in
+// 'running' for too long. TraDelier workflows are explicitly excluded.
 
 export type N8nWorkflowSpec = {
   id: string;
@@ -14,7 +14,7 @@ export const MONITORED_N8N_WORKFLOWS: N8nWorkflowSpec[] = [
   {
     id: 'MdMpElcMI1D3u9ri',
     name: 'Premmisus Cold SMS — Daily Sender',
-    expectedIntervalHours: 28, // daily on weekdays + weekend grace
+    expectedIntervalHours: 28,
     weekdaysOnly: true,
   },
   {
@@ -25,11 +25,19 @@ export const MONITORED_N8N_WORKFLOWS: N8nWorkflowSpec[] = [
   },
 ];
 
+// Threshold for stuck-running detection. n8n executions usually finish in
+// seconds; 1h is a generous ceiling that catches genuinely hung workflows
+// without false-flagging long-running batch jobs.
+const STUCK_RUNNING_THRESHOLD_HOURS = 1;
+
 export type N8nExecutionCheck = {
   spec: N8nWorkflowSpec;
   lastExecutionAt: Date | null;
   ageHours: number | null;
+  lastStatus: string | null;
   overdue: boolean;
+  errored: boolean;
+  stuck: boolean;
   detail: string;
 };
 
@@ -58,60 +66,68 @@ async function fetchLatestExecution(workflowId: string): Promise<FetchOutcome> {
   }
 }
 
+function emptyCheck(spec: N8nWorkflowSpec, detail: string, overdue = false): N8nExecutionCheck {
+  return {
+    spec,
+    lastExecutionAt: null,
+    ageHours: null,
+    lastStatus: null,
+    overdue,
+    errored: false,
+    stuck: false,
+    detail,
+  };
+}
+
 export async function checkMonitoredN8nWorkflows(now: Date = new Date()): Promise<N8nExecutionCheck[]> {
-  const dayUTC = now.getUTCDay(); // 0=Sun, 6=Sat
+  const dayUTC = now.getUTCDay();
   const isWeekend = dayUTC === 0 || dayUTC === 6;
 
   const results: N8nExecutionCheck[] = [];
   for (const spec of MONITORED_N8N_WORKFLOWS) {
     if (spec.weekdaysOnly && isWeekend) {
-      results.push({
-        spec,
-        lastExecutionAt: null,
-        ageHours: null,
-        overdue: false,
-        detail: 'Weekend — not expected to run',
-      });
+      results.push(emptyCheck(spec, 'Weekend — not expected to run'));
       continue;
     }
 
     const outcome = await fetchLatestExecution(spec.id);
     if (outcome.kind === 'no_key') {
-      // n8n monitoring not configured in this Vercel project — silent skip
-      // rather than false-positive alerts.
-      results.push({
-        spec,
-        lastExecutionAt: null,
-        ageHours: null,
-        overdue: false,
-        detail: 'n8n API key not configured — monitoring skipped',
-      });
+      // Monitoring not configured in this env — silent skip (no false alert).
+      results.push(emptyCheck(spec, 'n8n API key not configured — monitoring skipped'));
       continue;
     }
     if (outcome.kind === 'no_data') {
-      // API responded but no executions exist (or transient error). Treat as
-      // overdue so the operator notices, but with a clear detail string.
-      results.push({
-        spec,
-        lastExecutionAt: null,
-        ageHours: null,
-        overdue: true,
-        detail: 'No execution data returned from n8n API',
-      });
+      results.push(emptyCheck(spec, 'No execution data returned from n8n API', true));
       continue;
     }
 
     const startedAt = new Date(outcome.startedAt);
     const ageHours = (now.getTime() - startedAt.getTime()) / 3_600_000;
+    const status = outcome.status;
+
+    // Status taxonomy from n8n: success | error | crashed | running | waiting.
+    // 'running' beyond the stuck threshold signals a hung workflow.
+    const stuck = status === 'running' && ageHours > STUCK_RUNNING_THRESHOLD_HOURS;
+    // 'error' or 'crashed' on the latest execution = a real failure, even if
+    // the workflow fired on schedule. The original watchdog only checked age,
+    // letting these slip through.
+    const errored = status === 'error' || status === 'crashed';
     const overdue = ageHours > spec.expectedIntervalHours;
+
+    let detail = `Last run ${ageHours.toFixed(1)}h ago · status=${status}`;
+    if (stuck) detail = `Stuck running for ${ageHours.toFixed(1)}h (threshold ${STUCK_RUNNING_THRESHOLD_HOURS}h)`;
+    else if (errored) detail = `Last execution ${ageHours.toFixed(1)}h ago FAILED (status=${status})`;
+    else if (overdue) detail = `Last run ${ageHours.toFixed(1)}h ago (expected within ${spec.expectedIntervalHours}h)`;
+
     results.push({
       spec,
       lastExecutionAt: startedAt,
       ageHours,
+      lastStatus: status,
       overdue,
-      detail: overdue
-        ? `Last run ${ageHours.toFixed(1)}h ago (expected within ${spec.expectedIntervalHours}h)`
-        : `Last run ${ageHours.toFixed(1)}h ago`,
+      errored,
+      stuck,
+      detail,
     });
   }
   return results;

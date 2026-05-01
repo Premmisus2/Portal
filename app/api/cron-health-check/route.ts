@@ -252,9 +252,13 @@ export async function GET(request: Request) {
     });
     const message = `${header}\n\n${results.map(renderCheck).join('\n\n')}\n\n_${passed}/${results.length} checks passed · ${etTime} ET · command.premmisus.ca/cron-health_`;
 
-    // Telegram delivery
+    // Telegram delivery — failure here means Elliott does not receive the
+    // daily report, which is the entire point of the cron. Propagate into
+    // status='failure' so the watchdog catches a broken delivery pipeline.
     let telegramSent = false;
-    if (BOT_TOKEN && CHAT_ID) {
+    let telegramError: string | undefined;
+    const telegramConfigured = Boolean(BOT_TOKEN && CHAT_ID);
+    if (telegramConfigured) {
       try {
         const tgRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
           method: 'POST',
@@ -262,16 +266,22 @@ export async function GET(request: Request) {
           body: JSON.stringify({ chat_id: CHAT_ID, text: message, parse_mode: 'Markdown' }),
         });
         telegramSent = tgRes.ok;
-      } catch {
-        console.error('[health-check] Telegram send failed');
+        if (!tgRes.ok) {
+          const tgErr = await tgRes.json().catch(() => ({}));
+          telegramError = `Telegram HTTP ${tgRes.status}: ${tgErr?.description ?? 'unknown'}`;
+        }
+      } catch (e: unknown) {
+        telegramError = e instanceof Error ? e.message : String(e);
       }
     }
 
     // Persist findings + actionable detail in metadata so the cron-health page
     // can render the same content the Telegram message did.
+    const deliveryFailed = telegramConfigured && !telegramSent;
     await finishRun(runId, {
-      status: 'success',
+      status: deliveryFailed ? 'failure' : 'success',
       rowsProcessed: passed,
+      errorMessage: deliveryFailed ? telegramError : undefined,
       metadata: {
         passed,
         total: results.length,
@@ -279,6 +289,7 @@ export async function GET(request: Request) {
         issues: failed.map((r) => r.name),
         all_checks_passed: allGood,
         telegram_sent: telegramSent,
+        telegram_error: telegramError ?? null,
         results: results.map((r) => ({
           name: r.name,
           ok: r.ok,

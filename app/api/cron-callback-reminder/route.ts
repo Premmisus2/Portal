@@ -70,24 +70,46 @@ export async function GET(request: Request) {
     if (overdue.length > 5) smsMsg += `...and ${overdue.length - 5} more`;
     smsMsg += `\nCheck portal.premmisus.ca`;
 
-    // Send SMS
+    // Send SMS — propagate delivery failure into cron status (was previously
+    // .catch(() => {}) which swallowed Twilio/notify-sms errors silently and
+    // let cron_runs.status='success' lie about a missed alert).
+    let smsOk = true;
+    let smsError: string | undefined;
     if (BASE) {
-      await fetch(`${BASE}/api/notify-sms`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: 'callback', repName: 'System', businessName: `${overdue.length} overdue callbacks`, notes: smsMsg }),
-      }).catch(() => {});
+      try {
+        const smsRes = await fetch(`${BASE}/api/notify-sms`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'callback', repName: 'System', businessName: `${overdue.length} overdue callbacks`, notes: smsMsg }),
+        });
+        if (!smsRes.ok) {
+          smsOk = false;
+          smsError = `notify-sms HTTP ${smsRes.status}`;
+        }
+      } catch (e: unknown) {
+        smsOk = false;
+        smsError = e instanceof Error ? e.message : String(e);
+      }
+    } else {
+      smsOk = false;
+      smsError = 'BASE_URL not configured';
     }
 
-    // Log
+    // Log notification regardless of delivery status (audit trail) — but the
+    // status propagation above is what trips the watchdog.
     await fetch(`${SUPABASE_URL}/rest/v1/notifications_log`, {
       method: 'POST',
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'callback_reminder', recipient: 'director', channel: 'sms', message: `${overdue.length} overdue callbacks` }),
+      body: JSON.stringify({ type: 'callback_reminder', recipient: 'director', channel: 'sms', message: `${overdue.length} overdue callbacks${smsOk ? '' : ' (delivery failed)'}` }),
     });
 
-    await finishRun(runId, { status: 'success', rowsProcessed: overdue.length });
-    return NextResponse.json({ overdue: overdue.length });
+    await finishRun(runId, {
+      status: smsOk ? 'success' : 'failure',
+      rowsProcessed: overdue.length,
+      errorMessage: smsOk ? undefined : `Callback SMS delivery failed: ${smsError}`,
+      metadata: { sms_ok: smsOk, sms_error: smsError ?? null, callbacks: overdue.length },
+    });
+    return NextResponse.json({ overdue: overdue.length, sms_ok: smsOk });
 
   } catch (err: any) {
     await finishRun(runId, { status: 'failure', errorMessage: err?.message || String(err) });
