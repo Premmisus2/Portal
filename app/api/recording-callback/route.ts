@@ -1,23 +1,50 @@
 // Premmisus Dialer — Recording Callback
 // Receives recording-ready webhook from Twilio
 // Stores recording URL in Supabase, then transcribes via Gemini
+//
+// Hardening (2026-05-01, #twilio-webhook-hardening):
+// - updateCallLog now returns a boolean and logs PATCH failures to Telegram
+// - transcribeAndStore reports Gemini errors with the actual response body
+// - Twilio still gets 200 on every request (avoids retry storms)
 
 import { NextResponse } from 'next/server';
 import { waitUntil } from '@vercel/functions';
+import { reportServerError } from '@/lib/server-error';
 
 const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 
-async function updateCallLog(callSid: string, updates: Record<string, any>, sbKey: string) {
-  await fetch(`${SUPABASE_URL}/rest/v1/call_logs?call_sid=eq.${callSid}`, {
-    method: 'PATCH',
-    headers: {
-      'apikey': sbKey,
-      'Authorization': `Bearer ${sbKey}`,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal',
-    },
-    body: JSON.stringify(updates),
-  });
+async function updateCallLog(callSid: string, updates: Record<string, any>, sbKey: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/call_logs?call_sid=eq.${encodeURIComponent(callSid)}`, {
+      method: 'PATCH',
+      headers: {
+        'apikey': sbKey,
+        'Authorization': `Bearer ${sbKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify(updates),
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      await reportServerError(
+        'recording-callback.updateCallLog',
+        `Supabase PATCH ${res.status}: ${body.slice(0, 200)}`,
+        { call_sid: callSid, update_keys: Object.keys(updates).join(',') },
+        'twilio-webhook-hardening',
+      );
+      return false;
+    }
+    return true;
+  } catch (err) {
+    await reportServerError(
+      'recording-callback.updateCallLog',
+      err,
+      { call_sid: callSid, update_keys: Object.keys(updates).join(',') },
+      'twilio-webhook-hardening',
+    );
+    return false;
+  }
 }
 
 async function transcribeAndStore(callSid: string, mp3Url: string) {
@@ -126,7 +153,12 @@ export async function POST(request: Request) {
     return response;
 
   } catch (err) {
-    console.error('recording-callback error:', err);
+    await reportServerError(
+      'recording-callback.handler',
+      err,
+      { call_sid: callSid, recording_sid: recordingSid },
+      'twilio-webhook-hardening',
+    );
     return new Response('OK', { status: 200 });
   }
 }

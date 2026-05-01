@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabase';
+import { reportClientError } from '@/lib/error-reporting';
 
 const TwilioCallModal = ({ lead, repId, repPhone, onClose, onCallComplete }: any) => {
   const [status, setStatus] = useState('initiating');
@@ -36,30 +36,56 @@ const TwilioCallModal = ({ lead, repId, repPhone, onClose, onCallComplete }: any
     }
   };
 
+  // Poll the server-side /api/call-status-poll endpoint instead of hitting
+  // Supabase directly with the anon key. Previously RLS could block the read
+  // and the modal would silently stay stuck on "ringing" for 5 full minutes.
+  // Server route uses SUPABASE_SERVICE_KEY (bypasses RLS) — see
+  // app/api/call-status-poll/route.ts. Tagged #twilio-webhook-hardening.
   const pollStatus = (sid: string) => {
     const poll = setInterval(async () => {
       try {
-        const { data } = await supabase.from('call_logs').select('twilio_status, duration_seconds, recording_url').eq('call_sid', sid).single();
-        if (data) {
-          if (data.twilio_status === 'in-progress' || data.twilio_status === 'answered') {
-            setStatus('connected');
-            if (!timerRef.current) {
-              timerRef.current = setInterval(() => setDuration(d => d + 1), 1000);
-            }
-          }
-          if (data.twilio_status === 'completed') {
-            setStatus('completed');
-            setDuration(data.duration_seconds || 0);
-            clearInterval(poll);
-            clearInterval(timerRef.current);
-          }
-          if (data.twilio_status === 'busy' || data.twilio_status === 'no-answer' || data.twilio_status === 'failed' || data.twilio_status === 'canceled') {
-            setStatus('failed');
-            setError('Call ' + data.twilio_status);
-            clearInterval(poll);
+        const res = await fetch(`/api/call-status-poll?sid=${encodeURIComponent(sid)}`, {
+          cache: 'no-store',
+        });
+        if (!res.ok) {
+          // 4xx/5xx — surface to Telegram so we know the poll endpoint is broken,
+          // but don't kill the poll loop (Twilio webhook may still update the row).
+          reportClientError(
+            'TwilioCallModal.pollStatus',
+            `poll returned ${res.status}`,
+            { call_sid: sid },
+            'twilio-webhook-hardening',
+          );
+          return;
+        }
+        const { row } = await res.json();
+        if (!row) return;
+
+        if (row.twilio_status === 'in-progress' || row.twilio_status === 'answered') {
+          setStatus('connected');
+          if (!timerRef.current) {
+            timerRef.current = setInterval(() => setDuration(d => d + 1), 1000);
           }
         }
-      } catch {}
+        if (row.twilio_status === 'completed') {
+          setStatus('completed');
+          setDuration(row.duration_seconds || 0);
+          clearInterval(poll);
+          clearInterval(timerRef.current);
+        }
+        if (row.twilio_status === 'busy' || row.twilio_status === 'no-answer' || row.twilio_status === 'failed' || row.twilio_status === 'canceled') {
+          setStatus('failed');
+          setError('Call ' + row.twilio_status);
+          clearInterval(poll);
+        }
+      } catch (err) {
+        reportClientError(
+          'TwilioCallModal.pollStatus',
+          err,
+          { call_sid: sid },
+          'twilio-webhook-hardening',
+        );
+      }
     }, 3000);
     pollRef.current = poll;
     setTimeout(() => clearInterval(poll), 300000);
