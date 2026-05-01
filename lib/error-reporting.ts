@@ -7,6 +7,11 @@
 //
 // Fire-and-forget — never blocks the UI. Deduplicates inside a single page
 // load so a looping failure doesn't spam Telegram.
+//
+// Optional `tag` parameter cross-references the build journal:
+// passing `tag: 'shadow-view'` makes the Telegram alert say
+// "_See journal: #shadow-view_" so the recipient can jump straight to
+// `BUILD-JOURNAL.md` and find the rollback steps.
 
 const reported = new Set<string>();
 
@@ -36,6 +41,7 @@ export function reportClientError(
   context: string,
   err: unknown,
   meta?: ErrorMeta,
+  tag?: string,
 ): void {
   const errStr = formatError(err);
   const dedupeKey = `${context}::${errStr}`;
@@ -43,7 +49,7 @@ export function reportClientError(
   reported.add(dedupeKey);
 
   // Always console.error — visible in browser dev tools, costs nothing
-  console.error(`[client-error] ${context}:`, err, meta || {});
+  console.error(`[client-error] ${context}${tag ? ` #${tag}` : ''}:`, err, meta || {});
 
   // Telegram only on first occurrence per session — fire-and-forget
   if (isDupe) return;
@@ -65,6 +71,7 @@ export function reportClientError(
       repName,
       businessName: `${context} (${repEmail})`,
       notes,
+      journalTag: tag,
     }),
   }).catch(() => {
     // If Telegram itself fails, console already has the original error.
