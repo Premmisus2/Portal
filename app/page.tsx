@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { PRODUCT_LABELS, CLOSE_PRODUCTS, DIRECTOR_EMAILS } from '@/lib/constants';
 import { downloadPDF } from '@/lib/pdf';
+import { reportClientError } from '@/lib/error-reporting';
 
 // Auth
-import AuthProvider from '@/components/auth/AuthProvider';
 import LoginView from '@/components/auth/LoginView';
 
 // Layout
@@ -88,7 +88,11 @@ function AppShell() {
 
   // Helper: load closes from Supabase
   const loadCloses = async (rid: string) => {
-    const { data } = await supabase.from('closes').select('*').eq('rep_id', rid).order('created_at', { ascending: true });
+    const { data, error } = await supabase.from('closes').select('*').eq('rep_id', rid).order('created_at', { ascending: true });
+    if (error) {
+      reportClientError('loadCloses', error, { rep_id: rid });
+      return;
+    }
     if (data) {
       setCloseHistory(data.map((c: any) => ({ pts: c.pts, id: c.id, status: c.status || 'approved', product_label: c.product_label })));
       setTotalCloses(data.length);
@@ -104,46 +108,77 @@ function AppShell() {
   useEffect(() => {
     const init = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          const { data: repData } = await supabase.from('reps').select('*').eq('auth_id', session.user.id).single();
-          if (repData) {
-            setUserName(repData.name); setUserEmail(repData.email);
-            setUserRole(repData.role); setRepId(repData.id);
-            setRepPhone(repData.phone || null);
-            await loadCloses(repData.id);
-            if (repData.role === 'director') {
-              const { data: repsData } = await supabase.from('reps').select('id, name, email, role').order('created_at', { ascending: true });
-              // Include directors in allReps so they can be assigned leads (e.g. Elliott assigning to himself in rep view)
-              if (repsData) setAllReps(repsData);
-              try {
-                const lastVisit = localStorage.getItem('pmss_last_director_visit') || new Date(0).toISOString();
-                setLastDirectorVisit(lastVisit);
-                const [bookings, callbacks, handoffs, totalCalls] = await Promise.all([
-                  supabase.from('call_logs').select('*, reps(name)').in('outcome', ['booked_call', 'discovery_completed']).gt('created_at', lastVisit),
-                  supabase.from('call_logs').select('*, reps(name)').eq('outcome', 'callback_requested').gt('created_at', lastVisit),
-                  supabase.from('handoffs').select('*, reps(name)').gt('created_at', lastVisit),
-                  supabase.from('call_logs').select('id').gt('created_at', lastVisit),
-                ]);
-                const evts = {
-                  bookings: bookings.data || [],
-                  callbacks: callbacks.data || [],
-                  handoffs: handoffs.data || [],
-                  totalCalls: (totalCalls.data || []).length,
-                };
-                if (evts.bookings.length > 0 || evts.callbacks.length > 0 || evts.handoffs.length > 0) {
-                  setMissedEvents(evts);
-                  setShowNotifPopup(true);
-                }
-              } catch (notifErr) { console.warn('Notification popup query failed:', notifErr); }
+        const { data: sessionData, error: sessionErr } = await supabase.auth.getSession();
+        if (sessionErr) {
+          reportClientError('init.getSession', sessionErr);
+          return;
+        }
+        const session = sessionData?.session;
+        if (!session?.user) return;
+
+        const { data: repData, error: repErr } = await supabase.from('reps').select('*').eq('auth_id', session.user.id).single();
+        if (repErr) {
+          reportClientError('init.fetchOwnRep', repErr, { auth_id: session.user.id });
+          return;
+        }
+        if (!repData) {
+          reportClientError('init.fetchOwnRep', 'rep row not found for auth_id', { auth_id: session.user.id });
+          return;
+        }
+
+        setUserName(repData.name); setUserEmail(repData.email);
+        setUserRole(repData.role); setRepId(repData.id);
+        setRepPhone(repData.phone || null);
+        await loadCloses(repData.id);
+
+        if (repData.role === 'director') {
+          const { data: repsData, error: repsErr } = await supabase.from('reps').select('id, name, email, role').order('created_at', { ascending: true });
+          if (repsErr) {
+            reportClientError('init.fetchAllReps', repsErr, { rep_id: repData.id, email: repData.email });
+          } else if (!repsData || repsData.length === 0) {
+            // Director should always see at least their own row. Empty result = RLS or session issue.
+            reportClientError('init.fetchAllReps', 'empty rep list for director — Shadow View will not work', { rep_id: repData.id, email: repData.email, returned: repsData?.length ?? 'null' });
+          } else {
+            // Include directors in allReps so they can be assigned leads (e.g. Elliott assigning to himself in rep view)
+            setAllReps(repsData);
+          }
+
+          try {
+            const lastVisit = localStorage.getItem('pmss_last_director_visit') || new Date(0).toISOString();
+            setLastDirectorVisit(lastVisit);
+            const [bookings, callbacks, handoffs, totalCalls] = await Promise.all([
+              supabase.from('call_logs').select('*, reps(name)').in('outcome', ['booked_call', 'discovery_completed']).gt('created_at', lastVisit),
+              supabase.from('call_logs').select('*, reps(name)').eq('outcome', 'callback_requested').gt('created_at', lastVisit),
+              supabase.from('handoffs').select('*, reps(name)').gt('created_at', lastVisit),
+              supabase.from('call_logs').select('id').gt('created_at', lastVisit),
+            ]);
+            if (bookings.error) reportClientError('init.notifPopup.bookings', bookings.error);
+            if (callbacks.error) reportClientError('init.notifPopup.callbacks', callbacks.error);
+            if (handoffs.error) reportClientError('init.notifPopup.handoffs', handoffs.error);
+            if (totalCalls.error) reportClientError('init.notifPopup.totalCalls', totalCalls.error);
+            const evts = {
+              bookings: bookings.data || [],
+              callbacks: callbacks.data || [],
+              handoffs: handoffs.data || [],
+              totalCalls: (totalCalls.data || []).length,
+            };
+            if (evts.bookings.length > 0 || evts.callbacks.length > 0 || evts.handoffs.length > 0) {
+              setMissedEvents(evts);
+              setShowNotifPopup(true);
             }
-            try { localStorage.setItem('pmss_user', repData.name); localStorage.setItem('pmss_email', repData.email); } catch {}
-            const savedView = (() => { try { return localStorage.getItem('pmss_view') || 'home'; } catch { return 'home'; } })();
-            setView(savedView);
+          } catch (notifErr) {
+            reportClientError('init.notifPopup', notifErr);
           }
         }
-      } catch {}
-      setAppLoading(false);
+
+        try { localStorage.setItem('pmss_user', repData.name); localStorage.setItem('pmss_email', repData.email); } catch {}
+        const savedView = (() => { try { return localStorage.getItem('pmss_view') || 'home'; } catch { return 'home'; } })();
+        setView(savedView);
+      } catch (err) {
+        reportClientError('init.uncaught', err);
+      } finally {
+        setAppLoading(false);
+      }
     };
     init();
   }, []);

@@ -30,6 +30,9 @@ export async function POST(request: Request) {
     case 'close_rejected':
       message = `❌ *CLOSE REJECTED*\nRep: ${repName || 'Unknown'}\nProduct: ${businessName || 'Close'}\n\n_No points added. Rep has been notified._`;
       break;
+    case 'client_error':
+      message = `🐛 *CLIENT ERROR*\nWho: ${repName || 'unknown'}\nWhere: ${businessName || 'unknown'}\nWhat: ${notes ? notes.slice(0, 500) : 'no details'}\n\n_Reported from portal browser. Check console for full stack._`;
+      break;
     default:
       message = `📋 *${type?.toUpperCase() || 'UPDATE'}*\n${repName || 'Rep'}: ${businessName || 'Activity update'}`;
   }

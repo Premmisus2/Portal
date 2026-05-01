@@ -259,7 +259,7 @@ ACTIONS:
 BUSINESS CONTEXT
 ═══════════════════════════════════════
 OFFER STACK:
-- 0.5 Offer: $1,000 website ($500/$500 split), 5-day turnaround
+- 0.5 Offer: $1,500 website ($500 deposit + $1,000 on delivery), 5-day turnaround
 - 1.0: $1,599 USD/mo lead gen (Meta ads + AI CRM)
 - 2.0: $2,999/mo lead gen + CRM nurturing
 - 3.0: $5,999 full stack (everything except AI automation)
@@ -306,8 +306,8 @@ Mission: Give Canadian trades businesses a real digital revenue engine — not j
 ═══════════════════════════════════════
 THE PRODUCTS
 ═══════════════════════════════════════
-1. WEBSITE PACKAGE — $1,000 CAD total
-   - $500 upfront + $500 on completion
+1. WEBSITE PACKAGE — $1,500 CAD total
+   - $500 deposit + $1,000 on delivery
    - 5-day turnaround
    - This is the "0.5 Offer" / Entry Offer — a low-risk way for the prospect to test Premmisus before committing to lead gen
    - Rep earns: $500 CAD flat
@@ -330,7 +330,7 @@ The pitch isn't "we'll build you a website." The pitch is: "Right now, leads are
 ═══════════════════════════════════════
 THE 0.5 OFFER (ENTRY STRATEGY)
 ═══════════════════════════════════════
-Never lead with $1,599/month. Lead with the $1,000 website as a low-risk entry point. Once they're a client and see results, upselling the lead gen system is natural.
+Never lead with $1,599/month. Lead with the $1,500 website as a low-risk entry point. Once they're a client and see results, upselling the lead gen system is natural.
 
 If they hesitate: "It's $500 to start — less than a single missed job. And it's done in 5 days."
 
