@@ -17,6 +17,56 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 ---
 
 <!-- ENTRIES BELOW -->
+## 2026-05-01 [notifications-log-migration] notifications_log retroactive migration
+
+**Status:** ✅ enriched
+
+**Idea (Elliott's intent):** Tier 1 #6 from the May 1 audit. The audit flagged that 3 cron routes (`cron-idle-check`, `cron-callback-reminder`, `cron-daily-summary`) write to a `notifications_log` table for dedup tracking, but no migration file ever creates that table. If the table didn't exist, all dedup writes would silently fail (idle alerts could fire every hour or never). I verified live: table exists with 48 rows, last write 2026-05-01 15:00 UTC. Someone (Elliott via Supabase UI, presumably) created it manually at some point. This migration retroactively captures the schema so the table is reproducible on a new project or after disaster recovery.
+
+**What shipped:**
+
+`deploy/supabase/migrations/20260501_notifications_log.sql` — idempotent migration with `CREATE TABLE IF NOT EXISTS` and `CREATE INDEX IF NOT EXISTS`. Schema captured from live data:
+- `id` (uuid PK, default gen_random_uuid())
+- `type` (text NOT NULL — values seen: 'idle', 'callback_reminder', 'daily_summary')
+- `recipient` (text NOT NULL — rep_id UUID as text, OR the literal string 'director')
+- `channel` (text NOT NULL — 'sms', 'telegram', 'sms+telegram')
+- `message` (text NOT NULL — human-readable description)
+- `created_at` (timestamptz NOT NULL DEFAULT now())
+
+Plus index `idx_notifications_log_type_recipient_created (type, recipient, created_at DESC)` to optimize the dedup queries cron-idle-check runs (looking back N hours for "did we already alert this recipient today?").
+
+**Files:**
+- `deploy/supabase/migrations/20260501_notifications_log.sql` (new, 29 lines)
+
+**Commit:** `c29add6` ([git log](https://github.com/Premmisus2/Portal/commit/c29add6))
+
+**Rollback:**
+```bash
+cd "/Users/elliottcuthbert/Documents/Premmisus/Premmisus Assets/Sales Portal/deploy"
+git revert c29add6
+git push origin main
+# Reverting only removes the migration file from the repo. The actual live
+# table is unaffected (it pre-existed this commit). If you need to drop the
+# table itself, do so manually in Supabase SQL editor:
+#   DROP TABLE IF EXISTS public.notifications_log CASCADE;
+# But don't — 3 active cron jobs write to it.
+```
+
+**Verification:**
+- Live table query confirms existence + recent writes (sample rows from 2026-05-01 15:00, 2026-04-30 23:00, 2026-04-30 15:00 — actively in use)
+- 48 rows total, 3 distinct types ('idle', 'callback_reminder', 'daily_summary')
+- Migration is idempotent — applying to live DB is no-op for the table itself; only adds the index if it doesn't exist
+- TODO: someone with Supabase SQL editor access should run this migration on the live DB to add the dedup index. Apply path: paste the file into Supabase Studio SQL editor → run. Idempotent so safe to re-run.
+
+**Watch for:**
+- **The dedup index has not been applied yet** (as of this commit). Until someone runs the migration in the SQL editor, dedup queries against `notifications_log` will table-scan instead of index-seek. With 48 rows that's fine. With 4800 rows it'll get slow. Apply when convenient.
+- **If a new notification `type` value is added** (e.g. 'rep_close', 'pipeline_alert'), this column has no enum/CHECK constraint — anything goes. That's intentionally permissive but means typos like 'idel' instead of 'idle' would create new "types" silently. Caller code should normalize.
+- **`recipient` is a text field, not a foreign key.** It can be a rep_id UUID (text form) or the literal 'director'. If we ever introduce more recipient classes ('all-reps', 'team-X'), the column accommodates them. Don't try to make this a UUID FK without first auditing all writes.
+- **No RLS by design.** This table is service-role-only (cron routes use SUPABASE_SERVICE_KEY which bypasses RLS). If any future client-side code ever needs to read notifications_log, add explicit RLS policies at that point — don't assume the table is readable from anon.
+- **Disaster recovery:** if the live DB is rebuilt from migrations alone (e.g. fresh Supabase project), running the migrations in order will create this table and the schema will match what the cron routes expect. Without this commit, that wouldn't have been true — the cron routes would have failed silently on a fresh DB.
+
+---
+
 ## 2026-05-01 [twilio-webhook-hardening] Twilio webhook + modal poll hardening (call-status, recording-callback, new poll route, modal refactor)
 
 **Status:** ✅ enriched
