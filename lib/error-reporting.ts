@@ -1,17 +1,26 @@
 // Premmisus Sales Portal — Client-side error reporting
 //
 // Surfaces silent failures that previously got swallowed by bare `catch {}`
-// blocks. Logs to console (visible in browser dev tools) AND sends a Telegram
-// alert via /api/notify-telegram so Elliott sees client failures on his phone
-// without needing to open the console.
+// blocks. Three destinations:
+//   1. console.error — visible in browser dev tools
+//   2. /api/notify-telegram → 🐛 CLIENT ERROR Telegram alert (deduped per session)
+//   3. Sentry.captureException — full stack trace + breadcrumbs in Sentry UI
 //
-// Fire-and-forget — never blocks the UI. Deduplicates inside a single page
-// load so a looping failure doesn't spam Telegram.
+// Sentry path is dormant until NEXT_PUBLIC_SENTRY_DSN is set in Vercel.
+// Until then, captureException is a safe no-op. See #sentry-bootstrap in
+// BUILD-JOURNAL for activation steps.
+//
+// Fire-and-forget — never blocks the UI. Deduplicates the Telegram alert
+// per session so a looping failure doesn't spam your phone. Sentry has its
+// own deduplication based on the error fingerprint.
 //
 // Optional `tag` parameter cross-references the build journal:
 // passing `tag: 'shadow-view'` makes the Telegram alert say
 // "_See journal: #shadow-view_" so the recipient can jump straight to
-// `BUILD-JOURNAL.md` and find the rollback steps.
+// `BUILD-JOURNAL.md` and find the rollback steps. The tag is also attached
+// to the Sentry event as a queryable tag.
+
+import * as Sentry from '@sentry/nextjs';
 
 const reported = new Set<string>();
 
@@ -50,6 +59,24 @@ export function reportClientError(
 
   // Always console.error — visible in browser dev tools, costs nothing
   console.error(`[client-error] ${context}${tag ? ` #${tag}` : ''}:`, err, meta || {});
+
+  // Sentry — always, even on duplicates. Sentry has its own dedup based on
+  // error fingerprint, and the per-session dedup we use for Telegram is too
+  // aggressive for Sentry (we want every occurrence in the timeline).
+  // No-op when DSN is unset.
+  try {
+    Sentry.withScope((scope) => {
+      scope.setTag('context', context);
+      if (tag) scope.setTag('journal_tag', tag);
+      if (meta) scope.setContext('meta', meta as Record<string, unknown>);
+      const userCtx = getUserContext();
+      scope.setUser({ email: userCtx.repEmail, username: userCtx.repName });
+      Sentry.captureException(err);
+    });
+  } catch {
+    // Sentry never throws in normal operation, but if it does, swallow —
+    // the Telegram + console paths still fire below.
+  }
 
   // Telegram only on first occurrence per session — fire-and-forget
   if (isDupe) return;

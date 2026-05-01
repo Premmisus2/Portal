@@ -1,8 +1,13 @@
 // Premmisus Sales Portal — Server-side error reporting
 //
-// Counterpart to lib/error-reporting.ts but for /api routes (which can't
-// reach client localStorage or use fetch('/api/notify-telegram') without an
-// HTTP round-trip). Hits the Telegram bot directly via the bot token.
+// Counterpart to lib/error-reporting.ts but for /api routes. Three destinations:
+//   1. console.error — visible in Vercel runtime logs
+//   2. Telegram (direct bot.sendMessage) → 🔧 SERVER ERROR alert
+//   3. Sentry.captureException — full stack + request context in Sentry UI
+//
+// Sentry path is dormant until SENTRY_DSN is set in Vercel. Until then,
+// captureException is a safe no-op. See #sentry-bootstrap in BUILD-JOURNAL
+// for activation steps.
 //
 // Use this anywhere a server-side fetch / Supabase call / external integration
 // could fail silently. Specifically the Twilio webhook routes (call-status,
@@ -11,10 +16,12 @@
 //
 // Optional `tag` parameter cross-references the build journal; passing
 // `tag: 'twilio-call-status'` makes the Telegram alert say
-// "_See journal: #twilio-call-status_" so the recipient can jump straight
-// to BUILD-JOURNAL.md and find the rollback steps.
+// "_See journal: #twilio-call-status_" and tags the Sentry event with
+// `journal_tag` for filtering.
 //
 // Fire-and-forget — never throws, never blocks the calling route.
+
+import * as Sentry from '@sentry/nextjs';
 
 type ErrorMeta = Record<string, string | number | boolean | null | undefined>;
 
@@ -35,6 +42,19 @@ export async function reportServerError(
 ): Promise<void> {
   // Always console.error — visible in Vercel runtime logs
   console.error(`[server-error] ${context}${tag ? ` #${tag}` : ''}:`, err, meta || {});
+
+  // Sentry — no-op when DSN unset. Wraps in try/catch defensively because
+  // Sentry must never break a /api route (which would 500 the request).
+  try {
+    Sentry.withScope((scope) => {
+      scope.setTag('context', context);
+      if (tag) scope.setTag('journal_tag', tag);
+      if (meta) scope.setContext('meta', meta as Record<string, unknown>);
+      Sentry.captureException(err);
+    });
+  } catch {
+    // Sentry should never throw, but if it does, console + Telegram still fire.
+  }
 
   const BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
   const CHAT_ID = (process.env.TELEGRAM_CHAT_ID || '').trim();

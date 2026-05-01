@@ -6,6 +6,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.51.0",
     "@supabase/supabase-js": "^2.49.1",
     "html2pdf.js": "^0.10.1",
     "next": "^14.2.35",
