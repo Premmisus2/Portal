@@ -17,6 +17,62 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 ---
 
 <!-- ENTRIES BELOW -->
+## 2026-05-01 [ai-coach-transcript] AI Sales Coach reads call transcripts + director role detection fix
+
+**Status:** ✅ enriched
+
+**Idea (Elliott's intent):** From the original audit — Tier 1 #7. The "biggest mental-model gap": Elliott designed the system as **record → transcribe → coach trains rep on actual calls**. Pipelines 1 and 2 worked (Twilio recording, Gemini transcription) but pipeline 3 didn't — the rep-facing AI Coach had ZERO database access. It was a static pitch script, blind to what the rep actually said on real calls. When Isaiah typed "coach me on my last call with Smith Plumbing," the coach had no idea what that call sounded like. Closing that loop is the single highest-impact unlock for the rep training experience.
+
+**What shipped:**
+
+1. **New `REP_TOOLS` array with one tool: `get_recent_call_transcript`.** Scoped strictly to the requesting rep's own calls (filters by `rep_id`). Returns up to 10 transcripts (default 5), each with `business_name`, `outcome`, `duration_seconds`, `created_at`, and `transcript_excerpt` (last 1500 chars to keep token cost bounded while preserving the part of the dialogue where the close/objection happens). Optional filters: `business_name` (case-insensitive partial match) and `outcome` (eq). Only returns rows with `transcript_status='completed'` and a non-null transcript — avoids feeding Claude empty rows.
+
+2. **`ToolCtx` parameter on `executeTool`.** Tools now receive `{ repId, isDirector }` so the rep tool can scope by `repId` without leaking server-side context into Claude's reasoning. Director tools ignore the ctx (they have full DB access by design).
+
+3. **`REP_SYSTEM` prompt updated** with a "Coaching on actual calls" section. Tells Claude when to use the tool (rep names a lead, asks for feedback on a recent call, asks about patterns), when NOT to (general pricing questions, mid-call quick reframes, already-answered questions), and how to interpret results (Speaker labels, truncated dialogue, ground critique in actual moments not vague advice, tie back to Lead Decay + Top-Down Principle).
+
+4. **Bug fix — director role detection has been broken in production.** `ChatWidget` sends `userRole: userRole` in the request body, but the route was destructuring `role`. So `role` was always `undefined`, `isDirector = (undefined === 'director') = false`. **Director tools (`query_leads`, `query_reps`, `query_pipeline_stats`, `update_lead_status`, `assign_leads`, `bulk_assign_by_filter`, `post_announcement`, `query_call_logs`, `query_handoffs`) have NEVER fired in production.** Elliott has been getting only the static `DIRECTOR_SYSTEM` prompt with no tools every time he chatted as director. Now the route reads `userRole ?? role` (defensive — accepts both, which means rolling back ChatWidget contracts won't break this). With this commit, director tools work for the first time.
+
+5. **Tool-use continuation loop fix.** The continuation request inside the rounds loop was hardcoded to `tools: DIRECTOR_TOOLS`, meaning if a rep ever triggered a tool that resulted in `stop_reason: 'tool_use'` (impossible before since reps had no tools), they would have inherited director privileges in subsequent rounds. Now uses `activeTools` (whichever set the conversation started with). Defensive against accidental privilege escalation.
+
+**Files:**
+- `deploy/app/api/ai-chat/route.ts` (~111 lines changed):
+  - Added `REP_TOOLS` array (lines ~130-157)
+  - Added `ToolCtx` type + parameter on `executeTool` (line ~159-162)
+  - Added `case 'get_recent_call_transcript'` (~37 lines, before the `default:` in the switch)
+  - REP_SYSTEM prompt: added "Coaching on actual calls" section (~25 lines)
+  - POST handler destructure now reads `userRole`, `repId` from request body
+  - `effectiveRole = userRole ?? role` for backward-compat
+  - `activeTools = isDirector ? DIRECTOR_TOOLS : REP_TOOLS`
+  - Tool-use continuation request: `tools: activeTools` instead of hardcoded `DIRECTOR_TOOLS`
+
+**Commit:** `044ec6d` ([git log](https://github.com/Premmisus2/Portal/commit/044ec6d))
+
+**Rollback:**
+```bash
+cd "/Users/elliottcuthbert/Documents/Premmisus/Premmisus Assets/Sales Portal/deploy"
+git revert 044ec6d
+git push origin main
+# Note: rolling back disables the AI Coach transcript feature AND
+# re-introduces the director-role detection bug (DIRECTOR_TOOLS won't fire).
+# Don't roll back unless something is actively wrong with this commit.
+```
+
+**Verification:**
+- `npx tsc --noEmit` clean
+- `npm run build` passed (no new errors, bundle size unchanged within margin)
+- Deploy via auto-deploy on push to main
+- TODO post-deploy: rep-side smoke test (sign in as Isaiah, type "coach me on my last call" → expect a response that references actual transcript content, not generic script). Director-side smoke test (sign in as Elliott, type "how many leads are in callback" → expect query_pipeline_stats to fire, not generic answer).
+
+**Watch for:**
+- **Authentication of `repId` is currently client-trusted.** A malicious internal user could craft a request with another rep's UUID and read their transcripts via this tool. Hardening (validate via Supabase JWT in the Authorization header on the server side) is a separate audit item — should be done before headcount expands beyond Isaiah/Melvin or before reps have any reason to distrust each other. Tracked in this watch-for. If you see this note 6+ months from now, the hardening is overdue.
+- The director-role fix means **director tools start firing for the first time in production**. If anything that was previously dormant breaks (RLS issue, sbQuery error path, schema mismatch on `query_call_logs` etc.), the failure shows up immediately when Elliott chats as director. The new `reportClientError` will surface client-side issues, but server-side failures inside `executeTool` only return JSON error strings to Claude — they don't fire Telegram. If director tools misbehave, check the network tab → /api/ai-chat → response body for embedded error messages.
+- Transcript truncation cuts at the LAST 1500 chars. If a call's most important moment is in the OPENING (e.g. how the rep delivered the lead-decay hook), the coach sees only the closing dialogue. Future enhancement: smart-truncate around objections / close moments. Not blocking.
+- The `tools: activeTools` fix in the continuation loop assumes `REP_TOOLS` and `DIRECTOR_TOOLS` are disjoint. If a tool name is added to both arrays in the future, the continuation request might hand the rep director privileges. Keep them disjoint.
+- If reps complain "the AI doesn't know about my call with X," check: (a) `transcript_status='completed'` on that call_log row; (b) `business_name` matches what the rep typed; (c) the call's `rep_id` matches the rep's id. Most "missing call" cases will be transcript still processing or business_name mismatch.
+
+---
+
 
 ## 2026-05-01 [journal-bootstrap] Build journal + git hook + Telegram linkage
 
