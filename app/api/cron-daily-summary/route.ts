@@ -105,12 +105,18 @@ export async function GET(request: Request) {
       body: JSON.stringify({ type: 'daily_summary', recipient: 'director', channel: 'telegram', message: `${totalCalls} calls, ${totalBookings} bookings` }),
     });
 
+    // Telegram delivery failure is a real cron failure — without delivery the
+    // summary never reaches the director. Propagate so cron-watchdog catches it.
+    const telegramOk = teleRes.ok && teleData?.ok === true;
     await finishRun(runId, {
-      status: 'success',
+      status: telegramOk ? 'success' : 'failure',
       rowsProcessed: totalCalls,
-      metadata: { totalCalls, totalBookings, telegram_ok: teleData.ok },
+      errorMessage: telegramOk
+        ? undefined
+        : `Telegram send failed (HTTP ${teleRes.status}): ${teleData?.description ?? 'unknown'}`,
+      metadata: { totalCalls, totalBookings, telegram_ok: telegramOk },
     });
-    return NextResponse.json({ success: teleData.ok, totalCalls, totalBookings });
+    return NextResponse.json({ success: telegramOk, totalCalls, totalBookings });
 
   } catch (err: any) {
     await finishRun(runId, { status: 'failure', errorMessage: err?.message || String(err) });

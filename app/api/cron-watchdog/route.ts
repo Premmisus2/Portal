@@ -1,37 +1,68 @@
 // Premmisus Sales Portal — Cron Watchdog
-// Reads the cron_runs table. For each expected scheduled job, checks the last
-// successful run. If a job hasn't run within its expected window, sends an SMS
-// alert directly to Elliott's business alert line (+12509867747) via Twilio.
+// Reads cron_runs and the n8n API to detect silent cron failures across the
+// Premmisus monitoring stack. Sends SMS alerts via Twilio with deduplication
+// and 24h escalation so a single stuck cron does not produce 30 SMSes.
 //
-// Schedule in vercel.json: weekdays at 13/16/19/22 UTC (9a/12p/3p/6p ET).
-// Also logs its own execution to cron_runs via the tracker helper.
+// Schedule (vercel.json): weekdays at 13/16/19/22 UTC.
+// Logs its own execution to cron_runs via the tracker helper.
 
 import { NextResponse } from 'next/server';
 import { startRun, finishRun } from '@/lib/cron-tracker';
+import {
+  shouldSendAlert,
+  recordAlert,
+  resolveAlertsForHealthyJobs,
+  type AlertReason,
+} from '@/lib/cron-alerts';
+import {
+  checkMonitoredN8nWorkflows,
+  type N8nExecutionCheck,
+} from '@/lib/n8n-client';
 
 const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 
-const JOBS = [
-  { name: 'cron-health-check',     kind: 'daily_all_days',   schedule: 'daily 12 UTC' },
-  { name: 'cron-idle-check',       kind: 'hourly_weekday',   schedule: 'hourly 15-22 UTC M-F' },
-  { name: 'cron-daily-summary',    kind: 'daily_weekday',    schedule: 'daily 23 UTC M-F' },
-  { name: 'cron-callback-reminder',kind: 'daily_weekday',    schedule: 'daily 14 UTC M-F' },
+type VercelJob = {
+  name: string;
+  kind: 'daily_all_days' | 'hourly_weekday' | 'daily_weekday';
+  schedule: string;
+};
+
+const VERCEL_JOBS: VercelJob[] = [
+  { name: 'cron-health-check',     kind: 'daily_all_days',  schedule: 'daily 12 UTC' },
+  { name: 'cron-idle-check',       kind: 'hourly_weekday',  schedule: 'hourly 15-22 UTC M-F' },
+  { name: 'cron-daily-summary',    kind: 'daily_weekday',   schedule: 'daily 23 UTC M-F' },
+  { name: 'cron-callback-reminder',kind: 'daily_weekday',   schedule: 'daily 14 UTC M-F' },
 ];
 
-async function sbQuery(path: string, sbKey: string) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}` },
-  });
-  if (!res.ok) return null;
-  return res.json();
+type CheckResult = {
+  job: string;
+  alert: boolean;
+  detail: string;
+  reason: AlertReason;
+  lastSuccessAt: string | null;
+};
+
+async function sbQuery(path: string): Promise<unknown[]> {
+  const key = process.env.SUPABASE_SERVICE_KEY;
+  if (!key) return [];
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
 }
 
-async function sendAlertSMS(body: string) {
+async function sendAlertSMS(body: string): Promise<{ ok: boolean; sid?: string; error?: string }> {
   const SID = process.env.TWILIO_ACCOUNT_SID || '';
   const TOKEN = process.env.TWILIO_AUTH_TOKEN || '';
   const FROM = process.env.TWILIO_PHONE_NUMBER || '';
   const TO = (process.env.ELLIOTT_PHONE || '').trim();
-  if (!SID || !TOKEN || !FROM || !TO) return { ok: false, reason: 'twilio_not_configured' };
+  if (!SID || !TOKEN || !FROM || !TO) return { ok: false, error: 'twilio_not_configured' };
 
   const auth = Buffer.from(`${SID}:${TOKEN}`).toString('base64');
   const params = new URLSearchParams({ To: TO, From: FROM, Body: body });
@@ -40,23 +71,23 @@ async function sendAlertSMS(body: string) {
     headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' },
     body: params.toString(),
   });
-  const data = await res.json().catch(() => ({}));
+  const data = (await res.json().catch(() => ({}))) as { sid?: string; message?: string };
   return { ok: res.ok, sid: data.sid, error: data.message };
 }
 
-type CheckResult = { job: string; alert: boolean; detail: string; lastSuccessAt: string | null };
-
-function shouldAlert(kind: string, lastSuccess: Date | null, now: Date): { alert: boolean; detail: string } {
-  const dayUTC = now.getUTCDay(); // 0=Sun, 6=Sat
+function shouldAlertForJob(
+  kind: VercelJob['kind'],
+  lastSuccess: Date | null,
+  now: Date,
+): { alert: boolean; detail: string } {
+  const dayUTC = now.getUTCDay();
   const hourUTC = now.getUTCHours();
   const isWeekend = dayUTC === 0 || dayUTC === 6;
 
   if (!lastSuccess) {
-    // First-ever check — skip alerting (grace period). cron_runs is empty until first successful run.
     return { alert: false, detail: 'No prior run recorded — grace period' };
   }
-
-  const hoursAgo = (now.getTime() - lastSuccess.getTime()) / (1000 * 60 * 60);
+  const hoursAgo = (now.getTime() - lastSuccess.getTime()) / 3_600_000;
 
   if (kind === 'daily_all_days') {
     return { alert: hoursAgo > 26, detail: `Last success ${hoursAgo.toFixed(1)}h ago (expected ~24h)` };
@@ -68,14 +99,12 @@ function shouldAlert(kind: string, lastSuccess: Date | null, now: Date): { alert
   }
   if (kind === 'daily_weekday') {
     if (isWeekend) return { alert: false, detail: 'Weekend — not expected' };
-    // Tolerance: allow up to 3 business days (handles long weekends / cold-start Monday).
     return { alert: hoursAgo > 76, detail: `Last success ${hoursAgo.toFixed(1)}h ago` };
   }
   return { alert: false, detail: 'Unknown kind' };
 }
 
 export async function GET(request: Request) {
-  // Cron auth
   const cronSecret = process.env.CRON_SECRET;
   const auth = request.headers.get('authorization');
   if (!cronSecret || auth !== `Bearer ${cronSecret}`) {
@@ -89,55 +118,132 @@ export async function GET(request: Request) {
   const now = new Date();
 
   try {
+    // ── Detect Vercel cron staleness ─────────────────────────────────────────
     const checks: CheckResult[] = [];
-
-    for (const job of JOBS) {
+    for (const job of VERCEL_JOBS) {
       const rows = await sbQuery(
         `cron_runs?select=started_at&job_name=eq.${job.name}&status=eq.success&order=started_at.desc&limit=1`,
-        SB_KEY,
-      );
-      const last = Array.isArray(rows) && rows[0]?.started_at ? new Date(rows[0].started_at) : null;
-      const decision = shouldAlert(job.kind, last, now);
+      ) as Array<{ started_at: string }>;
+      const last = rows[0]?.started_at ? new Date(rows[0].started_at) : null;
+      const decision = shouldAlertForJob(job.kind, last, now);
       checks.push({
         job: job.name,
         alert: decision.alert,
         detail: decision.detail,
+        reason: 'no_recent_success',
         lastSuccessAt: last ? last.toISOString() : null,
       });
     }
 
-    // Also flag runs stuck in "running" for > 30 min (crashed mid-execution)
+    // ── Detect stuck (running > 30min) rows ──────────────────────────────────
     const stuckCutoff = new Date(now.getTime() - 30 * 60 * 1000).toISOString();
     const stuckRows = await sbQuery(
       `cron_runs?select=job_name,started_at&status=eq.running&started_at=lt.${stuckCutoff}&order=started_at.desc&limit=10`,
-      SB_KEY,
-    );
-    const stuck: string[] = Array.isArray(stuckRows)
-      ? stuckRows.map((r: any) => `${r.job_name} (started ${r.started_at})`)
-      : [];
+    ) as Array<{ job_name: string; started_at: string }>;
 
+    // ── n8n coverage ─────────────────────────────────────────────────────────
+    const n8nChecks: N8nExecutionCheck[] = await checkMonitoredN8nWorkflows(now);
+    const n8nOverdue = n8nChecks.filter((c) => c.overdue);
+
+    // ── Decide what (if anything) to alert ───────────────────────────────────
     const alertingJobs = checks.filter((c) => c.alert);
-    const shouldSendAlert = alertingJobs.length > 0 || stuck.length > 0;
 
-    let smsResult: any = null;
-    if (shouldSendAlert) {
-      const lines = [
-        `[Premmisus] CRON ALERT`,
-        ...alertingJobs.map((c) => `• ${c.job}: ${c.detail}`),
-        ...stuck.map((s) => `• STUCK: ${s}`),
-        `Check portal.premmisus.ca or Vercel logs.`,
-      ];
-      smsResult = await sendAlertSMS(lines.join('\n'));
+    type Pending = { jobName: string; reason: AlertReason; line: string };
+    const pending: Pending[] = [];
+
+    for (const c of alertingJobs) {
+      pending.push({ jobName: c.job, reason: 'no_recent_success', line: `• ${c.job}: ${c.detail}` });
     }
+    for (const s of stuckRows) {
+      pending.push({
+        jobName: s.job_name,
+        reason: 'stuck_running',
+        line: `• STUCK: ${s.job_name} (started ${s.started_at})`,
+      });
+    }
+    for (const c of n8nOverdue) {
+      pending.push({
+        jobName: `n8n:${c.spec.id}`,
+        reason: 'n8n_overdue',
+        line: `• ${c.spec.name}: ${c.detail}`,
+      });
+    }
+
+    // Apply dedupe per (job, reason). Build the SMS body from items that
+    // either are first-time or have crossed the escalation threshold.
+    type Decided = Pending & { mode: 'first' | 'escalate'; openAlertId?: string; ageHours?: number };
+    const decided: Decided[] = [];
+    const skipped: Array<{ jobName: string; reason: AlertReason; why: string }> = [];
+
+    for (const item of pending) {
+      const decision = await shouldSendAlert(item.jobName, item.reason);
+      if (decision.action === 'skip') {
+        skipped.push({ jobName: item.jobName, reason: item.reason, why: decision.reason });
+        continue;
+      }
+      if (decision.action === 'first') {
+        decided.push({ ...item, mode: 'first' });
+      } else {
+        decided.push({
+          ...item,
+          mode: 'escalate',
+          openAlertId: decision.openAlertId,
+          ageHours: decision.ageHours,
+        });
+      }
+    }
+
+    let smsResult: { ok: boolean; sid?: string; error?: string } | null = null;
+    if (decided.length > 0) {
+      const escalations = decided.filter((d) => d.mode === 'escalate');
+      const header = escalations.length > 0
+        ? `[Premmisus] CRON ALERT — STILL BROKEN`
+        : `[Premmisus] CRON ALERT`;
+      const lines = [
+        header,
+        ...decided.map((d) => {
+          if (d.mode === 'escalate' && d.ageHours != null) {
+            return `${d.line} (still broken ${d.ageHours.toFixed(0)}h)`;
+          }
+          return d.line;
+        }),
+        `Check command.premmisus.com/cron-health for detail.`,
+      ];
+      const body = lines.join('\n');
+      smsResult = await sendAlertSMS(body);
+
+      // Persist whether or not SMS succeeded — operator can still see open
+      // alerts on the cron-health page.
+      for (const d of decided) {
+        await recordAlert({
+          jobName: d.jobName,
+          reason: d.reason,
+          message: body,
+          smsSid: smsResult?.sid ?? null,
+          escalation: d.mode === 'escalate' && d.openAlertId
+            ? { openAlertId: d.openAlertId }
+            : undefined,
+        });
+      }
+    }
+
+    // ── Resolve any open alerts whose underlying cron has recovered ─────────
+    const healthyVercel = checks.filter((c) => !c.alert).map((c) => c.job);
+    const healthyN8n = n8nChecks.filter((c) => !c.overdue).map((c) => `n8n:${c.spec.id}`);
+    const resolved = await resolveAlertsForHealthyJobs([...healthyVercel, ...healthyN8n]);
 
     await finishRun(runId, {
       status: 'success',
       rowsProcessed: checks.length,
       metadata: {
-        alerting: alertingJobs.length,
-        stuck: stuck.length,
+        vercel_alerting: alertingJobs.length,
+        stuck_count: stuckRows.length,
+        n8n_overdue: n8nOverdue.length,
         sms_sent: !!smsResult?.ok,
         sms_sid: smsResult?.sid || null,
+        decided_count: decided.length,
+        skipped_count: skipped.length,
+        resolved_count: resolved,
       },
     });
 
@@ -145,12 +251,16 @@ export async function GET(request: Request) {
       ok: true,
       checked_jobs: checks.length,
       alerting: alertingJobs,
-      stuck,
-      all_checks: checks,
+      stuck: stuckRows.map((r) => `${r.job_name} (started ${r.started_at})`),
+      n8n: n8nChecks,
+      decided: decided.map((d) => ({ jobName: d.jobName, reason: d.reason, mode: d.mode })),
+      skipped,
+      resolved_alerts: resolved,
       sms_sent: !!smsResult?.ok,
     });
-  } catch (err: any) {
-    await finishRun(runId, { status: 'failure', errorMessage: err?.message || String(err) });
-    return NextResponse.json({ error: err?.message || String(err) }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    await finishRun(runId, { status: 'failure', errorMessage: message });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

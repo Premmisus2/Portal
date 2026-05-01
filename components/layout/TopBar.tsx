@@ -28,6 +28,29 @@ export default function TopBar({ title, subtitle, userName, userEmail, onHome, o
           <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#333' }}>{userName}</span>
         </div>
         {onPrint && <button onClick={onPrint} className="btn-pdf mobile-hide"><Icon name="download" size={13} />Download PDF</button>}
+        {actuallyDirector && (
+          <a
+            href="https://command.premmisus.com/cron-health"
+            target="_blank"
+            rel="noreferrer"
+            className="mobile-hide"
+            style={{
+              fontSize: '10px',
+              fontWeight: 700,
+              letterSpacing: '.12em',
+              textTransform: 'uppercase',
+              color: '#00F0FF',
+              border: '1px solid #00F0FF',
+              padding: '4px 9px',
+              borderRadius: '4px',
+              textDecoration: 'none',
+              fontFamily: 'JetBrains Mono, monospace',
+            }}
+            title="Open Cron Health in Command Center"
+          >
+            Cron Health ↗
+          </a>
+        )}
         <ProfileDropdown userName={userName} userEmail={userEmail} totalCloses={totalCloses} totalPoints={totalPoints} onLogout={onLogout} onShortcuts={onShortcuts} actuallyDirector={actuallyDirector} viewAsRep={viewAsRep} onToggleView={onToggleView} shadowMode={shadowMode} shadowRepName={shadowRepName} allReps={allReps} enterShadow={enterShadow} exitShadow={exitShadow} />
       </div>
     </header>
