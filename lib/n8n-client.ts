@@ -11,21 +11,23 @@ export type N8nWorkflowSpec = {
 };
 
 export const MONITORED_N8N_WORKFLOWS: N8nWorkflowSpec[] = [
-  // PAUSED 2026-05-01 EDT — Cold SMS Daily Sender deactivated in n8n while
-  // Twilio A2P / brand registration question is resolved. Re-add this entry
-  // when the workflow is reactivated:
+  // ALL OUTREACH WORKFLOWS PAUSED 2026-05-01 EDT — both deactivated in n8n
+  // while Twilio A2P / brand registration is resolved. Once Premmisus is
+  // approved (target throughput: 4,500 msg/day per number), re-activate
+  // both workflows in n8n and uncomment these entries.
+  //
   // {
   //   id: 'MdMpElcMI1D3u9ri',
   //   name: 'Premmisus Cold SMS — Daily Sender',
   //   expectedIntervalHours: 28,
   //   weekdaysOnly: true,
   // },
-  {
-    id: 'dIrrgaU6pnxQPKbG',
-    name: 'Premmisus Daily Email Outreach',
-    expectedIntervalHours: 28,
-    weekdaysOnly: true,
-  },
+  // {
+  //   id: 'dIrrgaU6pnxQPKbG',
+  //   name: 'Premmisus Daily Email Outreach',
+  //   expectedIntervalHours: 28,
+  //   weekdaysOnly: true,
+  // },
 ];
 
 // Threshold for stuck-running detection. n8n executions usually finish in
