@@ -35,6 +35,6 @@ CREATE POLICY "authenticated_read" ON public.cron_alerts
   USING (true);
 
 COMMENT ON TABLE public.cron_alerts IS 'Watchdog alert log. One row per SMS sent. Used to suppress repeats within 12h and trigger escalation after 24h.';
-COMMENT ON COLUMN public.cron_alerts.alert_reason IS 'Category: no_recent_success | stuck_running | n8n_overdue.';
+COMMENT ON COLUMN public.cron_alerts.alert_reason IS 'Category: no_recent_success | stuck_running | n8n_overdue | n8n_errored | n8n_stuck.';
 COMMENT ON COLUMN public.cron_alerts.escalated IS 'True after the watchdog re-alerts at 24h+ with STILL BROKEN message.';
 COMMENT ON COLUMN public.cron_alerts.resolved_at IS 'Set by watchdog when the alerted cron next runs successfully.';

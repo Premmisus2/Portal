@@ -98,16 +98,23 @@ export async function GET(request: Request) {
 
     const teleData = await teleRes.json();
 
-    // Log it
-    await fetch(`${SUPABASE_URL}/rest/v1/notifications_log`, {
-      method: 'POST',
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'daily_summary', recipient: 'director', channel: 'telegram', message: `${totalCalls} calls, ${totalBookings} bookings` }),
-    });
-
+    // Compute the propagation flag BEFORE the notifications_log write so that
+    // if the audit-log write itself throws (Supabase hiccup), the outer catch
+    // doesn't misreport a successful Telegram delivery as a cron failure.
     // Telegram delivery failure is a real cron failure — without delivery the
     // summary never reaches the director. Propagate so cron-watchdog catches it.
     const telegramOk = teleRes.ok && teleData?.ok === true;
+
+    // Best-effort audit log — its failure is non-critical to the cron's job.
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/notifications_log`, {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'daily_summary', recipient: 'director', channel: 'telegram', message: `${totalCalls} calls, ${totalBookings} bookings` }),
+      });
+    } catch {
+      // swallow — audit log is best-effort, real signal is in cron_runs
+    }
     await finishRun(runId, {
       status: telegramOk ? 'success' : 'failure',
       rowsProcessed: totalCalls,
