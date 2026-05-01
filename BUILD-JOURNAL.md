@@ -17,6 +17,63 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 ---
 
 <!-- ENTRIES BELOW -->
+## 2026-05-01 [tier-2-hardening] Tier 2 hardening bundle (cron trim, dead column, type drift, DST docs, tool loop)
+
+**Status:** ✅ enriched
+
+**Idea (Elliott's intent):** Tier 2 from the May 1 audit. Five small fixes packaged together because they share a theme — none are bugs that bite today, but each represents a class of issue we've seen recur (env-var whitespace, type drift, dead UI elements, silent fallthrough, schedule ambiguity). Goal is to reduce the watch-for surface area before headcount expands. Easier to fix preemptively than to debug at 2am when a new rep is asking why something doesn't work.
+
+**What shipped:**
+
+1. **`.trim()` on `CRON_SECRET` reads in all 5 cron routes.** Files: `cron-health-check`, `cron-daily-summary`, `cron-callback-reminder`, `cron-idle-check`, `cron-watchdog`. One-line change: `process.env.CRON_SECRET` → `(process.env.CRON_SECRET || '').trim()`. The `cron-callback-reminder` route already had this from a prior fix; consistent across all 5 now. Defensive against the trailing-whitespace pattern (see `feedback_env_var_whitespace.md` — 3 incidents in this class).
+
+2. **Dead `rating` column removed from Director Leads table.** The column was referenced in 3 places: `FIELDS` array (Edit Lead modal definition), the table `<td>` render, and the visible-columns array. None of them worked — the `rating` field never existed in the `Lead` TypeScript type or the DB schema. Cell always rendered '—'. Cast was `(lead as unknown as Record<string, unknown>).rating` to suppress the type error, which itself was a tell that the type didn't have it. `google_reviews` (review COUNT, distinct concept) stays. If we ever want a star-rating column, add it intentionally — don't resurrect this dead reference.
+
+3. **`Announcement.body` → `Announcement.message` in `lib/types.ts`.** Fixed type drift. The DB column is `message` (verified in `sql/supabase-audit-fixes.sql:73-80`), the AI insert at `app/api/ai-chat/route.ts` writes `message`, and `components/home/AnnouncementsBanner.tsx:37` reads `a.message`. Only the type was stale, saying `body`. Anyone touching announcements via the type was getting wrong autocomplete. Also added `priority?: 'normal' | 'urgent'` to match the real schema.
+
+4. **DST drift on `cron-callback-reminder` documented.** Schedule stays at `"0 14 * * 1-5"` UTC in `vercel.json` (Vercel cron is UTC-only — no TZ option). The route file's comment now reads honestly: 14:00 UTC = 10:00 ET in EDT (Mar-Nov, ~8 mo/yr) / 9:00 ET in EST (Nov-Mar, ~4 mo/yr). One-hour drift across DST is intentional — picking either time costs drift in the other direction, and reps are dialing by 10am ET regardless so the reminder lands in their workday in both seasons.
+
+5. **AI Chat tool-use loop bumped 3 → 5 rounds + explicit fallback text on exhaustion.** Director queries that chain (e.g. "find leads matching X then assign to rep Y" = `query_leads` + `bulk_assign_by_filter`) routinely use 2-3 rounds; 5 leaves headroom. On round-N exhaustion, the response is now a useful message: `"I needed more steps than I'm allowed in one turn (used N of 5). Tools so far: [...]. Ask me again with more specifics or break it into two questions."` Replaces the previous silent `"No response generated."` fallback that confused users when the model was mid-chain.
+
+**Files:**
+- `deploy/app/api/cron-health-check/route.ts` (line 45 — `.trim()` on CRON_SECRET)
+- `deploy/app/api/cron-daily-summary/route.ts` (line 12 — `.trim()`)
+- `deploy/app/api/cron-callback-reminder/route.ts` (line 12 — `.trim()`; lines 1-13 — DST docs comment block expanded)
+- `deploy/app/api/cron-idle-check/route.ts` (line 50 — `.trim()`)
+- `deploy/app/api/cron-watchdog/route.ts` (line 108 — `.trim()`)
+- `deploy/components/director/AllLeadsTable.tsx` (line 28 — removed FIELDS rating; line 244 — removed td render; line 312 — removed visible-columns entry)
+- `deploy/lib/types.ts` (Announcement: `body` → `message`, added optional `priority`)
+- `deploy/app/api/ai-chat/route.ts` (lines 503-508 — MAX_ROUNDS=5 + exhausted flag; lines 547-560 — fallback text on exhaustion)
+
+**Commit:** `331a65b` ([git log](https://github.com/Premmisus2/Portal/commit/331a65b))
+
+**Rollback:**
+```bash
+cd "/Users/elliottcuthbert/Documents/Premmisus/Premmisus Assets/Sales Portal/deploy"
+git revert 331a65b
+git push origin main
+# Each fix is independent. If only ONE of these regresses (e.g. the .trim()
+# breaks a setup with a CRON_SECRET that intentionally has whitespace —
+# extremely unlikely), revert + cherry-pick the other 4 changes back. None
+# of these fixes change observable behavior on a clean setup; they only fix
+# edge cases that have bitten us before.
+```
+
+**Verification:**
+- `npx tsc --noEmit` clean (the type rename for Announcement only shows up if anyone reads `Announcement.body` — no callers do, since the working code uses `message`)
+- `npm run build` passed
+- Auto-deploy via push to `main`
+- TODO post-deploy: rep-side smoke test to confirm AI Chat fallback text appears when forcing >5 rounds (not easily reproducible — would need a query that genuinely chains 6+ tool calls). Lower priority — fallback only fires in pathological cases.
+
+**Watch for:**
+- **`.trim()` is a one-direction fix.** It removes trailing whitespace at READ time, not at SET time. If anyone uses Vercel CLI/UI to set `CRON_SECRET` to a value with leading whitespace, `.trim()` strips it on read. If they set it to a value with INTERNAL whitespace (`abc def`), `.trim()` won't help — that whitespace stays. Don't paste secrets with internal spaces.
+- **Removing the `rating` column means future code can't accidentally rely on it.** If anyone asks "where did the Rating column in the Director leads table go?" — it was never working. We removed the dead reference. If you actually want a rating column, add it properly: schema migration, scrape source for the data, type field, render. Don't just put the dead reference back.
+- **Type drift recurrence:** every time the DB schema changes (add a column, rename a column), `lib/types.ts` needs to be updated. This is a manual process — there's no codegen. If you see repeated `as unknown as Record<...>` casts in components, that's almost always a sign the type is drifting from the schema. Fix the type, not the call site.
+- **The DST drift on cron-callback-reminder is documented but not eliminated.** If you ever decide the 1-hour drift across seasons matters, the only way to fix it is run TWO cron jobs (one for EDT, one for EST) and have each route check the current month to decide whether to actually run. Worth it only if reps complain.
+- **MAX_ROUNDS = 5 on the tool-use loop is arbitrary.** If director questions start hitting the fallback regularly, bump to 7 or 10 — but each round costs an Anthropic API call (latency + tokens). Don't bump indefinitely; refine the tool descriptions so Claude needs fewer rounds.
+
+---
+
 ## 2026-05-01 [notifications-log-migration] notifications_log retroactive migration
 
 **Status:** ✅ enriched
