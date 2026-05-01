@@ -35,6 +35,8 @@ export async function GET(request: Request) {
   const results: CheckResult[] = [];
   const runId = await startRun('cron-health-check');
 
+  try {
+
   // ── 1. ENV VARS ─────────────────────────────────────────────────────────
   const missingEnv = REQUIRED_ENV_VARS.filter(v => !process.env[v]);
   results.push({
@@ -182,11 +184,21 @@ export async function GET(request: Request) {
     }
   }
 
+  // Health-check findings are reported via Telegram + metadata. The cron itself
+  // RAN successfully — only mark this row as 'failure' when an exception prevents
+  // the route from completing (handled in the catch block below). Marking
+  // business-signal failures (pending closes, rep idleness) as 'failure' here
+  // would trip cron-watchdog into firing CRON ALERTs about a working cron.
   await finishRun(runId, {
-    status: allGood ? 'success' : 'failure',
+    status: 'success',
     rowsProcessed: passed,
-    errorMessage: allGood ? undefined : failed.map(r => r.name).join(', '),
-    metadata: { passed, total: results.length, failed: failed.length },
+    metadata: {
+      passed,
+      total: results.length,
+      failed: failed.length,
+      issues: failed.map(r => r.name),
+      all_checks_passed: allGood,
+    },
   });
 
   return NextResponse.json({
@@ -195,4 +207,12 @@ export async function GET(request: Request) {
     total: results.length,
     results,
   });
+
+  } catch (err: any) {
+    await finishRun(runId, {
+      status: 'failure',
+      errorMessage: err?.message || String(err),
+    });
+    return NextResponse.json({ error: err?.message || String(err) }, { status: 500 });
+  }
 }
