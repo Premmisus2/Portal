@@ -267,6 +267,21 @@ export async function GET(request: Request) {
     // not get the alert; surfacing it as cron_runs.status='failure' lets the
     // cron-health UI flag it without needing a meta-watchdog.
     const smsFailed = decided.length > 0 && !smsResult?.ok;
+    // Persist per-workflow n8n snapshots so the Command Center cron-health
+    // page can render live tiles without re-querying the n8n API itself.
+    const n8nSnapshot = n8nChecks.map((c) => ({
+      workflow_id: c.spec.id,
+      name: c.spec.name,
+      last_execution_at: c.lastExecutionAt ? c.lastExecutionAt.toISOString() : null,
+      age_hours: c.ageHours,
+      last_status: c.lastStatus,
+      overdue: c.overdue,
+      errored: c.errored,
+      stuck: c.stuck,
+      detail: c.detail,
+      expected_interval_hours: c.spec.expectedIntervalHours,
+    }));
+
     await finishRun(runId, {
       status: smsFailed ? 'failure' : 'success',
       rowsProcessed: checks.length,
@@ -279,6 +294,7 @@ export async function GET(request: Request) {
         n8n_overdue: n8nOverdue.length,
         n8n_errored: n8nErrored.length,
         n8n_stuck: n8nStuck.length,
+        n8n_checks: n8nSnapshot,
         sms_sent: !!smsResult?.ok,
         sms_sid: smsResult?.sid || null,
         sms_error: smsResult?.error || null,
