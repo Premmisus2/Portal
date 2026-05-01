@@ -278,6 +278,8 @@ export async function GET(request: Request) {
       overdue: c.overdue,
       errored: c.errored,
       stuck: c.stuck,
+      paused: c.paused,
+      pause_reason: c.spec.pauseReason ?? null,
       detail: c.detail,
       expected_interval_hours: c.spec.expectedIntervalHours,
     }));

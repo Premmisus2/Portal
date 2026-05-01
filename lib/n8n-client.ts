@@ -8,26 +8,31 @@ export type N8nWorkflowSpec = {
   name: string;
   expectedIntervalHours: number; // alert if last execution older than this
   weekdaysOnly: boolean;
+  // Paused workflows are kept in the monitored list so the Cron Health page
+  // can render them with a clear "paused" tile (instead of disappearing).
+  // The watchdog skips API checks + skips alerting on them. To resume:
+  // set paused=false and reactivate the workflow in n8n.
+  paused?: boolean;
+  pauseReason?: string;
 };
 
 export const MONITORED_N8N_WORKFLOWS: N8nWorkflowSpec[] = [
-  // ALL OUTREACH WORKFLOWS PAUSED 2026-05-01 EDT — both deactivated in n8n
-  // while Twilio A2P / brand registration is resolved. Once Premmisus is
-  // approved (target throughput: 4,500 msg/day per number), re-activate
-  // both workflows in n8n and uncomment these entries.
-  //
-  // {
-  //   id: 'MdMpElcMI1D3u9ri',
-  //   name: 'Premmisus Cold SMS — Daily Sender',
-  //   expectedIntervalHours: 28,
-  //   weekdaysOnly: true,
-  // },
-  // {
-  //   id: 'dIrrgaU6pnxQPKbG',
-  //   name: 'Premmisus Daily Email Outreach',
-  //   expectedIntervalHours: 28,
-  //   weekdaysOnly: true,
-  // },
+  {
+    id: 'MdMpElcMI1D3u9ri',
+    name: 'Premmisus Cold SMS — Daily Sender',
+    expectedIntervalHours: 28,
+    weekdaysOnly: true,
+    paused: true,
+    pauseReason: 'Twilio A2P 10DLC registration pending',
+  },
+  {
+    id: 'dIrrgaU6pnxQPKbG',
+    name: 'Premmisus Daily Email Outreach',
+    expectedIntervalHours: 28,
+    weekdaysOnly: true,
+    paused: true,
+    pauseReason: 'Twilio A2P 10DLC registration pending',
+  },
 ];
 
 // Threshold for stuck-running detection. n8n executions usually finish in
@@ -43,6 +48,7 @@ export type N8nExecutionCheck = {
   overdue: boolean;
   errored: boolean;
   stuck: boolean;
+  paused: boolean;
   detail: string;
 };
 
@@ -71,7 +77,7 @@ async function fetchLatestExecution(workflowId: string): Promise<FetchOutcome> {
   }
 }
 
-function emptyCheck(spec: N8nWorkflowSpec, detail: string, overdue = false): N8nExecutionCheck {
+function emptyCheck(spec: N8nWorkflowSpec, detail: string, overdue = false, paused = false): N8nExecutionCheck {
   return {
     spec,
     lastExecutionAt: null,
@@ -80,6 +86,7 @@ function emptyCheck(spec: N8nWorkflowSpec, detail: string, overdue = false): N8n
     overdue,
     errored: false,
     stuck: false,
+    paused,
     detail,
   };
 }
@@ -90,6 +97,15 @@ export async function checkMonitoredN8nWorkflows(now: Date = new Date()): Promis
 
   const results: N8nExecutionCheck[] = [];
   for (const spec of MONITORED_N8N_WORKFLOWS) {
+    if (spec.paused) {
+      // Paused workflows still appear on the Cron Health page (so it's
+      // visually obvious they're intentionally off, not silently broken),
+      // but no API call is made and no alert is raised.
+      results.push(
+        emptyCheck(spec, `Paused — ${spec.pauseReason ?? 'no reason given'}`, false, true),
+      );
+      continue;
+    }
     if (spec.weekdaysOnly && isWeekend) {
       results.push(emptyCheck(spec, 'Weekend — not expected to run'));
       continue;
@@ -132,6 +148,7 @@ export async function checkMonitoredN8nWorkflows(now: Date = new Date()): Promis
       overdue,
       errored,
       stuck,
+      paused: false,
       detail,
     });
   }
