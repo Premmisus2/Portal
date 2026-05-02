@@ -15,6 +15,12 @@ export interface RepStats {
   total_closes: number;
   pending_closes: number;
   approved_points: number;
+  total_calls: number;
+  total_calls_auto: number;     // call_sid IS NOT NULL — Twilio dialer
+  total_calls_manual: number;   // call_sid IS NULL — rep filled the log form
+  total_results_auto: number;   // outcome_auto IS NOT NULL — populated once #outcome-auto-classifier ships
+  warm_leads_contacted: number; // priority HOT/HIGH AND status in (contacted, callback, booked, discovery_completed)
+  warm_leads_closed: number;    // priority HOT/HIGH AND status in (booked, discovery_completed)
   last_close_at: string | null;
   last_call_at: string | null;
   assigned_leads: number;

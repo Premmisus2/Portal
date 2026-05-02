@@ -7,7 +7,7 @@ import { reportClientError } from '@/lib/error-reporting';
 import RepDetailDrawer from './RepDetailDrawer';
 import InviteRepModal from './InviteRepModal';
 
-type SortKey = 'name' | 'role' | 'phone' | 'total_closes' | 'pending_closes' | 'approved_points' | 'last_close_at' | 'last_call_at' | 'assigned_leads';
+type SortKey = 'name' | 'role' | 'phone' | 'total_closes' | 'pending_closes' | 'approved_points' | 'total_calls' | 'last_close_at' | 'last_call_at' | 'assigned_leads';
 
 interface RepRow extends Rep {
   stats: RepStats;
@@ -39,13 +39,53 @@ export default function RepsTab() {
   const loadAll = useCallback(async () => {
     setLoading(true);
     setError(null);
-    const [repsRes, closesRes, leadsRes, callsRes] = await Promise.all([
-      // Use `*` so this works whether or not the 20260502_reps_active migration has been applied.
-      // When `active` column is missing, rep.active === undefined, which the UI treats as "active".
+
+    // Helper: paginated fetch in chunks of 1000 (Supabase default cap per request).
+    // We fetch metadata only — never row payloads with transcript text — so this
+    // stays light even when call_logs grows large.
+    const fetchAllPaginated = async <T,>(
+      table: string,
+      columns: string,
+      orderCol = 'created_at',
+    ): Promise<T[]> => {
+      let all: T[] = [];
+      let from = 0;
+      while (true) {
+        const { data, error } = await supabase
+          .from(table)
+          .select(columns)
+          .order(orderCol, { ascending: false })
+          .range(from, from + 999);
+        if (error) {
+          reportClientError('RepsTab.fetchAllPaginated', error, { table }, 'reps-tab-v1');
+          break;
+        }
+        if (!data || data.length === 0) break;
+        all = all.concat(data as T[]);
+        if (data.length < 1000) break;
+        from += 1000;
+      }
+      return all;
+    };
+
+    const [repsRes, closesRes, callsMeta, outcomeAutoMeta, leadsMeta] = await Promise.all([
+      // `*` for forward-compat: works whether 20260502_reps_active has been applied or not.
       supabase.from('reps').select('*').order('created_at', { ascending: true }),
       supabase.from('closes').select('rep_id, status, pts, created_at'),
-      supabase.from('leads').select('assigned_rep_id'),
-      supabase.from('call_logs').select('rep_id, created_at').order('created_at', { ascending: false }).limit(2000),
+      // Lean call_logs fetch for total/auto/manual/last_call. Always works.
+      fetchAllPaginated<{ rep_id: string | null; call_sid: string | null; created_at: string }>(
+        'call_logs', 'rep_id, call_sid, created_at',
+      ),
+      // Separate fetch for outcome_auto so a missing-column error (pre-migration
+      // for #outcome-auto-classifier) only zeros out total_results_auto without
+      // breaking the rest of the stats. fetchAllPaginated already reports the
+      // error to Telegram via reportClientError and returns [].
+      fetchAllPaginated<{ rep_id: string | null; outcome_auto: string | null }>(
+        'call_logs', 'rep_id, outcome_auto', 'created_at',
+      ),
+      fetchAllPaginated<{ assigned_rep_id: string | null; priority: string | null; status: string | null }>(
+        'leads', 'assigned_rep_id, priority, status', 'created_at',
+      ),
     ]);
 
     if (repsRes.error) {
@@ -55,6 +95,9 @@ export default function RepsTab() {
       return;
     }
 
+    const reps = (repsRes.data as Rep[]) || [];
+
+    // Closes aggregation
     const closesByRep = new Map<string, { total: number; pending: number; approvedPoints: number; lastAt: string | null }>();
     (closesRes.data || []).forEach(c => {
       const existing = closesByRep.get(c.rep_id) || { total: 0, pending: 0, approvedPoints: 0, lastAt: null };
@@ -65,30 +108,61 @@ export default function RepsTab() {
       closesByRep.set(c.rep_id, existing);
     });
 
-    const leadsByRep = new Map<string, number>();
-    (leadsRes.data || []).forEach(l => {
+    // Call aggregation: total + auto/manual split + last_call_at, all in one pass.
+    const callStatsByRep = new Map<string, { total: number; auto: number; manual: number; lastAt: string | null }>();
+    callsMeta.forEach(c => {
+      if (!c.rep_id) return;
+      const s = callStatsByRep.get(c.rep_id) || { total: 0, auto: 0, manual: 0, lastAt: null };
+      s.total++;
+      if (c.call_sid) s.auto++; else s.manual++;
+      if (!s.lastAt || c.created_at > s.lastAt) s.lastAt = c.created_at;
+      callStatsByRep.set(c.rep_id, s);
+    });
+
+    // Auto-classified outcome count (from #outcome-auto-classifier).
+    // outcomeAutoMeta is empty if the column doesn't exist yet — degrades to 0.
+    const outcomeAutoByRep = new Map<string, number>();
+    outcomeAutoMeta.forEach(c => {
+      if (!c.rep_id || !c.outcome_auto) return;
+      outcomeAutoByRep.set(c.rep_id, (outcomeAutoByRep.get(c.rep_id) || 0) + 1);
+    });
+
+    // Lead aggregation: total assigned + warm contacted + warm closed.
+    const WARM_PRIORITIES = new Set(['HOT', 'HIGH']);
+    const CONTACTED_STATUSES = new Set(['contacted', 'callback', 'booked', 'discovery_completed']);
+    const CLOSED_STATUSES = new Set(['booked', 'discovery_completed']);
+    const leadStatsByRep = new Map<string, { assigned: number; warmContacted: number; warmClosed: number }>();
+    leadsMeta.forEach(l => {
       if (!l.assigned_rep_id) return;
-      leadsByRep.set(l.assigned_rep_id, (leadsByRep.get(l.assigned_rep_id) || 0) + 1);
+      const s = leadStatsByRep.get(l.assigned_rep_id) || { assigned: 0, warmContacted: 0, warmClosed: 0 };
+      s.assigned++;
+      if (l.priority && WARM_PRIORITIES.has(l.priority)) {
+        if (l.status && CONTACTED_STATUSES.has(l.status)) s.warmContacted++;
+        if (l.status && CLOSED_STATUSES.has(l.status)) s.warmClosed++;
+      }
+      leadStatsByRep.set(l.assigned_rep_id, s);
     });
 
-    const lastCallByRep = new Map<string, string>();
-    (callsRes.data || []).forEach(c => {
-      if (!c.rep_id || lastCallByRep.has(c.rep_id)) return;
-      lastCallByRep.set(c.rep_id, c.created_at);
-    });
-
-    const enriched: RepRow[] = (repsRes.data as Rep[]).map(rep => {
-      const stats = closesByRep.get(rep.id);
+    const enriched: RepRow[] = reps.map(rep => {
+      const c = closesByRep.get(rep.id);
+      const cs = callStatsByRep.get(rep.id);
+      const ls = leadStatsByRep.get(rep.id);
       return {
         ...rep,
         stats: {
           rep_id: rep.id,
-          total_closes: stats?.total || 0,
-          pending_closes: stats?.pending || 0,
-          approved_points: stats?.approvedPoints || 0,
-          last_close_at: stats?.lastAt || null,
-          last_call_at: lastCallByRep.get(rep.id) || null,
-          assigned_leads: leadsByRep.get(rep.id) || 0,
+          total_closes: c?.total || 0,
+          pending_closes: c?.pending || 0,
+          approved_points: c?.approvedPoints || 0,
+          total_calls: cs?.total || 0,
+          total_calls_auto: cs?.auto || 0,
+          total_calls_manual: cs?.manual || 0,
+          total_results_auto: outcomeAutoByRep.get(rep.id) || 0,
+          warm_leads_contacted: ls?.warmContacted || 0,
+          warm_leads_closed: ls?.warmClosed || 0,
+          last_close_at: c?.lastAt || null,
+          last_call_at: cs?.lastAt || null,
+          assigned_leads: ls?.assigned || 0,
         },
       };
     });
@@ -116,6 +190,7 @@ export default function RepsTab() {
         case 'total_closes': va = a.stats.total_closes; vb = b.stats.total_closes; break;
         case 'pending_closes': va = a.stats.pending_closes; vb = b.stats.pending_closes; break;
         case 'approved_points': va = a.stats.approved_points; vb = b.stats.approved_points; break;
+        case 'total_calls': va = a.stats.total_calls; vb = b.stats.total_calls; break;
         case 'assigned_leads': va = a.stats.assigned_leads; vb = b.stats.assigned_leads; break;
         case 'last_close_at': va = a.stats.last_close_at || ''; vb = b.stats.last_close_at || ''; break;
         case 'last_call_at': va = a.stats.last_call_at || ''; vb = b.stats.last_call_at || ''; break;
@@ -171,6 +246,7 @@ export default function RepsTab() {
         {[
           { val: rows.filter(r => r.active !== false).length, label: 'Active Reps', color: '#fff' },
           { val: rows.filter(r => r.role === 'director').length, label: 'Directors', color: '#00F0FF' },
+          { val: rows.reduce((s, r) => s + r.stats.total_calls, 0), label: 'Total Calls', color: '#00F0FF' },
           { val: rows.reduce((s, r) => s + r.stats.total_closes, 0), label: 'Total Closes', color: '#22c55e' },
           { val: rows.reduce((s, r) => s + r.stats.pending_closes, 0), label: 'Pending', color: '#F59E0B' },
           { val: rows.reduce((s, r) => s + r.stats.approved_points, 0), label: 'Approved Pts', color: '#22c55e' },
@@ -190,7 +266,8 @@ export default function RepsTab() {
             <tr>
               {[
                 ['name', 'Name'], ['role', 'Role'], ['phone', 'Phone'],
-                ['total_closes', 'Total'], ['pending_closes', 'Pending'], ['approved_points', 'Approved Pts'],
+                ['total_calls', 'Calls'],
+                ['total_closes', 'Closes'], ['pending_closes', 'Pending'], ['approved_points', 'Approved Pts'],
                 ['last_close_at', 'Last Close'], ['last_call_at', 'Last Call'], ['assigned_leads', 'Leads'],
               ].map(([key, label]) => (
                 <th key={key} onClick={() => toggleSort(key as SortKey)} style={{
@@ -234,6 +311,9 @@ export default function RepsTab() {
                   </td>
                   <td style={{ padding: '8px 12px', borderBottom: '1px solid #1a1a1a', borderRight: '1px solid #141414', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: r.phone ? '#bbb' : '#333' }}>
                     {r.phone || 'No phone'}
+                  </td>
+                  <td style={{ padding: '8px 12px', borderBottom: '1px solid #1a1a1a', borderRight: '1px solid #141414', textAlign: 'center', fontFamily: 'monospace', color: r.stats.total_calls > 0 ? '#00F0FF' : '#444', fontWeight: 700 }}>
+                    {r.stats.total_calls}
                   </td>
                   <td style={{ padding: '8px 12px', borderBottom: '1px solid #1a1a1a', borderRight: '1px solid #141414', textAlign: 'center', fontFamily: 'monospace', color: '#fff', fontWeight: 700 }}>
                     {r.stats.total_closes}

@@ -161,24 +161,52 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
         </div>
 
         <div style={{ overflowY: 'auto', flex: 1 }}>
-          {/* Stats */}
+          {/* Performance — 3x3 grid grouped: calls / closes / leads */}
           <div style={sectionStyle}>
             <div style={labelStyle}>Performance</div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
               {[
-                { v: stats.total_closes, l: 'Total', c: '#fff' },
+                // Row 1: call activity
+                { v: stats.total_calls, l: 'Calls', c: stats.total_calls > 0 ? '#00F0FF' : '#444' },
+                { v: stats.total_calls_auto, l: 'Auto-dialed', c: stats.total_calls_auto > 0 ? '#00F0FF' : '#444', sub: 'Twilio' },
+                { v: stats.total_calls_manual, l: 'Manual log', c: stats.total_calls_manual > 0 ? '#888' : '#444', sub: 'Hand-logged' },
+                // Row 2: close stack
+                { v: stats.total_closes, l: 'Closes', c: '#fff' },
                 { v: stats.pending_closes, l: 'Pending', c: stats.pending_closes > 0 ? '#F59E0B' : '#444' },
                 { v: stats.approved_points, l: 'Approved Pts', c: stats.approved_points > 0 ? '#22c55e' : '#444' },
+                // Row 3: warm-lead funnel
                 { v: stats.assigned_leads, l: 'Leads', c: '#fff' },
-                { v: stats.last_close_at ? fmtAgo(stats.last_close_at) : '—', l: 'Last Close', c: '#ccc' },
-                { v: stats.last_call_at ? fmtAgo(stats.last_call_at) : '—', l: 'Last Call', c: '#ccc' },
+                { v: stats.warm_leads_contacted, l: 'Warm Cont.', c: stats.warm_leads_contacted > 0 ? '#F59E0B' : '#444', sub: 'HOT/HIGH touched' },
+                { v: stats.warm_leads_closed, l: 'Warm Closed', c: stats.warm_leads_closed > 0 ? '#22c55e' : '#444', sub: 'HOT/HIGH booked' },
               ].map(s => (
                 <div key={s.l} style={{ padding: '10px', background: '#0e0e0e', border: '1px solid #1a1a1a', borderRadius: '6px', textAlign: 'center' }}>
-                  <p style={{ margin: 0, fontSize: typeof s.v === 'number' ? '20px' : '11px', fontWeight: 800, color: s.c, fontFamily: 'monospace' }}>{s.v}</p>
+                  <p style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: s.c, fontFamily: 'monospace' }}>{s.v}</p>
                   <p style={{ margin: '2px 0 0', fontSize: '8px', color: '#444', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase' }}>{s.l}</p>
+                  {s.sub && <p style={{ margin: '1px 0 0', fontSize: '7px', color: '#333', fontFamily: 'JetBrains Mono, monospace' }}>{s.sub}</p>}
                 </div>
               ))}
             </div>
+
+            {/* AI classification breakdown — only renders when classifier has actually run */}
+            {stats.total_results_auto > 0 && stats.total_calls > 0 && (
+              <div style={{ marginTop: '12px', padding: '10px 12px', background: '#0a0a0a', border: '1px solid rgba(0,240,255,.15)', borderRadius: '6px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                  <div>
+                    <p style={{ margin: 0, fontSize: '10px', fontWeight: 700, color: '#00F0FF', letterSpacing: '.1em', textTransform: 'uppercase' }}>AI Classified</p>
+                    <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#888' }}>Gemini auto-tagged the outcome on {stats.total_results_auto} of {stats.total_calls} call{stats.total_calls === 1 ? '' : 's'}.</p>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#00F0FF', fontFamily: 'JetBrains Mono, monospace' }}>
+                    {Math.round((stats.total_results_auto / stats.total_calls) * 100)}%
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Footer: last call (was a tile, now a single line so the grid stays clean) */}
+            <p style={{ margin: '10px 0 0', fontSize: '10px', color: '#555', fontFamily: 'JetBrains Mono, monospace' }}>
+              Last call: <span style={{ color: stats.last_call_at ? '#bbb' : '#444' }}>{stats.last_call_at ? fmtAgo(stats.last_call_at) : '—'}</span>
+              {stats.last_close_at && <span style={{ marginLeft: '14px' }}>Last close: <span style={{ color: '#bbb' }}>{fmtAgo(stats.last_close_at)}</span></span>}
+            </p>
           </div>
 
           {/* Phone */}
