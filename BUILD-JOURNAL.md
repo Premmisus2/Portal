@@ -17,6 +17,69 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 ---
 
 <!-- ENTRIES BELOW -->
+<a id="2026-05-02-outcome-auto-classifier"></a>
+## 2026-05-02 #outcome-auto-classifier — Auto outcome classifier (Gemini → call_logs.outcome_auto)
+
+**Status:** ✅ Shipped (code merged locally; migration pending manual apply in Supabase)
+
+**Commit:** `96ce7b3` ([git log](https://github.com/Premmisus2/Portal/commit/96ce7b3))
+
+**Idea (Elliott's intent):** Twilio click-to-call → recording → Gemini transcription was the existing pipeline (#twilio-webhook-hardening, #ai-coach-transcript), but it stopped at the transcript. Reps still hand-classified the outcome in the call-logger UI. Two problems: (1) reps forget to set outcome on busy days, leaving holes in the funnel data; (2) we have no way to compare what reps SAY happened vs what the AI hears. Closing the loop with an auto-classifier gives us a second opinion that coexists with rep judgment — we never overwrite the human, but we can show divergence in the Reps tab to spot training gaps.
+
+**What shipped:**
+
+1. **Migration `supabase/migrations/20260502_outcome_auto.sql` (new)** — Adds four nullable columns to `call_logs`: `outcome_auto text`, `outcome_auto_confidence numeric`, `outcome_auto_reasoning text`, `outcome_auto_at timestamptz`. CHECK constraint matches the 8-key whitelist in `lib/constants.ts` `OUTCOME_LABELS`. Partial index on non-null `outcome_auto` for the Reps-tab divergence query. Idempotent (`IF NOT EXISTS`, `DROP CONSTRAINT IF EXISTS`).
+
+2. **`app/api/recording-callback/route.ts` — new `classifyAndStore` helper.** Called inside the same `waitUntil` flow as `transcribeAndStore`, immediately after a successful transcript write. Runs a second Gemini 2.5 Flash call with `responseMimeType: 'application/json'` + `temperature: 0.0` + `maxOutputTokens: 256`. Prompt enumerates the 6 cold-call-realistic outcomes (booked_call, callback_requested, no_answer, voicemail_left, not_interested, wrong_number) — discovery_completed and no_show are deliberately omitted from the prompt because they're post-call states the AI can't infer from a cold-call recording (still allowed in the constraint so reps can set them manually). Validates Gemini's response is valid JSON AND a whitelisted outcome before writing. Confidence is clamped to [0, 1]. Reasoning capped at 500 chars.
+
+3. **Short-transcript shortcut.** Transcripts under 40 chars after trim are written as `outcome_auto = 'no_answer'` with `confidence = 0.3` and reasoning `"Transcript too short to classify"` — skips the Gemini call entirely. Avoids burning a Gemini request to fabricate a confident-sounding guess from 5 characters of dial tone.
+
+4. **All failure paths report through `reportServerError` with tag `outcome-auto-classifier`** — Gemini HTTP errors, JSON parse failures, non-whitelisted outcomes, and the outer catch. Telegram alerts will say `_See journal: #outcome-auto-classifier_` so on-call can find this entry. No bare `try/catch` (same anti-pattern that ate Isaiah's Day 1 logs).
+
+5. **Rep-set `outcome` is never touched.** `outcome_auto` is a separate column with separate CHECK. The two coexist. RepsTab (parallel chat) will read `outcome_auto` once it lands.
+
+**Files:**
+- `deploy/supabase/migrations/20260502_outcome_auto.sql` (new — 23 lines)
+- `deploy/app/api/recording-callback/route.ts` (added `ALLOWED_OUTCOMES` const + `classifyAndStore` helper, ~96 new lines; `transcribeAndStore` now chains classification on success)
+
+**Rollback:**
+```bash
+cd "/Users/elliottcuthbert/Documents/Premmisus/Premmisus Assets/Sales Portal/deploy"
+git revert 96ce7b3
+git push origin main
+# Then in Supabase SQL editor (only if you also want to drop the columns —
+# usually unnecessary, the columns are nullable and harmless if unused):
+#   ALTER TABLE call_logs DROP CONSTRAINT IF EXISTS call_logs_outcome_auto_check;
+#   ALTER TABLE call_logs DROP COLUMN IF EXISTS outcome_auto;
+#   ALTER TABLE call_logs DROP COLUMN IF EXISTS outcome_auto_confidence;
+#   ALTER TABLE call_logs DROP COLUMN IF EXISTS outcome_auto_reasoning;
+#   ALTER TABLE call_logs DROP COLUMN IF EXISTS outcome_auto_at;
+#   DROP INDEX IF EXISTS idx_call_logs_outcome_auto;
+# Reverting only the code (not the columns) is safe — the columns just stay NULL.
+```
+
+**Verification:**
+- `npx tsc --noEmit` clean
+- `npm run build` passed (pre-existing `SUPABASE_SERVICE_KEY missing` static-analysis warning is documented on `#twilio-webhook-hardening`, unrelated)
+- Migration not yet applied in Supabase — Elliott to run `supabase/migrations/20260502_outcome_auto.sql` in the SQL editor before the next live call. If the migration is skipped and a call gets transcribed, the PATCH with `outcome_auto` will fail and Telegram will fire `🔧 SERVER ERROR` tagged `outcome-auto-classifier` (loud, not silent — acceptable failure mode).
+- TODO post-deploy: place a Twilio test call (any number, hang up after a sentence). Within ~30s, expect:
+  ```sql
+  SELECT call_sid, twilio_status, outcome, outcome_auto, outcome_auto_confidence,
+         outcome_auto_reasoning, transcript_status, length(transcript) as t_len
+  FROM call_logs ORDER BY created_at DESC LIMIT 5;
+  ```
+  to show `outcome_auto` populated and matching what was actually said.
+
+**Watch for:**
+- **Migration must be applied manually before this code runs in production.** The PATCH writes `outcome_auto` etc. — if the columns don't exist, every call after a transcript completes will fire a Telegram alert. The good news: it's loud, not silent, and the rest of the call_log row is already intact. Apply the migration and the alerts stop on the next call.
+- **Gemini quota / cost.** This doubles the per-call Gemini spend (one transcribe call + one classify call). Each classify call is a small text prompt (<8K input chars, 256 output tokens) so it's cheap, but at 100 calls/day Isaiah's volume + future reps it adds up. Watch the Gemini console if billing alerts fire.
+- **Discovery_completed and no_show are post-call states.** The classifier prompt deliberately doesn't list them — those are set by the rep after a separate meeting. If we ever want the AI to infer "discovery completed" from a long, structured conversation, the prompt needs an update to include those keys.
+- **`temperature: 0.0` + `responseMimeType: 'application/json'` + whitelist validation = three layers of defense.** If Gemini ever returns malformed JSON or invents a new outcome (e.g. "follow_up"), the validation rejects it and Telegram gets a `recording-callback.classifyAndStore.invalidOutcome` alert. If you start seeing those alerts in clusters, Gemini's output format may have drifted — check the model version pin (`gemini-2.5-flash`) and the response.
+- **Coexistence rule is load-bearing.** Future you will be tempted to "auto-fill rep's outcome if confidence > 0.8" — DON'T. The whole value of this column is that we can compare AI vs human judgment in the Reps tab. The moment auto overwrites human, we lose the divergence signal and the rep training data.
+- **Parallel chat (#reps-tab-v1) reads `outcome_auto` once it lands.** If Reps tab shows blank "AI outcome" columns for old calls, that's expected — pre-migration call_logs all have NULL `outcome_auto`. Only calls recorded after the migration + this code deploy will have classifications.
+
+---
+
 <a id="2026-05-02-reps-tab-v1"></a>
 ## 2026-05-02 #reps-tab-v1 — Reps tab, bulk lead assignment, rep deactivation (Chunk A)
 
