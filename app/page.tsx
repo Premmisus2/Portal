@@ -46,6 +46,7 @@ import ProofPointsPanel from '@/components/scripts/ProofPointsPanel';
 // UI
 import NotesPad from '@/components/ui/NotesPad';
 import LoadingScreen from '@/components/ui/LoadingScreen';
+import SettingsModal from '@/components/settings/SettingsModal';
 
 /* ══════════════════════════════════════════════════════
    ROOT APP — STATE MACHINE (migrated from single HTML)
@@ -68,6 +69,7 @@ function AppShell() {
   const [closeHistory, setCloseHistory] = useState<any[]>([]);
   const [scriptTab, setScriptTab] = useState('openers');
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [repPhone, setRepPhone] = useState<string | null>(null);
   const [globalSidebarOpen, setGlobalSidebarOpen] = useState(false);
   const [viewAsRep, setViewAsRep] = useState(() => {
@@ -352,10 +354,18 @@ function AppShell() {
     enterShadow,
     exitShadow,
     repPhone,
+    onSettings: () => setShowSettings(true),
   };
 
   const chat = <ChatWidget userName={userName} userEmail={userEmail} currentView={view} repId={repId} userRole={userRole} />;
   const shortcuts = showShortcuts ? <ShortcutsModal onClose={() => setShowShortcuts(false)} /> : null;
+  const settingsModal = (showSettings && repId) ? (
+    <SettingsModal
+      userName={userName} userEmail={userEmail} repId={repId}
+      isDirector={actuallyDirector}
+      onClose={() => setShowSettings(false)}
+    />
+  ) : null;
   const sidebar = view !== 'login' ? <GlobalSidebar open={globalSidebarOpen} onClose={() => setGlobalSidebarOpen(false)} onNav={handleNav} currentView={view} isDirector={effectiveIsDirector} /> : null;
 
   if (appLoading) return (
@@ -405,29 +415,29 @@ function AppShell() {
     </div>
   );
 
-  if (view === 'home')       return <>{notifPopup}{shadowBanner}{sidebar}<HomeView {...shared} onNav={handleNav} onShortcuts={() => setShowShortcuts(true)} missedEventCount={missedEvents ? (missedEvents.bookings.length + missedEvents.callbacks.length + missedEvents.handoffs.length) : 0} />{bottomNav}{chat}{shortcuts}</>;
-  if (view === 'coldcall')   return <>{notifPopup}{shadowBanner}{sidebar}<ColdCallView {...shared} />{bottomNav}{chat}</>;
-  if (view === 'foundation') return <>{notifPopup}{shadowBanner}{sidebar}<FoundationView {...shared} />{bottomNav}{chat}</>;
-  if (view === 'scripts')    return <>{notifPopup}{shadowBanner}{sidebar}<ScriptsView {...shared} scriptTab={scriptTab} setScriptTab={setScriptTab} />{bottomNav}{chat}</>;
-  if (view === 'postcall')   return <>{notifPopup}{shadowBanner}{sidebar}<PostCallView {...shared} />{bottomNav}{chat}</>;
-  if (view === 'ladder')     return <>{notifPopup}{shadowBanner}{sidebar}<LadderView {...shared} />{bottomNav}{chat}</>;
-  if (view === 'handoff')    return <>{notifPopup}{shadowBanner}{sidebar}<HandoffView {...shared} />{bottomNav}{chat}</>;
-  if (view === 'dms')        return <>{notifPopup}{shadowBanner}{sidebar}<DMView {...shared} />{bottomNav}{chat}</>;
-  if (view === 'email')      return <>{notifPopup}{shadowBanner}{sidebar}<EmailView {...shared} />{bottomNav}{chat}</>;
-  if (view === 'sms')        return <>{notifPopup}{shadowBanner}{sidebar}<SMSView {...shared} />{bottomNav}{chat}</>;
-  if (view === 'offerstack') return <>{notifPopup}{shadowBanner}{sidebar}<OfferStackView {...shared} />{bottomNav}{chat}</>;
-  if (view === 'aitools')    return <>{notifPopup}{shadowBanner}{sidebar}<AIToolsView {...shared} />{bottomNav}{chat}</>;
-  if (view === 'training')   return <>{notifPopup}{shadowBanner}{sidebar}<TrainingView {...shared} />{bottomNav}{chat}</>;
-  if (view === 'voicemail')  return <>{notifPopup}{shadowBanner}{sidebar}{wrapPanel('Voicemail Scripts', 'VM — Leave the Right Message', 'Voicemail-Scripts', <VoicemailPanel />)}{bottomNav}{chat}</>;
-  if (view === 'discovery')  return <>{notifPopup}{shadowBanner}{sidebar}{wrapPanel('Discovery Call Framework', 'DC — The 15-Minute Close', 'Discovery-Call', <DiscoveryCallPanel />)}{bottomNav}{chat}</>;
-  if (view === 'upsell')     return <>{notifPopup}{shadowBanner}{sidebar}{wrapPanel('0.5 → 1.0 Upsell', 'UP — Turn Websites Into Retainers', 'Upsell-Script', <UpsellPanel />)}{bottomNav}{chat}</>;
-  if (view === 'noshow')     return <>{notifPopup}{shadowBanner}{sidebar}{wrapPanel('No-Show Recovery', 'NS — Don\'t Chase. Replace.', 'No-Show-Recovery', <NoShowPanel />)}{bottomNav}{chat}</>;
-  if (view === 'proofpoints') return <>{notifPopup}{shadowBanner}{sidebar}{wrapPanel('Proof Points & Ammo', 'PP — Confidence Arsenal', 'Proof-Points', <ProofPointsPanel />, 'notes_proofpoints')}{bottomNav}{chat}</>;
-  if (view === 'director' && isDirector) return <>{notifPopup}{shadowBanner}{sidebar}<DirectorView {...shared} />{bottomNav}{chat}</>;
-  if (view === 'newupdates' && actuallyDirector) return <>{notifPopup}{shadowBanner}{sidebar}<div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000' }}>{shadowPadding}<TopBar title="New Updates" subtitle="Features built — activate when ready" {...shared} /><main className="print-area section-main" style={{ flex: 1, overflowY: 'auto', padding: '28px 32px', maxWidth: '900px', width: '100%', margin: '0 auto' }}><div style={{ marginBottom: '8px' }}><span className="tag">NEW UPDATES</span></div><h2 style={{ fontSize: '26px', fontWeight: 900, color: '#fff', margin: '8px 0 4px' }}>Features Built — Not Yet Active</h2><p style={{ color: '#666', fontSize: '14px', lineHeight: 1.6, margin: '0 0 24px' }}>Build these once the current sales portal is up to speed. Click any to open.</p><div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>{[{ key: 'upsell', title: '0.5 → 1.0 Upsell', desc: 'Post-delivery upsell script — turn websites into recurring revenue' }, { key: 'voicemail', title: 'Voicemail Scripts', desc: '4 voicemail templates under 20 seconds each' }, { key: 'discovery', title: 'Discovery Call Framework', desc: '15-minute discovery call agenda with 5 phases' }, { key: 'noshow', title: 'No-Show Recovery', desc: '3-touch SMS recovery sequence' }, { key: 'proofpoints', title: 'Proof Points & Ammo', desc: 'Social proof, competitor ammunition, credibility builders' }].map(f => (<button key={f.key} onClick={() => handleNav(f.key)} className="card" style={{ padding: '18px 20px', textAlign: 'left', cursor: 'pointer', border: '1px solid #1e1e1e', font: 'inherit', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><div><p style={{ margin: 0, fontWeight: 700, color: '#fff', fontSize: '15px' }}>{f.title}</p><p style={{ margin: '4px 0 0', color: '#555', fontSize: '12px' }}>{f.desc}</p></div><span style={{ color: '#00F0FF', fontSize: '12px', fontWeight: 700 }}>Open →</span></button>))}</div></main></div>{bottomNav}{chat}</>;
+  if (view === 'home')       return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<HomeView {...shared} onNav={handleNav} onShortcuts={() => setShowShortcuts(true)} missedEventCount={missedEvents ? (missedEvents.bookings.length + missedEvents.callbacks.length + missedEvents.handoffs.length) : 0} />{bottomNav}{chat}{shortcuts}</>;
+  if (view === 'coldcall')   return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<ColdCallView {...shared} />{bottomNav}{chat}</>;
+  if (view === 'foundation') return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<FoundationView {...shared} />{bottomNav}{chat}</>;
+  if (view === 'scripts')    return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<ScriptsView {...shared} scriptTab={scriptTab} setScriptTab={setScriptTab} />{bottomNav}{chat}</>;
+  if (view === 'postcall')   return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<PostCallView {...shared} />{bottomNav}{chat}</>;
+  if (view === 'ladder')     return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<LadderView {...shared} />{bottomNav}{chat}</>;
+  if (view === 'handoff')    return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<HandoffView {...shared} />{bottomNav}{chat}</>;
+  if (view === 'dms')        return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<DMView {...shared} />{bottomNav}{chat}</>;
+  if (view === 'email')      return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<EmailView {...shared} />{bottomNav}{chat}</>;
+  if (view === 'sms')        return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<SMSView {...shared} />{bottomNav}{chat}</>;
+  if (view === 'offerstack') return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<OfferStackView {...shared} />{bottomNav}{chat}</>;
+  if (view === 'aitools')    return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<AIToolsView {...shared} />{bottomNav}{chat}</>;
+  if (view === 'training')   return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<TrainingView {...shared} />{bottomNav}{chat}</>;
+  if (view === 'voicemail')  return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}{wrapPanel('Voicemail Scripts', 'VM — Leave the Right Message', 'Voicemail-Scripts', <VoicemailPanel />)}{bottomNav}{chat}</>;
+  if (view === 'discovery')  return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}{wrapPanel('Discovery Call Framework', 'DC — The 15-Minute Close', 'Discovery-Call', <DiscoveryCallPanel />)}{bottomNav}{chat}</>;
+  if (view === 'upsell')     return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}{wrapPanel('0.5 → 1.0 Upsell', 'UP — Turn Websites Into Retainers', 'Upsell-Script', <UpsellPanel />)}{bottomNav}{chat}</>;
+  if (view === 'noshow')     return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}{wrapPanel('No-Show Recovery', 'NS — Don\'t Chase. Replace.', 'No-Show-Recovery', <NoShowPanel />)}{bottomNav}{chat}</>;
+  if (view === 'proofpoints') return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}{wrapPanel('Proof Points & Ammo', 'PP — Confidence Arsenal', 'Proof-Points', <ProofPointsPanel />, 'notes_proofpoints')}{bottomNav}{chat}</>;
+  if (view === 'director' && isDirector) return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<DirectorView {...shared} />{bottomNav}{chat}</>;
+  if (view === 'newupdates' && actuallyDirector) return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000' }}>{shadowPadding}<TopBar title="New Updates" subtitle="Features built — activate when ready" {...shared} /><main className="print-area section-main" style={{ flex: 1, overflowY: 'auto', padding: '28px 32px', maxWidth: '900px', width: '100%', margin: '0 auto' }}><div style={{ marginBottom: '8px' }}><span className="tag">NEW UPDATES</span></div><h2 style={{ fontSize: '26px', fontWeight: 900, color: '#fff', margin: '8px 0 4px' }}>Features Built — Not Yet Active</h2><p style={{ color: '#666', fontSize: '14px', lineHeight: 1.6, margin: '0 0 24px' }}>Build these once the current sales portal is up to speed. Click any to open.</p><div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>{[{ key: 'upsell', title: '0.5 → 1.0 Upsell', desc: 'Post-delivery upsell script — turn websites into recurring revenue' }, { key: 'voicemail', title: 'Voicemail Scripts', desc: '4 voicemail templates under 20 seconds each' }, { key: 'discovery', title: 'Discovery Call Framework', desc: '15-minute discovery call agenda with 5 phases' }, { key: 'noshow', title: 'No-Show Recovery', desc: '3-touch SMS recovery sequence' }, { key: 'proofpoints', title: 'Proof Points & Ammo', desc: 'Social proof, competitor ammunition, credibility builders' }].map(f => (<button key={f.key} onClick={() => handleNav(f.key)} className="card" style={{ padding: '18px 20px', textAlign: 'left', cursor: 'pointer', border: '1px solid #1e1e1e', font: 'inherit', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><div><p style={{ margin: 0, fontWeight: 700, color: '#fff', fontSize: '15px' }}>{f.title}</p><p style={{ margin: '4px 0 0', color: '#555', fontSize: '12px' }}>{f.desc}</p></div><span style={{ color: '#00F0FF', fontSize: '12px', fontWeight: 700 }}>Open →</span></button>))}</div></main></div>{bottomNav}{chat}</>;
 
   // Fallback
-  return <>{notifPopup}{shadowBanner}{sidebar}<HomeView {...shared} onNav={handleNav} onShortcuts={() => setShowShortcuts(true)} missedEventCount={missedEvents ? (missedEvents.bookings.length + missedEvents.callbacks.length + missedEvents.handoffs.length) : 0} />{bottomNav}{chat}{shortcuts}</>;
+  return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<HomeView {...shared} onNav={handleNav} onShortcuts={() => setShowShortcuts(true)} missedEventCount={missedEvents ? (missedEvents.bookings.length + missedEvents.callbacks.length + missedEvents.handoffs.length) : 0} />{bottomNav}{chat}{shortcuts}</>;
 }
 
 export default function Page() {
