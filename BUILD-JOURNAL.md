@@ -17,6 +17,78 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 ---
 
 <!-- ENTRIES BELOW -->
+<a id="2026-05-02-settings-portal-health"></a>
+## 2026-05-02 #settings-portal-health — Portal health dashboard + build journal viewer
+
+**Status:** ✅ Shipped to main pending Elliott verification on localhost. Chunk C of a 4-chunk Settings build (B → C → D → E). D + E stubs remain.
+
+**Commit:** `17e5a59`
+
+**Files:**
+- `app/api/health/all/route.ts` (new — aggregator)
+- `app/api/journal/route.ts` (new — markdown reader/parser)
+- `components/settings/PortalHealthCard.tsx` (new)
+- `components/settings/BuildJournalCard.tsx` (new)
+- `components/settings/SettingsView.tsx` (replaced 2 C-stubs in place)
+- `lib/api-auth.ts` (new — `requireDirector(request)` helper for admin-only routes)
+- `next.config.mjs` (added `experimental.outputFileTracingIncludes` so the journal markdown ships with the serverless function)
+
+**Idea (Elliott's intent):** Chunk B left two dashed-border placeholder cards in the Admin section labelled "Chunk C / Chunk C." This commit fills them. The director needs a one-glance view of system health (so a silent cron failure or a wedged Telegram bot is visible without leaving the portal) and a searchable change-log so the build journal — which has been the canonical record of every shipped feature — is queryable from inside the app, not just by opening the markdown file. Both views live behind the same `isDirector` gate that Chunk B established and reuse the `SettingsSection` chrome.
+
+**What shipped:**
+
+1. **`PortalHealthCard`** — fetches `/api/health/all` once on mount, renders 8 status tiles grouped Crons / Integrations / Storage. Each tile shows a coloured status dot (green ok / amber warn / red down / grey unknown), the subsystem name, a one-line detail (e.g. "Last success 14m ago", "@bot_username reachable", "Reachable — 3 reps in table"), and a JetBrains-Mono badge. Footer shows portal version + commit SHA + checked-at relative time, with a cyan "↻ REFRESH" button on the right that re-runs all checks.
+
+2. **`/api/health/all`** — director-gated aggregator. Runs four checks in parallel via `Promise.all` so one slow subsystem can't mask another:
+   - **Crons** — single `cron_runs` query (last-200 successful rows, ordered by `started_at DESC`), then for each of the 5 expected jobs (`cron-health-check`, `cron-idle-check`, `cron-daily-summary`, `cron-callback-reminder`, `cron-watchdog`) compute age vs cadence from `vercel.json`. > 2× cadence = `down`, > 1.25× = `warn`. Weekday-only crons that are silent on Sat/Sun by design get downgraded to `ok` so weekend dashboards don't light up red.
+   - **Sentry** — reads `NEXT_PUBLIC_SENTRY_DSN` + `SENTRY_DSN`. Sets `warn` (not `down`) when neither is set so the dormant-bootstrap state doesn't read as broken.
+   - **Telegram** — calls `https://api.telegram.org/bot$token/getMe` with `cache: 'no-store'` and a module-level 60s in-memory cache so refresh-spamming the card doesn't hammer Telegram's API. Returns the bot's `@username` on success.
+   - **Supabase** — `select count from reps with head: true` to confirm the DB is reachable + RLS lets the service-role read.
+
+3. **`BuildJournalCard`** — fetches `/api/journal`, gets `{ entries, tags, total }`. Renders tag-filter pills along the top (`ALL (n)` + one pill per `#tag` with count), a paginated entry list (5 per page) with prev/next + page indicator. Each entry header is a single row: date · `#tag` · title (ellipsised) · status badge (✅ SHIPPED / 🟡 STUB / ⏸ PENDING / ·). Click expands the body inline, rendered through a tiny inline markdown formatter that handles `**bold**`, `` `code` ``, ` ```fenced``` ` blocks, `### h4`, `1.` numbered lists, `- ` bullets — enough for our entries without pulling in a markdown dependency.
+
+4. **`/api/journal`** — director-gated. `fs.readFile(path.join(process.cwd(), 'BUILD-JOURNAL.md'))` then splits on horizontal-rule (`\n---\n`) and parses each chunk's first line against `^##\s+(YYYY-MM-DD)\s*(?:#tag)?\s*[—\-:]\s*(title)$`. Status is sniffed from the first ~600 chars of each body (`✅ Shipped` → `shipped`, `🟡 STUB` → `stub`, etc.). Returns entries newest-first (the file is already maintained that way) with derived `tags` array.
+
+5. **`lib/api-auth.requireDirector(request)`** — pulls `Authorization: Bearer <access_token>` off the request, calls `supabase.auth.getUser(token)` with the anon client to validate it, then queries `reps` via the service-role client to confirm `role === 'director'`. Returns a discriminated union; routes use `if (auth.ok !== true) return NextResponse.json({error}, {status})` (the `auth.ok !== true` form rather than `!auth.ok` because narrowing was misbehaving under the project's `strict: false` tsconfig). Reused verbatim by Chunks D + E.
+
+6. **File-tracing fix.** Vercel's serverless bundler tree-shakes anything that isn't an explicit code import — including `BUILD-JOURNAL.md`. Without the trace include, `/api/journal` works locally (where `process.cwd()` is the repo root) but 500s in prod. The `experimental.outputFileTracingIncludes['/api/journal']: ['./BUILD-JOURNAL.md']` block forces it into the function bundle. Note: in Next 14 this lives under `experimental`; in Next 15+ it's top-level. Move it when we upgrade.
+
+7. **Stub replacement, not parallel files.** Both Chunk C cards overwrote the matching `<StubCard>` instance inside `SettingsView.tsx` — no new file in `components/settings/` for a "live version." This was the explicit forward-compat pattern from Chunk B. The Chunk D and Chunk E stubs are untouched.
+
+**Forward-compat:**
+- No new tables. Reads `cron_runs` (already created in `#cron-observability`) and `reps` (already exists). No migration to apply.
+- If `cron_runs` is missing or empty, each cron tile reports `unknown` rather than crashing. If Telegram, Sentry, or Supabase env vars are missing, the corresponding subsystem reports `down` or `warn` with the missing-config detail — the rest of the dashboard still renders.
+- If `BUILD-JOURNAL.md` somehow isn't in the bundle, `/api/journal` returns `{ entries: [], error: '…' }` with a 500 and the card surfaces the error inline instead of crashing.
+- Director gating happens at the route level (`requireDirector`), not just the UI. A non-director who bypasses the React tree (e.g. via curl) gets 403.
+
+**Rollback:**
+```bash
+git revert 17e5a59
+```
+The two stubs come back. No DB state is created.
+
+**Verification:**
+- `npx tsc --noEmit` — clean.
+- `npm run build` — clean compile, all 17 pages, **185 kB / 343 kB** first-load (was 182 kB / 340 kB pre-Chunk-C; +3 kB for the two cards + markdown renderer).
+- `next.config.mjs` warning resolved (`outputFileTracingIncludes` now under `experimental`).
+- Both new routes (`/api/health/all`, `/api/journal`) registered as dynamic ƒ in the build manifest.
+- Browser smoke-test pending Elliott's review on localhost:3001 before push approval.
+
+**Watch for:**
+- **`requireDirector` discriminated-union narrowing.** With `strict: false` in tsconfig, `if (!auth.ok)` did not narrow correctly to the failure branch — TS kept the success-branch type and flagged `auth.error` / `auth.status` as missing. Workaround: use `if (auth.ok !== true)`. If the project ever flips `strict: true`, the more idiomatic `if (!auth.ok)` will start working again — leave the explicit form in place until then; it's harmless under strict.
+- **Telegram cache invalidation.** The 60s in-memory cache lives at module scope, which under Fluid Compute means it survives across requests inside the same warm function instance. Different instances cache independently. Refreshing health 5 times in a minute → at most 1 Telegram getMe per warm instance. Acceptable. If we ever want a "force fresh" affordance, add a `?nocache=1` query param.
+- **`outputFileTracingIncludes` is a Vercel build-graph hint, not a Next.js runtime guarantee.** If the file path moves, the trace breaks silently (the route 500s in prod only). The fallback path in the route surfaces the error in the UI, but the trace include needs to be updated alongside any rename of `BUILD-JOURNAL.md`.
+- **Journal parser is regex-based.** It expects each entry to begin with a `## YYYY-MM-DD ...` header and to be separated by a markdown horizontal rule (`---` on its own line). Entries that drop the date prefix or use a different separator silently disappear from the viewer. The post-commit hook produces conformant headers; manual entries should follow the same template.
+- **Sentry detail copy.** When DSN is unset, the subsystem reads `warn` with detail "DSN unset — running in dormant no-op mode." That's correct today (per `#sentry-bootstrap` we left Sentry installed-but-dormant) but the moment Elliott wires the DSN, the tile flips green automatically — no code change needed.
+- **Build version.** `process.env.VERCEL_GIT_COMMIT_SHA` is only injected by Vercel at build time. In `next dev`, the footer will show `v0.1.0 · checked Xm ago` without the commit SHA. That's fine — Elliott's verification flow uses `npm run build` so the SHA shows up in the production check.
+- **Stub cards (D + E) as deletion bait.** Same advice as Chunk B: when those chunks land, replace the matching `<StubCard>` in `SettingsView.tsx` with the real component. Don't fork a parallel file.
+
+**Next chunks** (carry over to next chats):
+- Chunk D — `#settings-notification-routing`: `notification_routes` table + per-alert Telegram routing UI
+- Chunk E — `#settings-activity-log`: `audit_log` table + `audit()` helper + filterable viewer
+
+---
+
 <a id="2026-05-02-settings-auth-basics"></a>
 ## 2026-05-02 #settings-auth-basics — SettingsView + auth basics (change/reset/name/sign-out-all)
 
