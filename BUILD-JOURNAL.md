@@ -20,9 +20,11 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 <a id="2026-05-02-settings-auth-basics"></a>
 ## 2026-05-02 #settings-auth-basics — SettingsView + auth basics (change/reset/name/sign-out-all)
 
-**Status:** ✅ Shipped (code merged locally, awaiting Elliott review before push). Chunk B of a 4-chunk Settings build (B → C → D → E).
+**Status:** ✅ Shipped to main (Elliott approved live test in localhost:3001 before push). Chunk B of a 4-chunk Settings build (B → C → D → E).
 
-**Commit:** `f0c43e0`
+**Commits:**
+- `f0c43e0` — initial SettingsView + 4 cards + entry points
+- `4d7db1c` — fix: dropdown ⚙ Settings now renders on every view via window event dispatch (HomeView and ScriptsView render ProfileDropdown directly, bypassing TopBar's prop-drilling — `onSettings` callback was unreachable from those views, hiding the menu item on Home + Scripts. Fix: dropdown always renders the item; click prefers `onSettings` prop if present, falls back to `window.dispatchEvent('pmss:open-settings')`. app/page.tsx listens and opens the same modal. Caught during Elliott's live test on Home view.)
 
 **Files:**
 - `components/settings/SettingsSection.tsx` (shared header/border wrapper)
