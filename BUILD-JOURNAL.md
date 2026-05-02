@@ -17,6 +17,76 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 ---
 
 <!-- ENTRIES BELOW -->
+<a id="2026-05-02-settings-auth-basics"></a>
+## 2026-05-02 #settings-auth-basics — SettingsView + auth basics (change/reset/name/sign-out-all)
+
+**Status:** ✅ Shipped (code merged locally, awaiting Elliott review before push). Chunk B of a 4-chunk Settings build (B → C → D → E).
+
+**Commit:** `f0c43e0`
+
+**Files:**
+- `components/settings/SettingsSection.tsx` (shared header/border wrapper)
+- `components/settings/SettingsView.tsx` (orchestrator — Account stack + 4 Admin stubs)
+- `components/settings/SettingsModal.tsx` (overlay wrapper used by reps from ProfileDropdown)
+- `components/settings/ChangePasswordCard.tsx`
+- `components/settings/RecoverPasswordCard.tsx`
+- `components/settings/UpdateNameCard.tsx`
+- `components/settings/SignOutAllCard.tsx`
+- `components/director/DirectorView.tsx` (Settings tab inserted between Reps and Import)
+- `components/layout/ProfileDropdown.tsx` (Settings menu item above Keyboard Shortcuts)
+- `components/layout/TopBar.tsx` (passes `onSettings` through to ProfileDropdown)
+- `app/page.tsx` (`showSettings` state + `<SettingsModal>` rendered alongside notifPopup so it overlays every authenticated view)
+
+**Idea (Elliott's intent):** The Reps-tab consolidation (`#reps-tab-v1`) folded the old Settings tab — which only contained per-rep phone editing — into the new `RepDetailDrawer`. That left no surface for an account itself: no way to change a password, recover a forgotten one, update display name, or terminate stale sessions. Chunk B reintroduces a Settings surface with two entry points (director tab vs rep modal) and the same component for both. Architectural decision locked here for Chunks C/D/E: union of features, conditional Admin section. Reps see the 4 Account cards. Directors see those plus 4 Admin stub cards labelled "Chunk C/D/E" so the planned structure is visible before the work lands.
+
+**What shipped:**
+
+1. **Two entry points, one component.** `SettingsView` is the single source. `DirectorView.tsx` adds a `Settings` tab (between `Reps` and `Import`) that renders it inline. `ProfileDropdown.tsx` adds a `⚙ Settings` menu item that opens `SettingsModal` (full-page dim overlay, Esc closes, click-outside closes). Reps only see the modal entry; the `Settings` tab only appears in the Director Dashboard. The component itself receives `isDirector` and conditionally renders the Admin block — no second component needed.
+
+2. **`SettingsSection` wrapper** standardises every card: black panel (`#0a0a0a`), `1px #1a1a1a` border, 10px radius, 18×20px padding, optional badge (cyan/green/amber). Future cards in C/D/E slot in without re-implementing the chrome.
+
+3. **Change Password card** — three password inputs (current, new, confirm) plus an "Update password" cyan-accent button. Validation chain: confirm-match → ≥8 chars → must differ from current. To enforce the current-password check (Supabase's `updateUser` does NOT verify it), the card calls `signInWithPassword` first as a verification roundtrip; on success it then calls `updateUser({ password })`. Inline success/error messaging, fields clear on success.
+
+4. **Recover Password card** — single button that calls `resetPasswordForEmail(email, { redirectTo: window.location.origin })`. After send, swaps to a green "Reset email sent to {email}" panel with spam-folder hint. Note documented in the description: the email link lands on the portal home, then the user uses Change Password from inside Settings to set a new one. A dedicated `/reset-password` route is deferred (out of scope for B; minor follow-up).
+
+5. **Update Name card** — single text input + Save button. On save: `UPDATE reps SET name=trim WHERE id=...` plus `localStorage.setItem('pmss_user', trim)` so the TopBar avatar/initials reflect the new name on next mount. Surface a "Refresh recommended" hint in the success state because the rest of the UI (ClosesTracker, ProfileDropdown) reads userName from React state set during init, not from localStorage.
+
+6. **Sign Out Everywhere card** — red-accent button gated behind a confirmation modal (`zIndex: 1100` — above SettingsModal at 600). Calls `supabase.auth.signOut({ scope: 'global' })` which terminates every active refresh token across every device, then clears `pmss_user`/`pmss_email`/`pmss_view` and redirects to `/`. Confirmation copy is explicit ("every browser, every phone, every tab including this one") because there's no undo.
+
+7. **Director-only stub cards.** `Portal health` (Chunk C), `Build journal viewer` (Chunk C), `Notification routing` (Chunk D), `Activity log` (Chunk E). Each is a dashed-border card with a chunk-label badge in amber. Visually distinct from the live cards so it's obvious they're placeholders. They'll be replaced inline in `SettingsView.tsx` as each chunk lands — no component shuffle needed.
+
+8. **Modal placement.** The modal is rendered alongside `notifPopup` in `app/page.tsx`'s render branches via a `replace_all` swap of `{notifPopup}{shadowBanner}` → `{notifPopup}{settingsModal}{shadowBanner}`. That covers every authenticated view branch (home through director). Modal `zIndex` is 600, above shadow banner (500) and below confirmation modal (1100).
+
+**Forward-compat:**
+- No new tables, no new columns. All four cards use existing Supabase auth + the existing `reps` row. No migration to apply.
+- The Admin stub cards render harmlessly for non-directors because the gating happens in `SettingsView` (`if (isDirector)` block). The stubs themselves have no logic.
+- The `onSettings` prop on `ProfileDropdown` and `TopBar` is optional (`if (onSettings)` guard in the dropdown). Pre-this-commit callers that didn't pass it still work — the menu item just doesn't render.
+
+**Rollback:**
+```bash
+git revert f0c43e0
+```
+No DB state was created; the revert is purely code.
+
+**Verification:**
+- `npx tsc --noEmit` — clean.
+- `npm run build` — clean compile, all 17 pages, **182 kB / 340 kB** first-load (no measurable change vs pre-commit).
+- Not yet exercised in browser — Elliott review pending before live test of Change Password + Sign Out Everywhere flows.
+
+**Watch for:**
+- **Reset link landing.** `redirectTo: window.location.origin` sends the user to portal home, NOT to a dedicated `/reset-password` page. Supabase's recovery email contains a token that, when consumed at the redirect URL, signs the user in. From there they need to navigate to Settings → Change Password to actually set a new password. Fine for now (Isaiah is the only active rep), but if this becomes friction we should build `/reset-password` as a dedicated route that intercepts the recovery token and shows just the new-password form.
+- **TopBar staleness after name change.** Saving a new name updates `localStorage.pmss_user` but the live `userName` state in `app/page.tsx` is set at login + init, so the avatar still shows the old initials until the user hard-refreshes. The success hint ("Refresh recommended") makes this visible. If we want it live, we'd need a `setUserName` setter exposed to `SettingsView` or a custom event.
+- **`signInWithPassword` for verification.** This is a real auth call — it creates a session/refresh-token side-effect even though the user is already signed in. Supabase merges these correctly in our setup but if we add stricter session policies (single active session per user, etc.) this approach would conflict. Alternative: skip the verify step and rely on Supabase's password-policy + recent-auth requirement at the project level.
+- **Sign Out Everywhere on this device.** `scope: 'global'` does sign out the current device too. The redirect to `/` is what brings the user back to LoginView. If a later change drops the redirect, the UI will be in an inconsistent state (signed-out client, still showing the dashboard) until next page load. Keep the `window.location.href = '/'` line.
+- **Stub cards as deletion bait.** When Chunks C/D/E land, replace the matching `<StubCard>` instance in `SettingsView.tsx` with the real component. Don't create a new file in `components/settings/` for the live version — overwrite the stub.
+
+**Next chunks** (carry over to next chat):
+- Chunk C — `#settings-portal-health`: real Portal Health dashboard + Build Journal viewer
+- Chunk D — `#settings-notification-routing`: per-alert-type Telegram routing table
+- Chunk E — `#settings-activity-log`: `audit_log` table + audit() helper + filterable UI
+
+---
+
 <a id="2026-05-02-reps-tab-9-stat"></a>
 ## 2026-05-02 #reps-tab-v1 (cont.) — 9-stat performance grid + warm-lead funnel + AI panel
 
