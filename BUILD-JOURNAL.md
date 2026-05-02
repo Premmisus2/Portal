@@ -17,6 +17,83 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 ---
 
 <!-- ENTRIES BELOW -->
+<a id="2026-05-02-settings-activity-log"></a>
+## 2026-05-02 #settings-activity-log — Activity log + audit() instrumentation
+
+**Status:** ✅ Shipped to main pending Elliott verification + Supabase migration apply. **Final chunk** of the 4-chunk Settings build (B → C → D → E). All four Admin cards are now live components.
+
+**Commit:** `424ad69`
+
+**Files:**
+- `supabase/migrations/20260504_audit_log.sql` (new — append-only audit table + 3 indexes + RLS)
+- `lib/audit.ts` (new — `audit()` fire-and-forget + `auditFromLocalStorage()` helper)
+- `app/api/settings/audit-log/route.ts` (new — director-gated reader with filters + CSV export)
+- `components/settings/ActivityLogCard.tsx` (new — table viewer with date/actor/action filters)
+- `components/settings/SettingsView.tsx` (replaced Chunk E stub in place; removed dead `StubCard` helper since all four chunks are now live)
+- Instrumented call sites:
+  - `components/director/RepDetailDrawer.tsx` (rep.role_changed, rep.activated, rep.deactivated, lead.assigned)
+  - `components/director/BulkAssignBar.tsx` (leads.bulk_assigned, leads.bulk_unassigned)
+  - `components/director/DirectorView.tsx` (close.approved, close.rejected)
+  - `components/director/LeadImportTool.tsx` (leads.imported with counts)
+  - `components/auth/LoginView.tsx` (auth.signed_in, auth.registered)
+  - `components/settings/ChangePasswordCard.tsx` (settings.password_changed)
+  - `components/settings/UpdateNameCard.tsx` (settings.name_updated)
+  - `components/settings/SignOutAllCard.tsx` (auth.signed_out_all)
+
+**Idea (Elliott's intent):** Until now, every consequential portal action — a rep's role flipping to director, a lead being bulk-assigned away, a close getting approved or rejected, a password change, a fresh registration — was an invisible event. The mutation went into the database, the UI updated, the user moved on. If a sales rep complained "my closes were rejected without me knowing why" or "my leads got reassigned overnight," there was no record of who did what when. Chunk E builds the audit substrate so the director can answer those questions in seconds, in-portal, with metadata attached. Pairs naturally with Chunk D's notification routing — once we know which alert types matter, having a permanent record of every event behind those alerts is the next layer.
+
+**What shipped:**
+
+1. **Schema (`20260504_audit_log.sql`).** Single `audit_log` table, append-only by convention (no UPDATE policy). Columns: `actor_rep_id` (FK to reps, nullable for system actions), `actor_email`, `actor_role` (denormalized so the row stays interpretable even if the rep is later deleted), `action_type` (dotted-namespace string, NOT NULL), `target_type`, `target_id`, `metadata` jsonb, `ip_address` (server-side capture path, currently always null on client inserts), `user_agent`, `created_at`. Three indexes — created_at DESC for the default sort, (actor, created_at DESC) for actor-filtered queries, (action_type, created_at DESC) for action-filtered queries. RLS: service_role full access, authenticated_insert (so the audit() helper can write via the user's session), authenticated_read (the table is director-only at the UI + API layer; this is just the table-level backstop).
+
+2. **`lib/audit.ts` — fire-and-forget logger.** The whole point is that an audit failure must NEVER block a user action. Writing pseudo-code: `try { sb.insert(row).catch(swallow) } catch { swallow }`. Two specific behaviors:
+   - **42P01 (relation does not exist) is silent.** Pre-migration, every audit() call quietly no-ops. The user-facing mutation succeeds, the row is just never written. Once the migration is applied, every subsequent call writes immediately — no code change, no deploy.
+   - **Other errors get reported once via reportClientError.** Surprising failures (RLS misconfig, network blip, JSON serialization) hit the existing Telegram client-error pipeline so they're visible without spamming.
+   - **`auditFromLocalStorage()` is the convenience layer.** Most call sites already have email + role + repId in localStorage; the helper reads `pmss_email` / `pmss_role` / `pmss_rep_id` and synthesises the actor block, leaving the caller to specify only `actionType` / `targetType` / `targetId` / `metadata`.
+
+3. **Action-type vocabulary.** Dotted namespace, lowercase, snake_case verb. Currently emitted: `rep.role_changed`, `rep.activated`, `rep.deactivated`, `lead.assigned`, `leads.bulk_assigned`, `leads.bulk_unassigned`, `leads.imported`, `close.approved`, `close.rejected`, `auth.signed_in`, `auth.registered`, `auth.signed_out_all`, `settings.password_changed`, `settings.name_updated`. Filter by prefix in the UI (e.g. multi-select all `rep.*`) to surface every action against a domain object. Adding new types is just calling `audit({ actionType: 'foo.bar' })` from any component — no schema change, no whitelist.
+
+4. **Read API (`/api/settings/audit-log`).** Director-gated GET. Query params: `actor` (rep_id), `actions` (CSV of action_types), `from` / `to` (ISO timestamps), `limit` (default 50, max 500), `offset`, `format=csv`. Returns `{ rows, total, actor_options, action_options, table_missing }`. The actor_options + action_options arrays are pulled in the same response (one extra distinct-actions query, one reps query) so the filter UI has stable dropdowns regardless of what's currently visible. CSV export streams a `text/csv` response with content-disposition attachment + filename including the date.
+
+5. **`ActivityLogCard` UI.** Top: filter bar — date-range select (24h / 7d / 30d / all, default 7d), actor dropdown, multi-select action picker (clickable popover with checkboxes per known action_type), refresh + EXPORT CSV buttons. Middle: 5-column table — When (relative time, hover for ISO) · Actor (email + role badge) · Action (color-coded by family — close.approved green, rep.deactivated red, settings.* cyan, leads.* cyan-bright, etc.) · Target (type#shortid) · Meta summary (first 3 keys). Click any row to expand the full JSON metadata in a monospaced sub-row. Pagination 25 per page, prev/next + position indicator. `table_missing` path renders the amber migration-hint banner instead of an empty table.
+
+6. **Instrumentation strategy.** I added `audit()` calls at the moment of mutation, AFTER the Supabase write has succeeded but BEFORE the UI's success-state setter. This way the audit row reflects what actually happened (a failed update is never logged as success). For Sign Out Everywhere, the audit fires BEFORE the signOut call — once the global-scope signOut completes, the user's session is gone and the authenticated_insert RLS policy would deny any further inserts.
+
+7. **`StubCard` removed.** All four Chunks (B/C/D/E) now have live components. The dashed-border placeholder helper inside SettingsView.tsx is no longer referenced anywhere; deleted to keep the file lean. If we ever stub future Settings cards, a fresh component can be written — there's no semantic value in keeping the dead helper around.
+
+**Forward-compat:**
+- Pre-migration: every audit() call no-ops silently (42P01 swallow). Every call site behaves identically to before this commit. The reader API returns `{ rows: [], table_missing: true, hint: '...' }` and the UI shows the amber banner.
+- Post-migration with no events yet: UI shows "No events match the current filters." Filter dropdowns populate as actions accrue.
+- The `actor_email` / `actor_role` columns are denormalized — even if Elliott later deletes a rep row, the audit_log entries remain interpretable. The actor_rep_id FK is nullable; deleting a rep would null out the FK but keep the email/role text.
+- Adding a new action_type is zero-cost — just call `audit({ actionType: 'thing.done' })`. The filter UI surfaces it on next load via the distinct-actions query.
+
+**Rollback:**
+```bash
+git revert 424ad69
+```
+Code reverts. The `audit_log` table can be left in place (orphaned, harmless) or `DROP TABLE audit_log` if desired.
+
+**Verification:**
+- `npx tsc --noEmit` — clean.
+- `npm run build` — clean compile, all 19 pages, **189 kB / 347 kB** first-load (was 186 kB / 345 kB after Chunk D; +2 kB for the activity-log card).
+- New `/api/settings/audit-log` registered as dynamic ƒ.
+- Migration NOT yet applied in Supabase — pending Elliott. UI will display the table_missing banner until applied.
+- Browser smoke-test pending Elliott review.
+
+**Watch for:**
+- **Migration is pending manual apply.** Until Elliott runs `20260504_audit_log.sql` in Supabase SQL editor, the audit table doesn't exist; every audit() call no-ops; the UI shows the amber hint banner. There is zero pressure to apply it immediately. Apply when ready, refresh the Settings tab, and entries start accruing from that moment forward.
+- **Historical actions are NOT backfilled.** The audit log starts at the moment of migration apply. Previous role changes / closes / etc. don't show up. Acceptable — this is a forward-going observability layer, not a forensic reconstruction.
+- **`ip_address` column is nullable + unused for now.** Client-side inserts can't see the egress IP reliably. If we ever want IPs (e.g. for a "sign-in from unfamiliar location" alert), the path is: build a thin `/api/audit` relay that takes the same params + reads `request.headers` for `x-forwarded-for`, and have the client call that instead of inserting directly. Defer until needed.
+- **Authenticated_insert RLS is permissive.** Any signed-in user can write to audit_log via their own session. This is intentional — the audit() helper needs to work from rep sessions too. The actor_email column is the source of truth for who did what; if a rep tries to spoof another rep's email by manually crafting an insert, RLS won't catch it, but the action wouldn't have happened in their UI session anyway. If rigor is ever needed, swap to a server-side `/api/audit` relay that derives actor identity from the request's session token.
+- **CSV export is hard-capped at 500 rows.** Larger ranges silently truncate. If Elliott ever wants to export a year of activity, bump the cap or add streaming. Not urgent — at current volume that's months of data.
+- **The action-type whitelist for the UI dropdown is "everything that's been logged at least once."** New action types appear in the dropdown the next time the page loads after the first instance. If a rare action_type fires once and then disappears from the recent-2000-row window, the dropdown will stop offering it. Acceptable for the foreseeable future; if it becomes a pain, hardcode a known set in the route.
+- **InviteRepModal is intentionally not instrumented.** The interesting moment in the invite flow is when the code is *used* (registration), which I capture as `auth.registered` in LoginView with the invite_code in metadata. Logging when a code is generated would just create noise.
+- **The `pmss_role` localStorage key may not always be present** for sessions that pre-date its introduction. `auditFromLocalStorage()` falls back gracefully (`role: ''`), so audit rows from old sessions just have a blank actor_role. Reps who sign in fresh going forward populate it correctly.
+
+**Settings build complete.** Chunks B → C → D → E shipped. Director Settings tab now contains: Account (4 cards) + Admin (Portal Health · Build Journal · Notification Routing · Activity Log).
+
+---
+
 <a id="2026-05-02-settings-notification-routing"></a>
 ## 2026-05-02 #settings-notification-routing — Per-alert-type Telegram routing
 
