@@ -46,13 +46,15 @@ export default function ProfileDropdown({ userName, userEmail, totalCloses, tota
             </div>
           </div>
           <div style={{ padding: '6px' }}>
-            {onSettings && (
-              <button onClick={() => { setOpen(false); onSettings(); }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', borderRadius: '7px', background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: '12px', fontFamily: 'Inter,sans-serif', textAlign: 'left', transition: 'all .15s' }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#111'; e.currentTarget.style.color = '#fff'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#666'; }}>
-                <span style={{ fontSize: '13px', width: '16px', textAlign: 'center' }}>⚙</span> Settings
-              </button>
-            )}
+            <button onClick={() => {
+                setOpen(false);
+                if (onSettings) onSettings();
+                else if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('pmss:open-settings'));
+              }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', borderRadius: '7px', background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: '12px', fontFamily: 'Inter,sans-serif', textAlign: 'left', transition: 'all .15s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#111'; e.currentTarget.style.color = '#fff'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#666'; }}>
+              <span style={{ fontSize: '13px', width: '16px', textAlign: 'center' }}>⚙</span> Settings
+            </button>
             {onShortcuts && (
               <button onClick={() => { setOpen(false); onShortcuts(); }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', borderRadius: '7px', background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: '12px', fontFamily: 'Inter,sans-serif', textAlign: 'left', transition: 'all .15s' }}
                 onMouseEnter={e => { e.currentTarget.style.background = '#111'; e.currentTarget.style.color = '#fff'; }}

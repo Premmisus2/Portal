@@ -70,6 +70,11 @@ function AppShell() {
   const [scriptTab, setScriptTab] = useState('openers');
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  useEffect(() => {
+    const open = () => setShowSettings(true);
+    window.addEventListener('pmss:open-settings', open);
+    return () => window.removeEventListener('pmss:open-settings', open);
+  }, []);
   const [repPhone, setRepPhone] = useState<string | null>(null);
   const [globalSidebarOpen, setGlobalSidebarOpen] = useState(false);
   const [viewAsRep, setViewAsRep] = useState(() => {
