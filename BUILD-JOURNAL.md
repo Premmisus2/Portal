@@ -17,6 +17,65 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 ---
 
 <!-- ENTRIES BELOW -->
+<a id="2026-05-02-reps-tab-9-stat"></a>
+## 2026-05-02 #reps-tab-v1 (cont.) — 9-stat performance grid + warm-lead funnel + AI panel
+
+**Status:** ✅ Shipped (code merged; both 20260502 migrations pending manual apply for Inactive badge + AI Classified panel to populate)
+
+**Commit:** `2e578f9`
+
+**Files:**
+- `components/director/RepDetailDrawer.tsx` (Performance section: 6 → 9 cells in 3×3 grid + conditional AI Classified panel + Last call/close footer)
+- `components/director/RepsTab.tsx` (loadAll refactored to four paginated metadata fetches; aggregates Calls auto/manual + Warm Cont./Closed + outcome_auto count)
+- `lib/types.ts` (RepStats: +5 fields — `total_calls_auto`, `total_calls_manual`, `total_results_auto`, `warm_leads_contacted`, `warm_leads_closed`)
+
+**Idea (Elliott's intent):** First Reps drawer (commit `65c9c4d`) had a clean 6-cell grid but Elliott looked at it on the live UI and said: this is great, but it needs Calls (Isaiah has ~200+ calls). Then expanded the ask: also calls auto-logged vs manually logged, results auto-classified vs manual, warm leads contacted, warm leads closed. The auto-classifier was built in a parallel chat (#outcome-auto-classifier) so this commit can wire `outcome_auto` immediately. Rationale: a director needs four kinds of signal per rep — activity (calls), tool-adoption (dialer vs hand-log), pipeline (closes/pending/points), and conversion (warm-lead funnel). One 3×3 grid expresses all four cleanly.
+
+**What shipped:**
+
+1. **3×3 Performance grid** in the rep drawer (`RepDetailDrawer.tsx:164-208`):
+   - Row 1 — call activity: `Calls` · `Auto-dialed` (Twilio dialer, `call_sid IS NOT NULL`) · `Manual log` (hand-logged via form, `call_sid IS NULL`)
+   - Row 2 — close stack: `Closes` · `Pending` · `Approved Pts`
+   - Row 3 — warm funnel: `Leads` · `Warm Cont.` (HOT/HIGH AND status touched) · `Warm Closed` (HOT/HIGH AND status booked/discovery_completed)
+   - Each cell has a number + label + optional one-word sub-label. Color-coded — auto-dialed/AI = cyan, warm-closed = green, pending = amber.
+
+2. **AI Classified sub-panel** below the grid: only renders when `total_results_auto > 0 AND total_calls > 0`. Shows percentage of calls Gemini has auto-tagged plus the absolute counts. Stays hidden until BOTH `20260502_outcome_auto.sql` is applied AND a fresh Twilio call has flowed through after `#outcome-auto-classifier` deployed. Prevents "AI Classified: 0% (0 of 200)" looking like a bug pre-population.
+
+3. **Footer line** (single row, mono font): "Last call · 1mo · Last close · —" — replaces what was two stat tiles in the old grid since dates are less actionable than numerical counts at a glance.
+
+4. **`loadAll` refactor** in `RepsTab.tsx`:
+   - Old: Promise.all of 3 queries (reps, closes, leads) + per-rep N×2 count queries for calls. Worked, but each rep added 2 round trips and missed `outcome_auto`.
+   - New: Promise.all of 5 queries — `reps`, `closes`, lean call_logs metadata (`rep_id, call_sid, created_at`), separate `outcome_auto` fetch (`rep_id, outcome_auto`), leads (`assigned_rep_id, priority, status`). Each via a `fetchAllPaginated` helper that loops in 1000-row chunks until exhausted.
+   - Aggregation is one O(N) pass per dataset client-side. Builds `closesByRep`, `callStatsByRep`, `outcomeAutoByRep`, `leadStatsByRep` Maps. Total fixed cost regardless of rep count, scales linearly with row count.
+   - Splitting `outcome_auto` into its own fetch is the forward-compat trick: if the column doesn't exist (#outcome-auto-classifier migration not applied), only that one fetch fails. `total_results_auto` defaults to 0; the rest of the stats render correctly.
+
+5. **Reps tab table additions**: `Calls` column added between `Phone` and `Closes` (sortable, cyan when > 0). New summary card "Total Calls" (sum across all reps). Renamed the table column header `Total` → `Closes` for clarity since "Total" alone was ambiguous.
+
+**Forward-compat (still holds):**
+- Pre-`reps_active` migration: same as initial commit — Show inactive toggle / Inactive badge / Deactivate button do nothing functional. Login still allows everyone in.
+- Pre-`outcome_auto` migration: AI Classified panel hidden, `total_results_auto` is 0 for all reps. The separate `outcome_auto` fetch errors silently into `reportClientError` Telegram alerts but the rest of the UI works.
+- Apply both migrations in either order, then refresh. Both are idempotent.
+
+**Rollback:**
+```bash
+git revert 2e578f9   # this commit only
+git revert 65c9c4d   # if you want to roll back the entire Reps tab
+```
+Migrations are additive (`ALTER TABLE ... ADD COLUMN IF NOT EXISTS`) — no rollback needed if reverting code.
+
+**Verification:**
+- `npx tsc --noEmit` — clean
+- `npm run build` — clean compile, all 17 pages, 179KB / 337KB first load (was 178KB / 337KB pre-changes; +1KB for the grid expansion)
+- Hot-reload tested in dev. After `.next` cache corruption from too many rapid recompiles caused a 404-loop on `main-app.js` / `app-pages-internals.js`, killed the dev server, blew away `.next`, restarted clean. Subsequent loads served the new code without 404s.
+
+**Watch for:**
+- **Browser cache holding old JS bundle.** When iterating fast on the drawer, hot-reload works but a manual page refresh sometimes serves the stale cached chunk. Cmd+Shift+R clears it. Documented because Elliott hit this twice in one session.
+- **`.next` corruption pattern**: too many file saves in a short window can leave the dev server serving HTML referencing chunk hashes that no longer exist. Symptom: rapid 404s on `_next/static/chunks/*.js` in the dev server log, browser feels frozen. Fix: stop dev server, `rm -rf .next`, restart.
+- **`fetchAllPaginated` payload size**: with current scale (~250 call_logs, ~1500 leads) each fetch is one round trip. If call_logs grows past 10K, that's 10+ round trips per Reps-tab load. At 50K we'd want a server-side aggregation route or a Postgres view. Not urgent — Isaiah is the only active rep right now.
+- **The double call_logs fetch** (one for activity metadata, one for outcome_auto) doubles the call_logs payload. Could be combined once `outcome_auto` is universally applied — but the split keeps forward-compat clean. Worth merging post-migration confirmation.
+
+---
+
 <a id="2026-05-02-outcome-auto-classifier"></a>
 ## 2026-05-02 #outcome-auto-classifier — Auto outcome classifier (Gemini → call_logs.outcome_auto)
 
