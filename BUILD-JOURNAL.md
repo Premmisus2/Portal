@@ -17,6 +17,75 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 ---
 
 <!-- ENTRIES BELOW -->
+<a id="2026-05-02-settings-notification-routing"></a>
+## 2026-05-02 #settings-notification-routing — Per-alert-type Telegram routing
+
+**Status:** ✅ Shipped to main pending Elliott verification + Supabase migration apply. Chunk D of a 4-chunk Settings build (B → C → D → E). E stub remains.
+
+**Commit:** `29dac88`
+
+**Files:**
+- `supabase/migrations/20260503_notification_routes.sql` (new — table + trigger + RLS)
+- `lib/notification-routes.ts` (new — `resolveRoute(alertType)` with 60s in-process cache)
+- `lib/server-error.ts` (modified — routes via resolveRoute under `server_error`)
+- `app/api/notify-telegram/route.ts` (modified — routes via resolveRoute, supports topic_id)
+- `app/api/settings/notification-routes/route.ts` (new — director-gated CRUD)
+- `components/settings/NotificationRoutingCard.tsx` (new — table editor)
+- `components/settings/SettingsView.tsx` (replaced Chunk D stub in place)
+
+**Idea (Elliott's intent):** Today, every Telegram alert — daily summaries, idle warnings, close approvals, server errors, client errors, booked-call notifications — lands in the single chat pointed at by `TELEGRAM_CHAT_ID`. That works for one director with one phone, but the moment Isaiah, Melvin, and the next reps come on, the noise model breaks: server errors and client errors should stay private to Elliott, daily summaries should land in a team channel, callback reminders should DM the owning rep, and so on. Chunk D builds the plumbing for that without requiring a code change every time the team structure shifts. The whole thing is gated behind `isDirector` so reps never see the routing dashboard.
+
+**What shipped:**
+
+1. **Schema (`20260503_notification_routes.sql`).** Single new table `notification_routes` with `alert_type` UNIQUE (so each alert family routes to exactly one place), `telegram_chat_id`, optional `telegram_topic_id` (for Telegram supergroup threads — the `message_thread_id` field in the Bot API), `enabled` boolean (toggle without deleting), `description` (free text for "why this alert goes here"). Trigger auto-bumps `updated_at` on every UPDATE. RLS: service_role full access, authenticated read. Idempotent (`CREATE TABLE IF NOT EXISTS`, `CREATE POLICY` not gated — apply once).
+
+2. **Resolver (`lib/notification-routes.ts`).** `resolveRoute(alertType)` is the single chokepoint every Telegram sender now goes through. Loads the full table once, caches for 60s in-process. If a row exists for the requested alert_type AND it's enabled AND it has a chat_id, returns `{ chatId, topicId, source: 'route', alertType }`. Otherwise falls back to `TELEGRAM_CHAT_ID` env var with `source: 'env'`. If both are missing, `source: 'unconfigured'`, chatId empty — caller drops the message rather than crashing. The cache lives at module scope, so under Fluid Compute it's shared across requests within a warm instance; different instances cache independently.
+
+3. **Forward-compat is the key trick.** When the `notification_routes` table doesn't exist (migration not yet applied in Supabase), the PostgREST query returns 404 / 42P01. The resolver swallows it and seeds an empty Map for the cache window. Every alert continues to flow to the env-var fallback exactly as before. **Net effect: this commit is a no-op behavior change until the migration runs.** No alerts get dropped; reps don't see anything different. Once Elliott applies the migration and adds rows, the routing kicks in immediately on next 60s cache cycle (or whenever a CRUD mutation invalidates it).
+
+4. **Sender wiring.**
+   - `lib/server-error.ts` — calls `resolveRoute('server_error')` instead of reading `TELEGRAM_CHAT_ID` directly. Adds `message_thread_id` to the Bot API payload when a topic is set.
+   - `app/api/notify-telegram/route.ts` — first translates the legacy `type` field on the request body to a canonical `alert_type` (e.g. `type: 'booked'` → `alert_type: 'booked_call'`, `type: 'idle'` → `alert_type: 'idle'`) so existing callers stay unchanged. Then `resolveRoute` and send.
+
+5. **CRUD (`/api/settings/notification-routes`).** Single route file, methods are `GET / POST / PATCH / DELETE`. `id` for PATCH and DELETE comes via `?id=<uuid>` query param (no dynamic segment file needed). Every method is gated by `requireDirector` from Chunk C. POST and PATCH validate `alert_type` against a whitelist of 10 known values (`server_error`, `client_error`, `booked_call`, `idle`, `daily_summary`, `callback_reminder`, `health_check`, `close_approved`, `close_rejected`, `cron_failure`) — no free-text routing. Every successful mutation calls `invalidateRouteCache()` so the next alert sees the new routing within milliseconds, not 60s.
+
+6. **GET response carries `table_missing`.** When the migration isn't applied, GET returns `{ routes: [], table_missing: true, hint: 'apply migration 20260503_notification_routes.sql' }` so the UI can render an actionable amber banner instead of an empty table that looks broken. Also returns `allowed_alert_types` for the add-route dropdown and `env_default_set` so the UI can warn red if `TELEGRAM_CHAT_ID` is also unset (would mean alerts drop entirely).
+
+7. **`NotificationRoutingCard`.** Renders the routing table with cyan `alert_type` discriminator on the left, then editable inputs for chat_id / topic_id / description that fire PATCH on blur (so editing is just typing + tabbing, no separate "save" button per row). On/Off pill toggles enabled. Red `DELETE` button at row end with a confirm dialog. Below the table: "+ Add route" button reveals an inline form with a dropdown of unused alert_types only (so duplicate inserts are impossible from the UI). Header badge shows route count, or "MIGRATION" amber if `table_missing`. If `env_default_set` is false, a red warning banner surfaces it explicitly.
+
+**Forward-compat:**
+- Pre-migration: lookups silently fall back to env var. UI shows amber migration hint with the filename. Senders unchanged. Apply migration whenever — no rush, no user-visible breakage.
+- Post-migration with no rows: UI shows "Every alert is going to the default chat from the env var." Senders still fall through. Adding the first row is the moment routing kicks in.
+- Migration is `IF NOT EXISTS` everywhere → safe to re-apply or apply via Supabase SQL editor without dropping state.
+- The 10-value alert_type whitelist is enforced server-side — direct DB inserts could theoretically bypass it, but no path in the UI does.
+
+**Rollback:**
+```bash
+git revert 29dac88
+```
+The Chunk D stub comes back; senders go back to reading `TELEGRAM_CHAT_ID` directly. The `notification_routes` table is harmless to leave behind in the DB if it was applied — it just becomes orphaned. Drop with `DROP TABLE notification_routes` if desired.
+
+**Verification:**
+- `npx tsc --noEmit` — clean.
+- `npm run build` — clean compile, all 18 pages, **186 kB / 345 kB** first-load (was 185 kB / 343 kB after Chunk C; +2 kB for the routing card).
+- New `/api/settings/notification-routes` route registered as dynamic ƒ.
+- Migration NOT yet applied in Supabase — pending Elliott. UI will display the table_missing banner until it runs.
+- Browser smoke-test pending Elliott review.
+
+**Watch for:**
+- **Migration is pending manual apply.** Until Elliott runs `20260503_notification_routes.sql` in Supabase SQL editor, GET returns `table_missing: true` and the UI surfaces it. Senders behave identically to pre-Chunk-D. There is zero pressure to apply it immediately — it can sit unapplied for as long as the team is one director + one rep.
+- **In-process cache vs Fluid Compute.** The 60s cache is per-instance, not global. After a CRUD mutation on instance A, instance B may keep the old route until B's cache expires (≤60s) or B handles its own next mutation. Acceptable for routing config that changes once per onboarding event. If we ever need instant global propagation, swap to Vercel Runtime Cache with a tag.
+- **Topic IDs are numeric in the Bot API.** The DB stores them as text (so blank input is null-clean) but the sender coerces with `Number(route.topicId)` before passing as `message_thread_id`. If Elliott pastes something non-numeric into the topic field, Telegram will reject the message and the alert gets dropped silently. Could add validation to the input but keeping it loose for now since topics are an advanced-user feature.
+- **The `type` → `alert_type` translation in notify-telegram is a compatibility shim.** Existing callers (CallLogger, DirectorView, cron-idle-check, cron-daily-summary, error-reporting) all still pass `type: 'booked' | 'idle' | …`. The map at the top of `notify-telegram/route.ts` translates those to the canonical alert_type values. If a new caller ships and bypasses the map (passes a typo), the lookup returns no route and the alert falls through to env var. Worth normalizing the call sites to use canonical values directly when convenient, but no urgency.
+- **Ten alert_types whitelisted.** If we want to add a new alert family later (e.g. `weekly_recap`, `lead_assigned`, `migration_applied`), edit `ALLOWED_ALERT_TYPES` in `app/api/settings/notification-routes/route.ts`. The whitelist is also surfaced via the GET response so the UI dropdown updates automatically.
+- **Whitelist is enforced server-side, not at the DB.** A direct INSERT via the Supabase SQL editor with an unknown alert_type will succeed — the table only enforces UNIQUE on alert_type, not membership in a set. The resolver still finds the row by exact match, so it'd "work," but the UI add-form won't surface unknown types. If this becomes a footgun, add a CHECK constraint to the table.
+- **Stub for Chunk E remains.** When the activity-log build lands, replace the matching `<StubCard>` in `SettingsView.tsx` per the Chunk B / C pattern.
+
+**Next chunk** (carry over to next chat):
+- Chunk E — `#settings-activity-log`: `audit_log` table + `audit()` helper + filterable viewer
+
+---
+
 <a id="2026-05-02-settings-portal-health"></a>
 ## 2026-05-02 #settings-portal-health — Portal health dashboard + build journal viewer
 
