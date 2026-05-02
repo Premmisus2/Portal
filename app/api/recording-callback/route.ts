@@ -13,6 +13,14 @@ import { reportServerError } from '@/lib/server-error';
 
 const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 
+const ALLOWED_OUTCOMES = [
+  'booked_call','callback_requested','no_answer','voicemail_left',
+  'not_interested','wrong_number','discovery_completed','no_show'
+] as const;
+type AllowedOutcome = typeof ALLOWED_OUTCOMES[number];
+
+const MIN_TRANSCRIPT_CHARS_FOR_CLASSIFICATION = 40;
+
 async function updateCallLog(callSid: string, updates: Record<string, any>, sbKey: string): Promise<boolean> {
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/call_logs?call_sid=eq.${encodeURIComponent(callSid)}`, {
@@ -112,12 +120,110 @@ async function transcribeAndStore(callSid: string, mp3Url: string) {
 
     if (transcript) {
       await updateCallLog(callSid, { transcript, transcript_status: 'completed' }, SB_KEY);
+      await classifyAndStore(callSid, transcript, SB_KEY);
     } else {
       await updateCallLog(callSid, { transcript_status: 'failed', transcript: 'Gemini returned empty response' }, SB_KEY);
     }
 
   } catch (transcribeErr: any) {
     await updateCallLog(callSid, { transcript_status: 'failed', transcript: 'Transcription error: ' + (transcribeErr.message || '').slice(0, 200) }, SB_KEY);
+  }
+}
+
+async function classifyAndStore(callSid: string, transcript: string, sbKey: string): Promise<void> {
+  const GEMINI_KEY = process.env.GEMINI_API_KEY || '';
+  if (!GEMINI_KEY) return;
+
+  // Skip very short / empty transcripts — likely no_answer or voicemail tone with no speech.
+  // Better to leave outcome_auto NULL than fabricate a confident-sounding guess from 5 chars.
+  if (!transcript || transcript.trim().length < MIN_TRANSCRIPT_CHARS_FOR_CLASSIFICATION) {
+    await updateCallLog(callSid, {
+      outcome_auto: 'no_answer',
+      outcome_auto_confidence: 0.3,
+      outcome_auto_reasoning: 'Transcript too short to classify — defaulted to no_answer',
+      outcome_auto_at: new Date().toISOString(),
+    }, sbKey);
+    return;
+  }
+
+  const prompt = `You are classifying the outcome of a cold-call recording for a sales operations system. Read the transcript and pick exactly ONE outcome from this list:
+
+- booked_call: prospect agreed to a strategy/discovery call (any future scheduled meeting)
+- callback_requested: prospect asked the rep to call back later (no commitment to a meeting)
+- no_answer: phone rang, no one picked up (transcript will be very short or empty)
+- voicemail_left: call went to voicemail
+- not_interested: prospect declined, hung up, or said "not interested"
+- wrong_number: wrong person, business closed/sold, or number disconnected
+
+Return ONLY a JSON object on a single line, no markdown fences, no commentary:
+{"outcome":"<one of the values above>","confidence":<0.0-1.0>,"reasoning":"<one sentence>"}
+
+Transcript:
+${transcript.slice(0, 8000)}`;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { maxOutputTokens: 256, temperature: 0.0, responseMimeType: 'application/json' },
+        }),
+      }
+    );
+
+    if (!res.ok) {
+      await reportServerError(
+        'recording-callback.classifyAndStore.gemini',
+        `Gemini ${res.status}: ${(await res.text().catch(() => '')).slice(0, 200)}`,
+        { call_sid: callSid },
+        'outcome-auto-classifier',
+      );
+      return;
+    }
+
+    const data = await res.json();
+    const text: string = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+    let parsed: { outcome?: string; confidence?: number; reasoning?: string };
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      await reportServerError(
+        'recording-callback.classifyAndStore.parse',
+        `JSON parse failed: ${text.slice(0, 200)}`,
+        { call_sid: callSid },
+        'outcome-auto-classifier',
+      );
+      return;
+    }
+
+    if (!parsed.outcome || !ALLOWED_OUTCOMES.includes(parsed.outcome as AllowedOutcome)) {
+      await reportServerError(
+        'recording-callback.classifyAndStore.invalidOutcome',
+        `Gemini returned non-whitelisted outcome: ${parsed.outcome}`,
+        { call_sid: callSid, outcome: parsed.outcome },
+        'outcome-auto-classifier',
+      );
+      return;
+    }
+
+    await updateCallLog(callSid, {
+      outcome_auto: parsed.outcome,
+      outcome_auto_confidence: typeof parsed.confidence === 'number' ? Math.max(0, Math.min(1, parsed.confidence)) : null,
+      outcome_auto_reasoning: (parsed.reasoning || '').slice(0, 500),
+      outcome_auto_at: new Date().toISOString(),
+    }, sbKey);
+
+  } catch (err) {
+    await reportServerError(
+      'recording-callback.classifyAndStore',
+      err,
+      { call_sid: callSid },
+      'outcome-auto-classifier',
+    );
   }
 }
 
