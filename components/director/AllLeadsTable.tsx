@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { supabase as sb } from '@/lib/supabase';
 import { NICHE_LIST, OUTCOME_COLORS, OUTCOME_LABELS } from '@/lib/constants';
 import type { Rep, Lead, CallLog } from '@/lib/types';
+import BulkAssignBar from '@/components/director/BulkAssignBar';
 
 interface AllLeadsTableProps {
   reps: Rep[];
@@ -99,6 +100,7 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
   const [groupBy, setGroupBy] = useState('none');
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [batches, setBatches] = useState<{ id: string; label: string; source_type: string; created_at: string }[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const PAGE_SIZE = 100;
 
   useEffect(() => { loadAll(); }, []);
@@ -224,13 +226,37 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
 
   if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 0' }}><svg style={{ animation: 'spin 1s linear infinite' }} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00F0FF" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg></div>;
 
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAllVisible = () => {
+    const visibleIds = groupBy === 'none'
+      ? paged.map(l => l.id)
+      : (groups || []).flatMap(([, leads]) => leads.slice(0, 50).map(l => l.id));
+    setSelectedIds(new Set(visibleIds));
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
   const renderRow = (lead: Lead, idx: number, globalIdx: number) => {
     const lastLog = callLogs[lead.id];
     const isEven = idx % 2 === 0;
+    const isSelected = selectedIds.has(lead.id);
     return (
-      <tr key={lead.id} style={{ background: isEven ? '#0e0e0e' : '#131313', transition: 'background .1s' }}
-        onMouseEnter={e => (e.currentTarget.style.background = '#1a1a1a')}
-        onMouseLeave={e => (e.currentTarget.style.background = isEven ? '#0e0e0e' : '#131313')}>
+      <tr key={lead.id} style={{
+        background: isSelected ? 'rgba(0,240,255,.08)' : (isEven ? '#0e0e0e' : '#131313'),
+        transition: 'background .1s',
+      }}
+        onMouseEnter={e => (e.currentTarget.style.background = isSelected ? 'rgba(0,240,255,.14)' : '#1a1a1a')}
+        onMouseLeave={e => (e.currentTarget.style.background = isSelected ? 'rgba(0,240,255,.08)' : (isEven ? '#0e0e0e' : '#131313'))}>
+        <td style={{ ...tdStyle, textAlign: 'center', width: '36px', minWidth: '36px', padding: '4px 0', borderRight: '1px solid #141414' }}>
+          <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(lead.id)} style={{ accentColor: '#00F0FF', cursor: 'pointer' }} />
+        </td>
         <td style={rowNumStyle}>{globalIdx}</td>
         <td style={{ ...tdStyle, color: '#fff', fontWeight: 600, maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{lead.business_name}</td>
         <td style={{ ...tdStyle, color: '#aaa', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis' }}>{lead.contact_name || '\u2014'}</td>
@@ -301,11 +327,29 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
         </div>
       </div>
 
+      {/* Bulk action bar — only renders when at least one row is selected */}
+      {selectedIds.size > 0 && (
+        <BulkAssignBar
+          selectedIds={Array.from(selectedIds)}
+          reps={reps}
+          visibleCount={groupBy === 'none' ? paged.length : (groups || []).reduce((s, [, leads]) => s + Math.min(leads.length, 50), 0)}
+          onSelectAllVisible={selectAllVisible}
+          onClear={clearSelection}
+          onAssigned={() => { clearSelection(); loadAll(); }}
+        />
+      )}
+
       {/* Table */}
       <div style={{ overflowX: 'auto', border: '1px solid #333', borderRadius: '4px', maxHeight: '70vh', overflowY: 'auto', background: '#0e0e0e' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', minWidth: '1300px' }}>
           <thead>
             <tr>
+              <th style={{ ...thStyle('_'), cursor: 'default', width: '36px', minWidth: '36px', textAlign: 'center', padding: '6px 0' }}>
+                <input type="checkbox" aria-label="Select all visible"
+                  checked={selectedIds.size > 0 && (groupBy === 'none' ? paged.every(l => selectedIds.has(l.id)) : false)}
+                  onChange={e => e.target.checked ? selectAllVisible() : clearSelection()}
+                  style={{ accentColor: '#00F0FF', cursor: 'pointer' }} />
+              </th>
               <th style={{ ...thStyle('_'), cursor: 'default', width: '40px', minWidth: '40px', textAlign: 'center', borderRight: '2px solid #333' }}>#</th>
               {[['business_name', 'Business'], ['contact_name', 'Contact'], ['niche', 'Niche'], ['city', 'City'], ['phone', 'Phone'], ['website', 'Website'], ['email', 'Email'], ['google_reviews', 'Reviews'], ['priority', 'Priority'], ['status', 'Status'], ['assigned_rep', 'Assigned'], ['last_outcome', 'Last Call'], ['callback_date', 'Callback']].map(([col, label]) => (
                 <th key={col} onClick={() => handleSort(col)} style={thStyle(col)}>{label} {sortCol === col ? (sortDir === 'asc' ? '\u2191' : '\u2193') : ''}</th>
@@ -323,7 +367,7 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
                   const rows: React.ReactNode[] = [];
                   rows.push(
                     <tr key={`group-${groupKey}`} onClick={() => toggleGroup(groupKey)} style={{ cursor: 'pointer', background: '#161616', borderBottom: '2px solid #333' }}>
-                      <td colSpan={16} style={{ padding: '10px 14px' }}>
+                      <td colSpan={17} style={{ padding: '10px 14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <span style={{ color: '#555', fontSize: '12px', fontWeight: 700, width: '16px' }}>{isCollapsed ? '>' : 'v'}</span>
                           <span style={{ color: groupColorMap[groupKey] || '#00F0FF', fontSize: '13px', fontWeight: 800 }}>{groupKey}</span>
@@ -336,7 +380,7 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
                   );
                   if (!isCollapsed) {
                     groupLeads.slice(0, 50).forEach((lead, idx) => { rows.push(renderRow(lead, idx, idx + 1)); });
-                    if (groupLeads.length > 50) rows.push(<tr key={`more-${groupKey}`}><td colSpan={16} style={{ padding: '8px 14px', textAlign: 'center', color: '#555', fontSize: '11px', fontStyle: 'italic', background: '#0c0c0c' }}>Showing 50 of {groupLeads.length} -- use filters to narrow down</td></tr>);
+                    if (groupLeads.length > 50) rows.push(<tr key={`more-${groupKey}`}><td colSpan={17} style={{ padding: '8px 14px', textAlign: 'center', color: '#555', fontSize: '11px', fontStyle: 'italic', background: '#0c0c0c' }}>Showing 50 of {groupLeads.length} -- use filters to narrow down</td></tr>);
                   }
                   return rows;
                 })

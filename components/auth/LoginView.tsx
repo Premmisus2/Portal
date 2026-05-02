@@ -79,6 +79,10 @@ export default function LoginView({ onLogin }: { onLogin: any }) {
         .eq('auth_id', authData.user.id)
         .single();
       if (repErr) throw repErr;
+      if (repData.active === false) {
+        await supabase.auth.signOut();
+        throw new Error('This account has been deactivated. Contact your director to restore access.');
+      }
       try {
         localStorage.setItem('pmss_user', repData.name);
         localStorage.setItem('pmss_email', repData.email);

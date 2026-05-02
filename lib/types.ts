@@ -6,7 +6,18 @@ export interface Rep {
   role: 'rep' | 'director';
   invite_code?: string;
   phone?: string;
+  active?: boolean;
   created_at: string;
+}
+
+export interface RepStats {
+  rep_id: string;
+  total_closes: number;
+  pending_closes: number;
+  approved_points: number;
+  last_close_at: string | null;
+  last_call_at: string | null;
+  assigned_leads: number;
 }
 
 export interface Lead {

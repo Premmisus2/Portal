@@ -7,7 +7,7 @@ import AllLeadsTable from '@/components/director/AllLeadsTable';
 import CallLogTab from '@/components/director/CallLogTab';
 import LeadImportTool from '@/components/director/LeadImportTool';
 import PipelineFunnelView from '@/components/director/PipelineFunnelView';
-import PhoneSettings from '@/components/director/PhoneSettings';
+import RepsTab from '@/components/director/RepsTab';
 import type { Lead, CallLog } from '@/lib/types';
 
 const DIRECTOR_TABS = [
@@ -15,8 +15,8 @@ const DIRECTOR_TABS = [
   { id: 'closes',   label: 'Pending Closes' },
   { id: 'leads',    label: 'All Leads' },
   { id: 'calls',    label: 'Call Logs' },
+  { id: 'reps',     label: 'Reps' },
   { id: 'import',   label: 'Import' },
-  { id: 'settings', label: 'Settings' },
 ];
 
 
@@ -140,8 +140,8 @@ export default function DirectorView(props: any) {
         }} />}
         {tab === 'leads' && <AllLeadsTable reps={allReps} />}
         {tab === 'calls' && <CallLogTab callLogs={callLogs} repId={repId || ''} />}
+        {tab === 'reps' && <RepsTab />}
         {tab === 'import' && <LeadImportTool />}
-        {tab === 'settings' && <PhoneSettings />}
       </main>
     </div>
   );
