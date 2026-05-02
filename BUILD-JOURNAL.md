@@ -17,6 +17,58 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 ---
 
 <!-- ENTRIES BELOW -->
+<a id="2026-05-02-reps-tab-v1"></a>
+## 2026-05-02 #reps-tab-v1 — Reps tab, bulk lead assignment, rep deactivation (Chunk A)
+
+**Status:** ✅ Shipped (code merged; migration pending manual apply)
+
+**Commit:** `65c9c4d`
+
+**Files:**
+- New: `components/director/RepsTab.tsx`, `RepDetailDrawer.tsx`, `InviteRepModal.tsx`, `BulkAssignBar.tsx`
+- New migration: `supabase/migrations/20260502_reps_active.sql`
+- Modified: `components/director/DirectorView.tsx` (tab order: Pipeline · Pending · Leads · Calls · **Reps** · Import; orphan Settings tab removed pending Chunks B–E), `components/director/AllLeadsTable.tsx` (multi-select + BulkAssignBar wiring), `components/auth/LoginView.tsx` (active=false gate), `lib/types.ts` (`Rep.active?` + new `RepStats` type)
+- Removed: `components/director/PhoneSettings.tsx` (folded into rep detail drawer)
+
+**Idea (Elliott's intent):** Director nav had no clear surface for managing reps — onboarding (invite codes), profile customization (phone, role), and bulk lead assignment were buried or impossible. Before onboarding multiple new reps on top of Isaiah, the director needs a Reps tab that's the home for "who is on my team and what are they doing." Lead assignment in particular was per-row only inside All Leads → Edit modal; assigning 50 cleaning leads to a new rep took 50 clicks.
+
+**What shipped:**
+- **Reps tab** (replaces former Settings stub): row per rep with Name · Role · Phone · Total closes · Pending · Approved points · Last close · Last call · Assigned leads · ›. Default sort: total closes desc. "Show inactive" toggle off by default. Six summary cards across the top (Active Reps, Directors, Total Closes, Pending, Approved Pts, Assigned Leads).
+- **Side drawer** opens on row click. Contents: 6-stat performance grid; phone editor (E.164); role changer with confirmation modal explaining capability changes; inline "assign unassigned leads" panel showing first 200 by priority with per-row Assign button + filter input; deactivate (or reactivate) button with confirmation.
+- **Invite Rep modal**: enter name + email + role; auto-generates `PMSS-{FIRSTNAME}-{NN}` invite code with collision-aware suffix. "Copy code only" and "Copy full invite" (full text blurb with URL, email, code, instructions). Note in UI: codes are not stored until the rep registers — there is no allow-list table in this iteration.
+- **BulkAssignBar** in All Leads: appears when ≥1 row is selected. Sticky toolbar shows count, "Select all visible", "Clear", target rep dropdown, Assign button (with confirmation modal), Unassign button. Per-row checkboxes + header "select all visible" checkbox added. colSpan on group header rows bumped 16→17 to account for the new column.
+- **`reps.active` migration**: idempotent, defaults true, partial index on `active=true`. NOT auto-applied — Elliott runs it in Supabase SQL editor.
+- **Login active gate**: `LoginView.handleSignIn` now refuses sign-in for inactive reps with "This account has been deactivated. Contact your director to restore access." and signs them out of Supabase auth (since `auth.users` row still exists).
+
+**Forward-compat decisions:**
+- `RepsTab` uses `select('*')` instead of explicit columns so the query works pre-migration. Once migration applies, the `active` field starts populating.
+- All four new components and the LoginView gate gracefully degrade to "active" when `rep.active === undefined`.
+- Net: code can deploy first, migration can apply later, no broken state in between.
+
+**Rollback:**
+```bash
+git revert 65c9c4d
+```
+Migration is idempotent and additive — no rollback needed if reverting code. To remove the column entirely (only if you want to fully back out): `ALTER TABLE reps DROP COLUMN IF EXISTS active;` in Supabase SQL editor.
+
+**Verification:**
+- `npx tsc --noEmit` — clean
+- `npm run build` — clean compile, all 17 pages generated, page bundle 178KB / 337KB first load (no regression)
+- Pre-existing build warning about `SUPABASE_SERVICE_KEY missing` during `call-status-poll` static analysis — unrelated, runtime works (#twilio-webhook-hardening).
+
+**Manual steps Elliott still needs to do:**
+1. Open Supabase SQL editor → paste `supabase/migrations/20260502_reps_active.sql` → Run. Verify with `SELECT count(*), bool_and(active) FROM reps;` (count matches rep count, all true).
+2. End-to-end smoke test in production: open Reps tab → click rep → edit phone → close. Bulk assign smoke test: filter All Leads to "Unassigned" + a niche, select 5, assign to Isaiah, confirm assignment count on Reps tab refreshes.
+3. Inactive UX test: deactivate a test rep via the drawer, attempt sign-in as that rep on a private window, confirm refusal message. Reactivate, confirm restoration.
+
+**Watch for:**
+- Pre-migration deploys: the Reps tab works, but the "Show inactive" toggle and Deactivate button do nothing functional until the column exists. Login still allows everyone in.
+- Bulk assign with thousands of selected rows: Supabase `.in('id', ids)` has practical limits (~1000 typically). Tested mentally for ~200 rows; if Elliott ever bulk-assigns the entire 1500-lead pool to one rep, it may need a chunked update. Current usage cap is paged 100/group 50, so not urgent.
+- Invite codes are not stored in any allow-list. A motivated person who knows the format `PMSS-NAME-NN` could self-register without an invitation. The `DIRECTOR_EMAILS` hardcode in `lib/constants.ts` prevents arbitrary self-promotion to director, but rep self-registration is on the honor system. Future Chunk could add an `invitations` table that LoginView consults during register.
+- The role changer flips the DB row, but if you flip a logged-in rep to director, they need to sign out and back in for the role to take effect — `page.tsx` reads role from localStorage on session start.
+
+---
+
 ## 2026-05-01 [sentry-bootstrap] Sentry bug-tracking layer (dormant until DSN set)
 
 **Status:** ✅ enriched — installed and committed; **awaiting Elliott to activate by adding DSN**
