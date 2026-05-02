@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { reportClientError } from '@/lib/error-reporting';
+import { audit, auditFromLocalStorage } from '@/lib/audit';
 import SettingsSection from './SettingsSection';
 
 export default function SignOutAllCard() {
@@ -11,6 +12,12 @@ export default function SignOutAllCard() {
 
   const signOutAll = async () => {
     setBusy(true);
+    // Fire audit BEFORE the signOut — once the session is invalidated,
+    // the authenticated_insert RLS path won't accept the row.
+    await audit(auditFromLocalStorage({
+      actionType: 'auth.signed_out_all',
+      targetType: 'self',
+    }));
     const { error } = await supabase.auth.signOut({ scope: 'global' });
     if (error) {
       setBusy(false);

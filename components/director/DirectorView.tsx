@@ -10,6 +10,7 @@ import PipelineFunnelView from '@/components/director/PipelineFunnelView';
 import RepsTab from '@/components/director/RepsTab';
 import SettingsView from '@/components/settings/SettingsView';
 import type { Lead, CallLog } from '@/lib/types';
+import { audit, auditFromLocalStorage } from '@/lib/audit';
 
 const DIRECTOR_TABS = [
   { id: 'pipeline', label: 'Pipeline' },
@@ -128,6 +129,11 @@ export default function DirectorView(props: any) {
           await supabase.from('closes').update({ status: 'approved' }).eq('id', id);
           await loadPendingCloses();
           if (close) {
+            audit(auditFromLocalStorage({
+              actionType: 'close.approved',
+              targetType: 'close', targetId: id,
+              metadata: { rep_id: close.rep_id, rep_name: close.reps?.name, product_label: close.product_label, pts: close.pts },
+            }));
             fetch('/api/notify-telegram', { method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ type: 'close_approved', repName: close.reps?.name || 'Rep', businessName: close.product_label || `${close.pts}pt close` }) }).catch(() => {});
           }
@@ -136,6 +142,11 @@ export default function DirectorView(props: any) {
           await supabase.from('closes').update({ status: 'rejected' }).eq('id', id);
           await loadPendingCloses();
           if (close) {
+            audit(auditFromLocalStorage({
+              actionType: 'close.rejected',
+              targetType: 'close', targetId: id,
+              metadata: { rep_id: close.rep_id, rep_name: close.reps?.name, product_label: close.product_label, pts: close.pts },
+            }));
             fetch('/api/notify-telegram', { method: 'POST', headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ type: 'close_rejected', repName: close.reps?.name || 'Rep', businessName: close.product_label || `${close.pts}pt close` }) }).catch(() => {});
           }

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import Icon from '@/components/ui/Icon';
 import { DIRECTOR_EMAILS, PORTAL_AUTH_WEBHOOK } from '@/lib/constants';
+import { audit } from '@/lib/audit';
 
 const Logo = ({ height = 32 }: { height?: number }) => (
   <div style={{height, display:'flex', alignItems:'center'}}>
@@ -56,6 +57,12 @@ export default function LoginView({ onLogin }: { onLogin: any }) {
         localStorage.setItem('pmss_code', code);
       } catch {}
       try { fetch(`${PORTAL_AUTH_WEBHOOK}?action=validateCode&code=${encodeURIComponent(code)}&name=${encodeURIComponent(repName)}&email=${encodeURIComponent(regForm.email)}`, { mode:'no-cors' }); } catch {}
+      audit({
+        actorRepId: repData.id, actorEmail: regForm.email.trim(), actorRole: role,
+        actionType: 'auth.registered',
+        targetType: 'rep', targetId: repData.id,
+        metadata: { invite_code: code, role },
+      });
       setLoading(false);
       onLogin(repName, regForm.email, code, repData.id, role);
     } catch (err: any) {
@@ -88,6 +95,11 @@ export default function LoginView({ onLogin }: { onLogin: any }) {
         localStorage.setItem('pmss_email', repData.email);
         localStorage.setItem('pmss_code', repData.invite_code);
       } catch {}
+      audit({
+        actorRepId: repData.id, actorEmail: repData.email, actorRole: repData.role,
+        actionType: 'auth.signed_in',
+        targetType: 'rep', targetId: repData.id,
+      });
       setLoading(false);
       onLogin(repData.name, repData.email, repData.invite_code, repData.id, repData.role);
     } catch (err: any) {

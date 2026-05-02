@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Rep, RepStats, Lead } from '@/lib/types';
 import { reportClientError } from '@/lib/error-reporting';
+import { audit, auditFromLocalStorage } from '@/lib/audit';
 
 interface Props {
   rep: Rep;
@@ -91,6 +92,11 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
       alert('Failed to change role: ' + error.message);
       return;
     }
+    audit(auditFromLocalStorage({
+      actionType: 'rep.role_changed',
+      targetType: 'rep', targetId: rep.id,
+      metadata: { from: rep.role, to: nextRole, target_email: rep.email, target_name: rep.name },
+    }));
     onMutated();
   };
 
@@ -105,6 +111,11 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
       alert('Failed to update active state: ' + error.message);
       return;
     }
+    audit(auditFromLocalStorage({
+      actionType: nextActive ? 'rep.activated' : 'rep.deactivated',
+      targetType: 'rep', targetId: rep.id,
+      metadata: { target_email: rep.email, target_name: rep.name },
+    }));
     onMutated();
   };
 
@@ -117,6 +128,11 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
       alert('Failed to assign: ' + error.message);
       return;
     }
+    audit(auditFromLocalStorage({
+      actionType: 'lead.assigned',
+      targetType: 'lead', targetId: leadId,
+      metadata: { rep_id: rep.id, rep_name: rep.name, source: 'rep_drawer' },
+    }));
     setUnassigned(prev => prev.filter(l => l.id !== leadId));
     onMutated();
   };

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { reportClientError } from '@/lib/error-reporting';
+import { audit, auditFromLocalStorage } from '@/lib/audit';
 import SettingsSection from './SettingsSection';
 
 interface Props {
@@ -40,6 +41,12 @@ export default function UpdateNameCard({ repId, currentName }: Props) {
     }
 
     try { localStorage.setItem('pmss_user', trimmed); } catch {}
+    audit(auditFromLocalStorage({
+      actionType: 'settings.name_updated',
+      targetType: 'rep',
+      targetId: repId,
+      metadata: { from: currentName || null, to: trimmed },
+    }));
     setSuccess(true);
   };
 

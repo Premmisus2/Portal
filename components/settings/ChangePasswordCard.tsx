@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { reportClientError } from '@/lib/error-reporting';
+import { audit, auditFromLocalStorage } from '@/lib/audit';
 import SettingsSection from './SettingsSection';
 
 interface Props {
@@ -58,6 +59,11 @@ export default function ChangePasswordCard({ userEmail }: Props) {
     }
 
     setCurrent(''); setNext(''); setConfirm('');
+    audit(auditFromLocalStorage({
+      actionType: 'settings.password_changed',
+      targetType: 'self',
+      metadata: { email: userEmail },
+    }));
     setSuccess(true);
     setTimeout(() => setSuccess(false), 4000);
   };

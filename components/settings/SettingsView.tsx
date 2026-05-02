@@ -8,6 +8,7 @@ import SignOutAllCard from './SignOutAllCard';
 import PortalHealthCard from './PortalHealthCard';
 import BuildJournalCard from './BuildJournalCard';
 import NotificationRoutingCard from './NotificationRoutingCard';
+import ActivityLogCard from './ActivityLogCard';
 
 interface Props {
   userName: string;
@@ -28,32 +29,6 @@ const groupHeaderStyle: CSSProperties = {
 const dividerStyle: CSSProperties = {
   flex: 1, height: '1px', background: '#141414',
 };
-
-function StubCard({ title, description, chunkLabel }: { title: string; description: string; chunkLabel: string }) {
-  return (
-    <div style={{
-      background: '#080808', border: '1px dashed #1c1c1c', borderRadius: '10px',
-      padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '14px',
-    }}>
-      <div style={{ minWidth: 0 }}>
-        <h3 style={{ margin: 0, fontSize: '13px', fontWeight: 700, color: '#888', fontFamily: 'Inter, sans-serif' }}>
-          {title}
-        </h3>
-        <p style={{ margin: '3px 0 0', fontSize: '11px', color: '#444', lineHeight: 1.5, fontFamily: 'Roboto, sans-serif' }}>
-          {description}
-        </p>
-      </div>
-      <span style={{
-        fontSize: '9px', fontWeight: 800, padding: '2px 8px', borderRadius: '4px',
-        background: 'rgba(245,158,11,.07)', border: '1px solid rgba(245,158,11,.25)', color: '#F59E0B',
-        fontFamily: 'JetBrains Mono, monospace', letterSpacing: '.1em', textTransform: 'uppercase',
-        whiteSpace: 'nowrap', flexShrink: 0,
-      }}>
-        {chunkLabel}
-      </span>
-    </div>
-  );
-}
 
 export default function SettingsView({ userName, userEmail, repId, isDirector, embedded = true }: Props) {
   return (
@@ -89,11 +64,7 @@ export default function SettingsView({ userName, userEmail, repId, isDirector, e
           <PortalHealthCard />
           <BuildJournalCard />
           <NotificationRoutingCard />
-          <StubCard
-            title="Activity log"
-            description="Audit trail of every consequential rep + director action — filterable by actor, type, and date."
-            chunkLabel="Chunk E"
-          />
+          <ActivityLogCard />
         </>
       )}
     </div>

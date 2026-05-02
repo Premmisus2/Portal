@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase as sb } from '@/lib/supabase';
+import { audit, auditFromLocalStorage } from '@/lib/audit';
 
 const SOURCE_TYPES = [
   { value: 'csv_import', label: 'CSV Import' },
@@ -150,6 +151,12 @@ export default function LeadImportTool() {
       }
 
       if (batchId) await sb.from('import_batches').update({ lead_count: imported }).eq('id', batchId);
+
+      audit(auditFromLocalStorage({
+        actionType: 'leads.imported',
+        targetType: 'import_batch', targetId: batchId,
+        metadata: { imported, errors, total: rows.length, source_tag: tag, batch_label: batchLabel },
+      }));
 
       setImporting(false);
       setDone(true);

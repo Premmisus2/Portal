@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Rep } from '@/lib/types';
 import { reportClientError } from '@/lib/error-reporting';
+import { audit, auditFromLocalStorage } from '@/lib/audit';
 
 interface Props {
   selectedIds: string[];
@@ -33,6 +34,11 @@ export default function BulkAssignBar({ selectedIds, reps, onAssigned, onClear, 
       alert('Bulk assign failed: ' + error.message);
       return;
     }
+    audit(auditFromLocalStorage({
+      actionType: 'leads.bulk_assigned',
+      targetType: 'rep', targetId: target.id,
+      metadata: { count: selectedIds.length, rep_name: target.name, source: 'bulk_bar' },
+    }));
     setTargetRepId('');
     onAssigned();
   };
@@ -47,6 +53,10 @@ export default function BulkAssignBar({ selectedIds, reps, onAssigned, onClear, 
       alert('Bulk unassign failed: ' + error.message);
       return;
     }
+    audit(auditFromLocalStorage({
+      actionType: 'leads.bulk_unassigned',
+      metadata: { count: selectedIds.length, source: 'bulk_bar' },
+    }));
     onAssigned();
   };
 
