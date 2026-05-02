@@ -5,6 +5,8 @@ import ChangePasswordCard from './ChangePasswordCard';
 import RecoverPasswordCard from './RecoverPasswordCard';
 import UpdateNameCard from './UpdateNameCard';
 import SignOutAllCard from './SignOutAllCard';
+import PortalHealthCard from './PortalHealthCard';
+import BuildJournalCard from './BuildJournalCard';
 
 interface Props {
   userName: string;
@@ -83,16 +85,8 @@ export default function SettingsView({ userName, userEmail, repId, isDirector, e
             <span style={{ ...dividerStyle, background: 'rgba(0,240,255,.12)' }} />
           </div>
 
-          <StubCard
-            title="Portal health"
-            description="Cron status, Sentry, Telegram bot, Supabase connectivity, build version."
-            chunkLabel="Chunk C"
-          />
-          <StubCard
-            title="Build journal viewer"
-            description="Searchable log of every change shipped to the portal — filter by tag, expand entries inline."
-            chunkLabel="Chunk C"
-          />
+          <PortalHealthCard />
+          <BuildJournalCard />
           <StubCard
             title="Notification routing"
             description="Route Telegram alerts by type — errors to Elliott, summaries to a team channel, callbacks to rep DMs."

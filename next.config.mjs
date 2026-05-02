@@ -6,6 +6,15 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Ensure BUILD-JOURNAL.md is bundled with the /api/journal serverless
+  // function so fs.readFileSync works on Vercel. Without this, the file is
+  // tree-shaken out of the deployment and the route 500s on production.
+  // Top-level in Next 15+, under `experimental` in Next 14.
+  experimental: {
+    outputFileTracingIncludes: {
+      '/api/journal': ['./BUILD-JOURNAL.md'],
+    },
+  },
 };
 
 // Wrap with Sentry. When SENTRY_DSN/NEXT_PUBLIC_SENTRY_DSN are unset, the
