@@ -7,6 +7,7 @@ import UpdateNameCard from './UpdateNameCard';
 import SignOutAllCard from './SignOutAllCard';
 import PortalHealthCard from './PortalHealthCard';
 import BuildJournalCard from './BuildJournalCard';
+import NotificationRoutingCard from './NotificationRoutingCard';
 
 interface Props {
   userName: string;
@@ -87,11 +88,7 @@ export default function SettingsView({ userName, userEmail, repId, isDirector, e
 
           <PortalHealthCard />
           <BuildJournalCard />
-          <StubCard
-            title="Notification routing"
-            description="Route Telegram alerts by type — errors to Elliott, summaries to a team channel, callbacks to rep DMs."
-            chunkLabel="Chunk D"
-          />
+          <NotificationRoutingCard />
           <StubCard
             title="Activity log"
             description="Audit trail of every consequential rep + director action — filterable by actor, type, and date."

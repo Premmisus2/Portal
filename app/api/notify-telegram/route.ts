@@ -1,17 +1,38 @@
 // Premmisus Tracker — Telegram Bot Notification
-// Sends formatted Telegram messages for priority alerts
+// Sends formatted Telegram messages for priority alerts.
+//
+// Routing: looks up notification_routes by alert_type. If a row exists and
+// is enabled, uses its chat_id (+ optional topic_id). Otherwise falls back
+// to TELEGRAM_CHAT_ID env var. See lib/notification-routes.ts.
 
 import { NextResponse } from 'next/server';
+import { resolveRoute } from '@/lib/notification-routes';
+
+// Map the legacy `type` values used by callers to the canonical alert_type
+// values stored in the notification_routes table. Keeps existing callers
+// working unchanged while letting the routing UI use stable identifiers.
+const TYPE_TO_ALERT_TYPE: Record<string, string> = {
+  booked: 'booked_call',
+  idle: 'idle',
+  daily_summary: 'daily_summary',
+  close_approved: 'close_approved',
+  close_rejected: 'close_rejected',
+  client_error: 'client_error',
+};
 
 export async function POST(request: Request) {
   const BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
-  const CHAT_ID = (process.env.TELEGRAM_CHAT_ID || '').trim();
 
-  if (!BOT_TOKEN || !CHAT_ID) {
+  if (!BOT_TOKEN) {
     return NextResponse.json({ error: 'Telegram not configured' }, { status: 500 });
   }
 
   const { type, repName, businessName, phone, notes, stats, journalTag } = await request.json();
+  const alertType = TYPE_TO_ALERT_TYPE[type] || type || 'unknown';
+  const route = await resolveRoute(alertType);
+  if (!route.chatId) {
+    return NextResponse.json({ error: 'No chat id resolved (no route + TELEGRAM_CHAT_ID unset)' }, { status: 500 });
+  }
 
   let message = '';
   switch (type) {
@@ -40,14 +61,17 @@ export async function POST(request: Request) {
   }
 
   try {
+    const tgBody: Record<string, unknown> = {
+      chat_id: route.chatId,
+      text: message,
+      parse_mode: 'Markdown',
+    };
+    if (route.topicId) tgBody.message_thread_id = Number(route.topicId);
+
     const teleRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: CHAT_ID,
-        text: message,
-        parse_mode: 'Markdown',
-      }),
+      body: JSON.stringify(tgBody),
     });
 
     const data = await teleRes.json();

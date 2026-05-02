@@ -22,6 +22,7 @@
 // Fire-and-forget — never throws, never blocks the calling route.
 
 import * as Sentry from '@sentry/nextjs';
+import { resolveRoute } from './notification-routes';
 
 type ErrorMeta = Record<string, string | number | boolean | null | undefined>;
 
@@ -57,8 +58,12 @@ export async function reportServerError(
   }
 
   const BOT_TOKEN = (process.env.TELEGRAM_BOT_TOKEN || '').trim();
-  const CHAT_ID = (process.env.TELEGRAM_CHAT_ID || '').trim();
-  if (!BOT_TOKEN || !CHAT_ID) return;
+  if (!BOT_TOKEN) return;
+
+  // Route to the configured chat for `server_error`. Falls back to
+  // TELEGRAM_CHAT_ID if no route exists. See lib/notification-routes.ts.
+  const route = await resolveRoute('server_error');
+  if (!route.chatId) return;
 
   const errStr = formatError(err);
   const metaStr = meta
@@ -71,14 +76,17 @@ export async function reportServerError(
   const message = `🔧 *SERVER ERROR*\nWhere: ${context}\nWhat: ${notes.slice(0, 500)}${journalLine}\n\n_Reported from /api route. Check Vercel logs for full stack._`;
 
   try {
+    const tgBody: Record<string, unknown> = {
+      chat_id: route.chatId,
+      text: message,
+      parse_mode: 'Markdown',
+    };
+    if (route.topicId) tgBody.message_thread_id = Number(route.topicId);
+
     await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: CHAT_ID,
-        text: message,
-        parse_mode: 'Markdown',
-      }),
+      body: JSON.stringify(tgBody),
     });
   } catch {
     // Don't recurse — console already has the original error
