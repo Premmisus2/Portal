@@ -17,6 +17,46 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 ---
 
 <!-- ENTRIES BELOW -->
+<a id="2026-05-05-leaderboard"></a>
+## 2026-05-05 #leaderboard — Live team standup leaderboard + 7PM ET SMS broadcast + director test console
+
+**Status:** ✅ Shipped to main. Awaiting first real call session (Elliott starting cold calling 2026-05-06) to confirm the 7PM ET SMS lands cleanly on every rep's phone.
+
+**Commit:** `e6d55f9d22127b3eba60592c29c187c9097ae5a0` (`e6d55f9`)
+
+**Files:**
+- `app/api/cron-daily-summary/route.ts` — extended: per-rep stats now also build an SMS-friendly array, broadcast loop after Telegram send, director filter dropped (Elliott's calls now count), totals expanded to include discovery + callbacks. E.164 phone normalizer added.
+- `app/api/send-team-summary/route.ts` — new: director-only POST. Mirrors the cron's broadcast logic. Body params `{ dryRun, onlyMe }` for preview-only / send-to-self / send-to-team modes. Auth via `requireDirector`.
+- `app/page.tsx` — wired `view === 'leaderboard'` into the state machine.
+- `components/home/HomeView.tsx` — new featured card alongside Call Center; grid template updated to `"coldcall coldcall leaderboard"`.
+- `components/layout/GlobalSidebar.tsx` — new "🏆 Leaderboard" entry under Call Center.
+- `components/leaderboard/LeaderboardView.tsx` — new: ranked table (1st/2nd/3rd badges), separate columns for Calls / Connects / Booked / Discovery / Callbacks / Conv %, date picker for past days, team total tiles, director-only test broadcast console with Preview / Send-to-Me / Send-to-Team modes and per-recipient result panel.
+
+**Idea (Elliott's intent):** Elliott starts cold-calling tomorrow and needs (a) accountability — every rep including himself sees who called whom, who booked, who didn't — and (b) proof to himself and his reps that the portal actually works before he starts hiring more reps. Same energy as the existing 6PM director-only Telegram summary, but as SMS to the whole team.
+
+**What shipped:** Live leaderboard view at `/` (in-app `view = 'leaderboard'`), reachable from the home grid and the sidebar. The existing daily-summary cron now also blasts a compact ranked SMS to every active rep with a phone in `reps.phone` (Elliott included), at the same 7PM ET (DST) / 6PM ET (EST) Mon–Fri slot. Director console on the leaderboard lets Elliott dry-run the SMS three ways without waiting for the cron.
+
+**Rollback:**
+```bash
+git revert e6d55f9
+```
+The director test endpoint and leaderboard nav entry come out cleanly. The cron's pre-existing Telegram path is untouched on revert; only the appended SMS broadcast block disappears.
+
+**Verification:**
+- `npx tsc --noEmit` clean after the narrowing fix (`auth.ok !== true` instead of `!auth.ok` — strict:false quirk already noted in `feedback_portal_quirks.md`).
+- Local dev server (`PORT=3010 npm run dev`) booted, served the leaderboard at HTTP 200 with the title `Premmisus — Sales Portal`.
+- Elliott's phone normalized in `reps.phone` from `12509867747` → `+12509867747` via service-key PATCH so Twilio accepts it without relying on the runtime normalizer.
+- Vercel production build kicked off at commit time (visible in `vercel ls premmisus-portal`).
+
+**Watch for:**
+- **Reps without `reps.phone` get silently skipped** in the broadcast — the cron logs `smsSent` / `smsFailed` in `cron_runs.metadata` but no audible alarm. Senay (`senay8haile@gmail.com`) is documented in CLAUDE.md but does not yet have a row in `reps`; she'll need an invite + phone before her stats show on the leaderboard or she gets the SMS.
+- **`reps.active` column doesn't exist** despite being referenced in the new code (`r.active !== false` on undefined → still includes the rep, so the filter is a no-op — fine). If the column is added later, this will start filtering as expected without code changes.
+- **SMS body uses plain ASCII** (no emojis) to keep GSM-7 segment count tight (~4 segments per recipient, ~$0.03 USD/recipient/day at current Twilio CAD rates). If team grows past ~10 reps the body might tip over the 1600-char concat limit; truncate or paginate then.
+- **Director test endpoint is gated by `requireDirector`** (Bearer token from supabase auth → email → reps.role check). If RLS or the `reps.role` column ever changes, this gate breaks open or shut.
+- **Twilio env vars (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER`)** are required on Vercel for the broadcast — already wired for the existing `notify-sms` route, so no new config needed. If those ever rotate, the cron silently logs `smsErrors: ['Twilio not configured']` in `cron_runs.metadata` but Telegram delivery still succeeds, so `cron-watchdog` won't catch it. Worth a future watchdog rule.
+
+---
+
 <a id="2026-05-02-settings-activity-log"></a>
 ## 2026-05-02 #settings-activity-log — Activity log + audit() instrumentation
 
