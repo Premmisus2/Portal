@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 
   // Fetch reps + today's logs in parallel.
   const [repsRes, logsRes] = await Promise.all([
-    fetch(`${SUPABASE_URL}/rest/v1/reps?select=id,name,role,phone,active&order=created_at.asc`, {
+    fetch(`${SUPABASE_URL}/rest/v1/reps?select=id,name,role,phone&order=created_at.asc`, {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
     }),
     fetch(`${SUPABASE_URL}/rest/v1/call_logs?select=rep_id,outcome&created_at=gte.${today}T00:00:00`, {
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to load reps or logs' }, { status: 500 });
   }
 
-  const activeReps = reps.filter((r: any) => r.active !== false);
+  const activeReps = reps;
 
   let totalCalls = 0;
   let totalBookings = 0;

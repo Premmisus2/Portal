@@ -18,7 +18,6 @@ interface RepRow {
   id: string;
   name: string;
   role: 'rep' | 'director';
-  active?: boolean;
 }
 
 interface CallRow {
@@ -130,7 +129,7 @@ export default function LeaderboardView(props: any) {
         const start = `${date}T00:00:00`;
         const end = `${date}T23:59:59.999`;
         const [repsRes, logsRes] = await Promise.all([
-          supabase.from('reps').select('id,name,role,active').order('name', { ascending: true }),
+          supabase.from('reps').select('id,name,role').order('name', { ascending: true }),
           supabase
             .from('call_logs')
             .select('rep_id,outcome,duration_seconds,created_at')
@@ -154,7 +153,7 @@ export default function LeaderboardView(props: any) {
   }, [date]);
 
   const stats: RepStat[] = useMemo(() => {
-    const activeReps = reps.filter(r => r.active !== false);
+    const activeReps = reps;
     const byRep: Record<string, CallRow[]> = {};
     for (const l of logs) (byRep[l.rep_id] ||= []).push(l);
 

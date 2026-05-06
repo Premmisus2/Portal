@@ -40,7 +40,7 @@ export async function GET(request: Request) {
     const today = new Date().toISOString().split('T')[0];
 
     // Get all reps (including directors — Elliott calls now too)
-    const repsRes = await fetch(`${SUPABASE_URL}/rest/v1/reps?select=id,name,role,phone,active&order=created_at.asc`, {
+    const repsRes = await fetch(`${SUPABASE_URL}/rest/v1/reps?select=id,name,role,phone&order=created_at.asc`, {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
     });
     const reps = await repsRes.json();
@@ -66,7 +66,7 @@ export async function GET(request: Request) {
     interface SmsRow { name: string; calls: number; booked: number; discovery: number; callbacks: number; conv: number; }
     const smsRows: SmsRow[] = [];
 
-    const activeReps = (Array.isArray(reps) ? reps : []).filter((r: any) => r.active !== false);
+    const activeReps = Array.isArray(reps) ? reps : [];
 
     for (const rep of activeReps) {
       const repLogs = logs.filter((l: any) => l.rep_id === rep.id);
