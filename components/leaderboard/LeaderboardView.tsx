@@ -285,7 +285,7 @@ export default function LeaderboardView(props: any) {
               <div style={{ minWidth: 0 }}>
                 <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, letterSpacing: '.15em', color: '#00F0FF', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>Director Console</p>
                 <p style={{ margin: '4px 0 0', color: '#888', fontSize: '12px' }}>
-                  Dry-run the daily standup SMS. The cron auto-sends it at 7PM ET (Mon–Fri).
+                  Dry-run the daily standup SMS. The cron auto-sends it at 9PM ET (Mon–Fri).
                 </p>
               </div>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -455,7 +455,7 @@ export default function LeaderboardView(props: any) {
         )}
 
         <p style={{ marginTop: '20px', fontSize: '11px', color: '#333', textAlign: 'center', letterSpacing: '.1em', fontFamily: 'JetBrains Mono, monospace' }}>
-          A team SMS goes out at 6PM ET (Mon–Fri) with these numbers. Auto-summary via Premmisus Nerve Center.
+          A team SMS goes out at 9PM ET (Mon–Fri) with these numbers. Auto-summary via Premmisus Nerve Center.
         </p>
       </main>
 

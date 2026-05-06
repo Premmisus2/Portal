@@ -1,6 +1,8 @@
 // Premmisus Nerve Center — Daily Summary Cron
-// Runs at 6pm ET (Mon-Fri), sends formatted Telegram summary of today's activity
-// Plus broadcasts a team-standup SMS to every active rep with a phone number.
+// Runs at 9pm ET Mon-Fri (01:00 UTC Tue-Sat in DST, 02:00 UTC in EST — vercel.json
+// is locked to DST since cold calling launched in May; revisit when DST ends).
+// Sends formatted Telegram summary of today's activity plus broadcasts a
+// team-standup SMS to every active rep with a phone number.
 // Must be GET to be callable by Vercel cron (fixed 2026-04-21 after silent 405 failures)
 
 import { NextResponse } from 'next/server';

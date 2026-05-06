@@ -46,7 +46,7 @@ export default function HomeView({ userName, userEmail, onNav, onLogout, totalCl
       key: 'leaderboard',
       num: '\uD83C\uDFC6',
       title: 'Leaderboard',
-      desc: 'Live team standup. Calls, bookings, discoveries, and callbacks per rep. Auto-SMS to the whole team at 6PM ET.',
+      desc: 'Live team standup. Calls, bookings, discoveries, and callbacks per rep. Auto-SMS to the whole team at 9PM ET.',
       pills: ['Live Ranks', 'Daily Standup', 'Team SMS'],
       featured: true,
     },

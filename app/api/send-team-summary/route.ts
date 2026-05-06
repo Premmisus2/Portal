@@ -1,6 +1,6 @@
 // Director-only manual broadcast of the daily team-standup SMS.
 // Mirrors the broadcast inside cron-daily-summary so directors can dry-run
-// the SMS before relying on the 7PM ET cron. No CRON_SECRET — gated by
+// the SMS before relying on the 9PM ET cron. No CRON_SECRET — gated by
 // requireDirector instead.
 
 import { NextResponse } from 'next/server';
