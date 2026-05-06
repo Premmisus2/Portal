@@ -180,6 +180,7 @@ input[type=range]::-moz-range-thumb {
     grid-template-columns: 1fr !important;
     grid-template-areas:
       "coldcall"
+      "leaderboard"
       "scripts"
       "foundation"
       "outreach"
