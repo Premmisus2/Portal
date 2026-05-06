@@ -29,6 +29,13 @@ export default function GlobalSidebar({ open, onClose, onNav, currentView, isDir
             </button>
           </div>
 
+          {/* Leaderboard */}
+          <div className="gs-category">
+            <button className={`gs-item${currentView==='leaderboard'?' active':''}`} onClick={()=>go('leaderboard')} style={{paddingLeft:'20px'}}>
+              <span style={{fontSize:'14px'}}>&#127942;</span> Leaderboard
+            </button>
+          </div>
+
           {/* Written Outreach */}
           <div className="gs-category">
             <div className="gs-category-label" onClick={()=>toggle('outreach')}>

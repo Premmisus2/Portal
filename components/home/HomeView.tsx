@@ -43,6 +43,14 @@ export default function HomeView({ userName, userEmail, onNav, onLogout, totalCl
       featured: true,
     },
     {
+      key: 'leaderboard',
+      num: '\uD83C\uDFC6',
+      title: 'Leaderboard',
+      desc: 'Live team standup. Calls, bookings, discoveries, and callbacks per rep. Auto-SMS to the whole team at 6PM ET.',
+      pills: ['Live Ranks', 'Daily Standup', 'Team SMS'],
+      featured: true,
+    },
+    {
       key: 'foundation',
       num: '01',
       title: 'Foundation & Blueprint',
@@ -160,8 +168,8 @@ export default function HomeView({ userName, userEmail, onNav, onLogout, totalCl
           display:'grid',
           gridTemplateColumns:'repeat(3, 1fr)',
           gridTemplateAreas: isDirector
-            ? `"coldcall coldcall coldcall" "foundation scripts scripts" "outreach postcall ladder" "handoff aitools training" "director director director" "newupdates newupdates newupdates"`
-            : `"coldcall coldcall coldcall" "foundation scripts scripts" "outreach postcall ladder" "handoff aitools training"`,
+            ? `"coldcall coldcall leaderboard" "foundation scripts scripts" "outreach postcall ladder" "handoff aitools training" "director director director" "newupdates newupdates newupdates"`
+            : `"coldcall coldcall leaderboard" "foundation scripts scripts" "outreach postcall ladder" "handoff aitools training"`,
           gap:'16px',
         }}>
           {sections.map((s: any)=>(

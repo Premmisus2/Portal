@@ -26,6 +26,7 @@ import FoundationView from '@/components/foundation/FoundationView';
 import ScriptsView from '@/components/scripts/ScriptsView';
 import PostCallView from '@/components/postcall/PostCallView';
 import LadderView from '@/components/ladder/LadderView';
+import LeaderboardView from '@/components/leaderboard/LeaderboardView';
 import HandoffView from '@/components/handoff/HandoffView';
 import DMView from '@/components/outreach/DMView';
 import EmailView from '@/components/outreach/EmailView';
@@ -426,6 +427,7 @@ function AppShell() {
   if (view === 'scripts')    return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<ScriptsView {...shared} scriptTab={scriptTab} setScriptTab={setScriptTab} />{bottomNav}{chat}</>;
   if (view === 'postcall')   return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<PostCallView {...shared} />{bottomNav}{chat}</>;
   if (view === 'ladder')     return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<LadderView {...shared} />{bottomNav}{chat}</>;
+  if (view === 'leaderboard') return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<LeaderboardView {...shared} />{bottomNav}{chat}</>;
   if (view === 'handoff')    return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<HandoffView {...shared} />{bottomNav}{chat}</>;
   if (view === 'dms')        return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<DMView {...shared} />{bottomNav}{chat}</>;
   if (view === 'email')      return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<EmailView {...shared} />{bottomNav}{chat}</>;
