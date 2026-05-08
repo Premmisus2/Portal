@@ -9,6 +9,9 @@ import { reportClientError } from '@/lib/error-reporting';
 // Auth
 import LoginView from '@/components/auth/LoginView';
 
+// Splash
+import SalesPortalSplash from '@/components/splash/SalesPortalSplash';
+
 // Layout
 import TopBar from '@/components/layout/TopBar';
 import GlobalSidebar from '@/components/layout/GlobalSidebar';
@@ -60,6 +63,12 @@ const Logo = ({ height = 32 }: { height?: number }) => (
 function AppShell() {
   const [view, setView] = useState('login');
   const [appLoading, setAppLoading] = useState(true);
+  // Splash gate — sessionStorage-backed so closing the tab re-shows splash on
+  // next entry, but tab refresh / in-tab nav does not. Cleared on logout.
+  const [splashPassed, setSplashPassed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try { return sessionStorage.getItem('pmss:splash-passed') === '1'; } catch { return true; }
+  });
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [userRole, setUserRole] = useState('rep');
@@ -291,6 +300,8 @@ function AppShell() {
     setUserName(''); setUserEmail(''); setRepId(null); setUserRole('rep');
     setTotalCloses(0); setTotalPoints(0); setCloseHistory([]);
     try { localStorage.removeItem('pmss_user'); localStorage.removeItem('pmss_email'); localStorage.removeItem('pmss_view'); } catch {}
+    try { sessionStorage.removeItem('pmss:splash-passed'); } catch {}
+    setSplashPassed(false);
     setView('login');
   };
 
@@ -394,6 +405,10 @@ function AppShell() {
   ) : null;
 
   if (view === 'login') return <LoginView onLogin={handleLogin} />;
+
+  // Splash gate — every fresh tab session lands here once before the app.
+  // Returning user with valid session also sees splash on next tab open.
+  if (!splashPassed) return <SalesPortalSplash onEnter={() => setSplashPassed(true)} />;
 
   // Shadow Banner
   const shadowBanner = shadowMode ? (

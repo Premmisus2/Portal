@@ -18,6 +18,8 @@ const TYPE_TO_ALERT_TYPE: Record<string, string> = {
   close_approved: 'close_approved',
   close_rejected: 'close_rejected',
   client_error: 'client_error',
+  auth_signed_in: 'auth_signed_in',
+  auth_signed_up: 'auth_signed_up',
 };
 
 export async function POST(request: Request) {
@@ -27,7 +29,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Telegram not configured' }, { status: 500 });
   }
 
-  const { type, repName, businessName, phone, notes, stats, journalTag } = await request.json();
+  const { type, repName, businessName, phone, notes, stats, journalTag, email } = await request.json();
   const alertType = TYPE_TO_ALERT_TYPE[type] || type || 'unknown';
   const route = await resolveRoute(alertType);
   if (!route.chatId) {
@@ -54,6 +56,16 @@ export async function POST(request: Request) {
     case 'client_error': {
       const journalLine = journalTag ? `\n_See journal: #${journalTag}_` : '';
       message = `🐛 *CLIENT ERROR*\nWho: ${repName || 'unknown'}\nWhere: ${businessName || 'unknown'}\nWhat: ${notes ? notes.slice(0, 500) : 'no details'}${journalLine}\n\n_Reported from portal browser. Check console for full stack._`;
+      break;
+    }
+    case 'auth_signed_in': {
+      const time = new Date().toLocaleTimeString('en-US', { timeZone: 'America/Toronto', hour: 'numeric', minute: '2-digit', hour12: true });
+      message = `🔓 *Portal Sign-In*\nRep: ${repName || 'Unknown'}${email ? '\nEmail: ' + email : ''}\nAt: ${time} ET`;
+      break;
+    }
+    case 'auth_signed_up': {
+      const time = new Date().toLocaleTimeString('en-US', { timeZone: 'America/Toronto', hour: 'numeric', minute: '2-digit', hour12: true });
+      message = `🆕 *Portal Sign-Up*\nRep: ${repName || 'Unknown'}${email ? '\nEmail: ' + email : ''}\nAt: ${time} ET`;
       break;
     }
     default:
