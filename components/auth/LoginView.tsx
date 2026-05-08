@@ -63,6 +63,13 @@ export default function LoginView({ onLogin }: { onLogin: any }) {
         targetType: 'rep', targetId: repData.id,
         metadata: { invite_code: code, role },
       });
+      try {
+        fetch('/api/notify-telegram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'auth_signed_up', repName, email: regForm.email.trim() }),
+        }).catch(() => {});
+      } catch {}
       setLoading(false);
       onLogin(repName, regForm.email, code, repData.id, role);
     } catch (err: any) {
@@ -100,6 +107,13 @@ export default function LoginView({ onLogin }: { onLogin: any }) {
         actionType: 'auth.signed_in',
         targetType: 'rep', targetId: repData.id,
       });
+      try {
+        fetch('/api/notify-telegram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'auth_signed_in', repName: repData.name, email: repData.email }),
+        }).catch(() => {});
+      } catch {}
       setLoading(false);
       onLogin(repData.name, repData.email, repData.invite_code, repData.id, repData.role);
     } catch (err: any) {
