@@ -72,8 +72,8 @@ export default function NotificationPopup({ events, lastVisit, onDismiss }: Noti
               {events.bookings.map((b: any, i: number) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'rgba(34,197,94,.04)', border: '1px solid rgba(34,197,94,.12)', borderRadius: '6px', marginBottom: '4px' }}>
                   <div>
-                    <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#e0e0e0' }}>{b.business_name || b.company || 'Unknown'}</p>
-                    <p style={{ margin: 0, fontSize: '11px', color: '#555' }}>{b.rep_name || 'Unknown rep'}</p>
+                    <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#e0e0e0' }}>{b.business_name || b.leads?.business_name || b.company || 'Unknown'}</p>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#555' }}>{b.reps?.name || b.rep_name || 'Unknown rep'}</p>
                   </div>
                   {b.created_at && <span style={{ fontSize: '10px', color: '#444', fontFamily: 'JetBrains Mono, monospace' }}>{fmtTime(b.created_at)}</span>}
                 </div>
@@ -88,8 +88,8 @@ export default function NotificationPopup({ events, lastVisit, onDismiss }: Noti
               {events.callbacks.map((c: any, i: number) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'rgba(245,158,11,.04)', border: '1px solid rgba(245,158,11,.12)', borderRadius: '6px', marginBottom: '4px' }}>
                   <div>
-                    <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#e0e0e0' }}>{c.business_name || c.company || 'Unknown'}</p>
-                    <p style={{ margin: 0, fontSize: '11px', color: '#555' }}>{c.rep_name || 'Unknown rep'}</p>
+                    <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#e0e0e0' }}>{c.business_name || c.leads?.business_name || c.company || 'Unknown'}</p>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#555' }}>{c.reps?.name || c.rep_name || 'Unknown rep'}</p>
                   </div>
                   {c.created_at && <span style={{ fontSize: '10px', color: '#444', fontFamily: 'JetBrains Mono, monospace' }}>{fmtTime(c.created_at)}</span>}
                 </div>

@@ -152,11 +152,13 @@ function AppShell() {
           }
 
           try {
-            const lastVisit = localStorage.getItem('pmss_last_director_visit') || new Date(0).toISOString();
+            const sevenDaysAgo = new Date(Date.now() - 7 * 86400_000).toISOString();
+            const stored = localStorage.getItem('pmss_last_director_visit');
+            const lastVisit = stored && stored > sevenDaysAgo ? stored : sevenDaysAgo;
             setLastDirectorVisit(lastVisit);
             const [bookings, callbacks, handoffs, totalCalls] = await Promise.all([
-              supabase.from('call_logs').select('*, reps(name)').in('outcome', ['booked_call', 'discovery_completed']).gt('created_at', lastVisit),
-              supabase.from('call_logs').select('*, reps(name)').eq('outcome', 'callback_requested').gt('created_at', lastVisit),
+              supabase.from('call_logs').select('*, reps(name), leads(business_name)').in('outcome', ['booked_call', 'discovery_completed']).gt('created_at', lastVisit),
+              supabase.from('call_logs').select('*, reps(name), leads(business_name)').eq('outcome', 'callback_requested').gt('created_at', lastVisit),
               supabase.from('handoffs').select('*, reps(name)').gt('created_at', lastVisit),
               supabase.from('call_logs').select('id').gt('created_at', lastVisit),
             ]);
