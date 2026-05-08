@@ -172,6 +172,7 @@ ${transcript.slice(0, 8000)}`;
           generationConfig: {
             maxOutputTokens: 256,
             temperature: 0.0,
+            thinkingConfig: { thinkingBudget: 0 },
             responseMimeType: 'application/json',
             responseSchema: {
               type: 'object',
