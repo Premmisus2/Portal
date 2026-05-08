@@ -9,6 +9,7 @@ import LeadRow from './LeadRow';
 import QuickLogForm from './QuickLogForm';
 import CallTranscriptToggle from './CallTranscriptToggle';
 import EditCallLogModal from './EditCallLogModal';
+import { recordingProxySrc } from '@/lib/recording';
 
 const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, totalPoints, addClose, undoClose, repId, isDirector, shadowMode, repPhone }: any) => {
   const [tab, setTab] = useState(() => { try { return localStorage.getItem('pmss_cc_tab') || 'list'; } catch { return 'list'; } });
@@ -409,11 +410,11 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                           )}
                         </div>
                         {log.notes && <p style={{margin:'0 0 6px', fontSize:'12px', color:'#aaa', lineHeight:'1.5', wordBreak:'break-word'}}>{log.notes}</p>}
-                        {log.recording_url && (
+                        {(() => { const src = recordingProxySrc(log); return src ? (
                           <div style={{marginTop:'6px'}}>
-                            <audio controls src={log.recording_sid ? `/api/recording?sid=${log.recording_sid}` : log.recording_url} style={{width:'100%', height:'32px', borderRadius:'6px'}}/>
+                            <audio controls src={src} style={{width:'100%', height:'32px', borderRadius:'6px'}}/>
                           </div>
-                        )}
+                        ) : null; })()}
                         {log.transcript && (
                           <CallTranscriptToggle transcript={log.transcript}/>
                         )}
@@ -870,7 +871,9 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                               </div>
                               {isExpanded && (
                                 <div style={{marginTop:'12px'}} onClick={e=>e.stopPropagation()}>
-                                  <audio controls src={log.recording_sid ? `/api/recording?sid=${log.recording_sid}` : log.recording_url} style={{width:'100%', height:'36px', borderRadius:'6px', marginBottom:'8px'}}/>
+                                  {(() => { const src = recordingProxySrc(log); return src ? (
+                                    <audio controls src={src} style={{width:'100%', height:'36px', borderRadius:'6px', marginBottom:'8px'}}/>
+                                  ) : null; })()}
                                   {log.transcript_status === 'completed' && log.transcript ? (
                                     <div style={{marginTop:'8px'}}>
                                       <p style={{margin:'0 0 6px', fontSize:'10px', fontWeight:700, color:'#00F0FF', letterSpacing:'.1em', textTransform:'uppercase'}}>Transcript</p>

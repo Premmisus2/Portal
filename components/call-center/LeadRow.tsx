@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { OUTCOME_LABELS, OUTCOME_COLORS } from '@/lib/constants';
 import { todayInToronto } from '@/lib/date';
 import { reportClientError } from '@/lib/error-reporting';
+import { recordingProxySrc } from '@/lib/recording';
 import CallLogger from './CallLogger';
 import TwilioCallModal from './TwilioCallModal';
 
@@ -179,11 +180,11 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
                         AI suggests {OUTCOME_LABELS[log.outcome_auto] || log.outcome_auto}: {log.outcome_auto_reasoning}
                       </div>
                     )}
-                    {log.recording_url && (
+                    {(() => { const src = recordingProxySrc(log); return src ? (
                       <div style={{paddingLeft:'20px'}} onClick={e=>e.stopPropagation()}>
-                        <audio controls src={log.recording_url} style={{width:'100%', height:'32px'}} preload="none"/>
+                        <audio controls src={src} style={{width:'100%', height:'32px'}} preload="none"/>
                       </div>
-                    )}
+                    ) : null; })()}
                   </div>
                   );
                 })}
