@@ -8,11 +8,13 @@ import TopBar from '@/components/layout/TopBar';
 import LeadRow from './LeadRow';
 import QuickLogForm from './QuickLogForm';
 import CallTranscriptToggle from './CallTranscriptToggle';
+import EditCallLogModal from './EditCallLogModal';
 
 const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, totalPoints, addClose, undoClose, repId, isDirector, shadowMode, repPhone }: any) => {
   const [tab, setTab] = useState(() => { try { return localStorage.getItem('pmss_cc_tab') || 'list'; } catch { return 'list'; } });
   const [leads, setLeads] = useState<any[]>([]);
   const [callLogs, setCallLogs] = useState<Record<string, any[]>>({});
+  const [editingLog, setEditingLog] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedLead, setExpandedLead] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState(() => { try { return localStorage.getItem('pmss_cc_search') || ''; } catch { return ''; } });
@@ -390,11 +392,26 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                           {duration && <span style={{fontSize:'10px', color:'#666', fontFamily:'monospace'}}>{duration}</span>}
                           <span style={{fontSize:'11px', color:'#444', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString()} {new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
                           {log.callback_date && <span style={{fontSize:'10px', color:'#F59E0B', fontWeight:600}}>CB: {log.callback_date}</span>}
+                          {!shadowMode && log.rep_id === repId && (
+                            <button
+                              onClick={() => setEditingLog(log)}
+                              title="Edit call log"
+                              aria-label="Edit call log"
+                              style={{
+                                background: 'transparent', border: '1px solid #1e1e1e',
+                                borderRadius: '6px', padding: '4px 8px', cursor: 'pointer',
+                                color: '#666', fontSize: '12px', lineHeight: 1,
+                                transition: 'all .15s',
+                              }}
+                              onMouseEnter={e => { e.currentTarget.style.color = '#00F0FF'; e.currentTarget.style.borderColor = '#00F0FF55'; }}
+                              onMouseLeave={e => { e.currentTarget.style.color = '#666'; e.currentTarget.style.borderColor = '#1e1e1e'; }}
+                            >✎</button>
+                          )}
                         </div>
                         {log.notes && <p style={{margin:'0 0 6px', fontSize:'12px', color:'#aaa', lineHeight:'1.5', wordBreak:'break-word'}}>{log.notes}</p>}
                         {log.recording_url && (
                           <div style={{marginTop:'6px'}}>
-                            <audio controls src={log.recording_url} style={{width:'100%', height:'32px', borderRadius:'6px'}}/>
+                            <audio controls src={log.recording_sid ? `/api/recording?sid=${log.recording_sid}` : log.recording_url} style={{width:'100%', height:'32px', borderRadius:'6px'}}/>
                           </div>
                         )}
                         {log.transcript && (
@@ -853,7 +870,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                               </div>
                               {isExpanded && (
                                 <div style={{marginTop:'12px'}} onClick={e=>e.stopPropagation()}>
-                                  <audio controls src={log.recording_url} style={{width:'100%', height:'36px', borderRadius:'6px', marginBottom:'8px'}}/>
+                                  <audio controls src={log.recording_sid ? `/api/recording?sid=${log.recording_sid}` : log.recording_url} style={{width:'100%', height:'36px', borderRadius:'6px', marginBottom:'8px'}}/>
                                   {log.transcript_status === 'completed' && log.transcript ? (
                                     <div style={{marginTop:'8px'}}>
                                       <p style={{margin:'0 0 6px', fontSize:'10px', fontWeight:700, color:'#00F0FF', letterSpacing:'.1em', textTransform:'uppercase'}}>Transcript</p>
@@ -880,6 +897,14 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
           </>
         )}
       </main>
+
+      {editingLog && (
+        <EditCallLogModal
+          log={editingLog}
+          onClose={() => setEditingLog(null)}
+          onSaved={() => { loadLeads(); loadStats(); }}
+        />
+      )}
     </div>
   );
 };
