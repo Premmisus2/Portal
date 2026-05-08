@@ -28,16 +28,23 @@ export async function POST(request: Request) {
     const twimlUrl = `${BASE}/api/twiml-bridge?leadPhone=${encodeURIComponent(leadPhone)}&leadName=${encodeURIComponent(leadName || 'Unknown')}`;
     const statusUrl = `${BASE}/api/call-status`;
 
-    const params = new URLSearchParams({
-      To: repPhone,
-      From: FROM,
-      Url: twimlUrl,
-      Method: 'GET',
-      StatusCallback: statusUrl,
-      StatusCallbackEvent: 'initiated ringing answered completed',
-      StatusCallbackMethod: 'POST',
-      Record: 'true',
-    });
+    // StatusCallbackEvent must be sent as MULTIPLE params, not one space-separated
+    // string — Twilio's API treats the value as an array. The previous form
+    // produced a single invalid event name, so Twilio fired zero status webhooks
+    // and twilio_status was forever stuck at 'initiated' (cron-watchdog had to
+    // sweep stuck rows). See Twilio call-resource docs.
+    const params = new URLSearchParams();
+    params.append('To', repPhone);
+    params.append('From', FROM);
+    params.append('Url', twimlUrl);
+    params.append('Method', 'GET');
+    params.append('StatusCallback', statusUrl);
+    params.append('StatusCallbackEvent', 'initiated');
+    params.append('StatusCallbackEvent', 'ringing');
+    params.append('StatusCallbackEvent', 'answered');
+    params.append('StatusCallbackEvent', 'completed');
+    params.append('StatusCallbackMethod', 'POST');
+    params.append('Record', 'true');
 
     const twilioRes = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${SID}/Calls.json`, {
       method: 'POST',
