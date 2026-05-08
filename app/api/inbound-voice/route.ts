@@ -74,8 +74,11 @@ export async function POST(request: Request) {
 
   if (SB_KEY && fromDigits.length === 10) {
     try {
+      // Match digits tolerating any separators in stored phone (e.g. "+1 519-351-2233").
+      // Pattern: 5[^0-9]*1[^0-9]*9...  using PostgREST regex match (~).
+      const digitPattern = fromDigits.split('').join('[^0-9]*');
       const leads = await sbGet(
-        `leads?phone=ilike.%25${fromDigits}%25&select=id,business_name,assigned_rep_id&limit=1`,
+        `leads?phone=match.${encodeURIComponent(digitPattern)}&select=id,business_name,assigned_rep_id&limit=1`,
         SB_KEY,
       );
       if (Array.isArray(leads) && leads.length > 0) {
