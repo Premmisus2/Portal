@@ -27,6 +27,7 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
   const [notes, setNotes] = useState(log.notes || '');
   const [callbackDate, setCallbackDate] = useState(log.callback_date || '');
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -62,6 +63,41 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
     } catch (err: any) {
       setError(err.message || 'Failed to save');
       setSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm(
+      `Delete this call log for "${log.business_name || 'this lead'}"?\n\nThis cannot be undone.`
+    );
+    if (!confirmed) return;
+    setDeleting(true);
+    setError(null);
+    try {
+      const { error: delErr } = await supabase.from('call_logs').delete().eq('id', log.id);
+      if (delErr) throw delErr;
+
+      if (log.lead_id) {
+        const { data: remainingLogs } = await supabase
+          .from('call_logs')
+          .select('outcome, created_at')
+          .eq('lead_id', log.lead_id)
+          .order('created_at', { ascending: false })
+          .limit(1);
+        const newStatus = remainingLogs && remainingLogs.length > 0
+          ? (STATUS_FROM_OUTCOME[remainingLogs[0].outcome] || 'contacted')
+          : 'new';
+        await supabase
+          .from('leads')
+          .update({ status: newStatus, updated_at: new Date().toISOString() })
+          .eq('id', log.lead_id);
+      }
+
+      onSaved();
+      onClose();
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete');
+      setDeleting(false);
     }
   };
 
@@ -165,27 +201,41 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
           <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#ff6060' }}>{error}</p>
         )}
 
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           <button
-            onClick={onClose}
-            disabled={saving}
+            onClick={handleDelete}
+            disabled={saving || deleting}
             style={{
-              padding: '10px 20px', borderRadius: '8px', cursor: 'pointer',
+              padding: '10px 18px', borderRadius: '8px', cursor: 'pointer',
               fontSize: '12px', fontWeight: 700, fontFamily: 'Inter,sans-serif',
-              background: 'transparent', border: '1px solid #1e1e1e', color: '#888',
+              background: 'transparent', border: '1px solid rgba(255,96,96,.4)',
+              color: '#ff6060',
+              opacity: (saving || deleting) ? 0.4 : 1,
             }}
-          >Cancel</button>
-          <button
-            onClick={handleSave}
-            disabled={saving || !outcome}
-            style={{
-              padding: '10px 24px', borderRadius: '8px', cursor: 'pointer',
-              fontSize: '12px', fontWeight: 800, fontFamily: 'Inter,sans-serif',
-              border: 'none',
-              background: 'rgba(0,240,255,.15)', color: '#00F0FF',
-              opacity: (saving || !outcome) ? 0.4 : 1,
-            }}
-          >{saving ? 'Saving...' : 'Save Changes'}</button>
+          >{deleting ? 'Deleting...' : 'Delete'}</button>
+
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: '10px' }}>
+            <button
+              onClick={onClose}
+              disabled={saving || deleting}
+              style={{
+                padding: '10px 20px', borderRadius: '8px', cursor: 'pointer',
+                fontSize: '12px', fontWeight: 700, fontFamily: 'Inter,sans-serif',
+                background: 'transparent', border: '1px solid #1e1e1e', color: '#888',
+              }}
+            >Cancel</button>
+            <button
+              onClick={handleSave}
+              disabled={saving || deleting || !outcome}
+              style={{
+                padding: '10px 24px', borderRadius: '8px', cursor: 'pointer',
+                fontSize: '12px', fontWeight: 800, fontFamily: 'Inter,sans-serif',
+                border: 'none',
+                background: 'rgba(0,240,255,.15)', color: '#00F0FF',
+                opacity: (saving || deleting || !outcome) ? 0.4 : 1,
+              }}
+            >{saving ? 'Saving...' : 'Save Changes'}</button>
+          </div>
         </div>
       </div>
     </div>
