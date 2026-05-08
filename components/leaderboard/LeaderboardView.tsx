@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { torontoDayBoundsUTC } from '@/lib/date';
 import TopBar from '@/components/layout/TopBar';
 
 type Outcome =
@@ -126,8 +127,7 @@ export default function LeaderboardView(props: any) {
     setErr(null);
     (async () => {
       try {
-        const start = `${date}T00:00:00`;
-        const end = `${date}T23:59:59.999`;
+        const { startUTC: start, endUTC: end } = torontoDayBoundsUTC(date);
         const [repsRes, logsRes] = await Promise.all([
           supabase.from('reps').select('id,name,role').order('name', { ascending: true }),
           supabase

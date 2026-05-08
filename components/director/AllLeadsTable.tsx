@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase as sb } from '@/lib/supabase';
 import { NICHE_LIST, OUTCOME_COLORS, OUTCOME_LABELS } from '@/lib/constants';
+import { todayInToronto } from '@/lib/date';
 import type { Rep, Lead, CallLog } from '@/lib/types';
 import BulkAssignBar from '@/components/director/BulkAssignBar';
 
@@ -270,7 +271,7 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
         <td style={{ ...tdStyle, textAlign: 'center' }}><span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, background: `${statusColors[lead.status] || '#555'}20`, color: statusColors[lead.status] || '#555' }}>{statusLabels[lead.status] || lead.status}</span></td>
         <td style={{ ...tdStyle, color: lead.reps?.name ? '#00F0FF' : '#444', fontSize: '11px' }}>{lead.reps?.name || 'Unassigned'}</td>
         <td style={tdStyle}>{lastLog ? <span style={{ fontSize: '10px', color: OUTCOME_COLORS[lastLog.outcome] || '#555', fontWeight: 600 }}>{OUTCOME_LABELS[lastLog.outcome]}</span> : <span style={{ color: '#333' }}>&mdash;</span>}</td>
-        <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '11px', color: lastLog?.callback_date ? (new Date(lastLog.callback_date) < new Date(new Date().setHours(0, 0, 0, 0)) ? '#ff6060' : '#F59E0B') : '#333' }}>{lastLog?.callback_date || '\u2014'}</td>
+        <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '11px', color: lastLog?.callback_date ? (lastLog.callback_date < todayInToronto() ? '#ff6060' : '#F59E0B') : '#333' }}>{lastLog?.callback_date || '\u2014'}</td>
         <td style={{ ...tdStyle, borderRight: 'none', textAlign: 'center', whiteSpace: 'nowrap' }}>
           <button onClick={() => setEditingLead(lead as unknown as Record<string, unknown>)} style={{ background: 'none', border: 'none', color: '#00F0FF', cursor: 'pointer', fontSize: '11px', fontWeight: 700, padding: '2px 6px', marginRight: '4px' }}>Edit</button>
           <button onClick={() => { if (confirm(`Delete "${lead.business_name}"?`)) deleteLead(lead.id); }} disabled={deleting === lead.id} style={{ background: 'none', border: 'none', color: '#ff4444', cursor: deleting === lead.id ? 'wait' : 'pointer', fontSize: '11px', fontWeight: 700, padding: '2px 6px', opacity: deleting === lead.id ? .4 : 1 }}>Del</button>

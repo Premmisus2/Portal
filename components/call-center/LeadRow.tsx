@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { OUTCOME_LABELS, OUTCOME_COLORS } from '@/lib/constants';
+import { todayInToronto } from '@/lib/date';
 import { reportClientError } from '@/lib/error-reporting';
 import CallLogger from './CallLogger';
 import TwilioCallModal from './TwilioCallModal';
@@ -14,7 +15,7 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
   const [twilioCallData, setTwilioCallData] = useState<any>(null);
   const priorityClass = lead.priority === 'HOT' ? 'priority-hot' : lead.priority === 'HIGH' ? 'priority-high' : 'priority-medium';
   const lastLog = callLogs && callLogs.length > 0 ? callLogs[0] : null;
-  const today = new Date().toISOString().split('T')[0];
+  const today = todayInToronto();
   const isOverdue = lastLog?.callback_date && lastLog.callback_date < today;
   const isDueToday = lastLog?.callback_date && lastLog.callback_date === today;
   const isDnc = typeof lead.notes === 'string' && lead.notes.startsWith('🚫 DNC:');

@@ -90,7 +90,7 @@ export default function DirectorView(props: any) {
     const load = async () => {
       const [leadsRes, logsRes] = await Promise.all([
         supabase.from('leads').select('*, reps(name)').order('created_at', { ascending: false }),
-        supabase.from('call_logs').select('*, reps(name)').order('created_at', { ascending: false }).limit(500),
+        supabase.from('call_logs').select('*, reps(name), leads(business_name)').order('created_at', { ascending: false }).limit(500),
       ]);
       if (leadsRes.data) setLeads(leadsRes.data as Lead[]);
       if (logsRes.data) setCallLogs(logsRes.data as CallLog[]);

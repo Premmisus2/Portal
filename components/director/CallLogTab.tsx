@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { supabase as sb } from '@/lib/supabase';
+import { torontoDayBoundsUTC } from '@/lib/date';
 import type { CallLog } from '@/lib/types';
 
 interface CallLogTabProps {
@@ -74,7 +75,8 @@ export default function CallLogTab({ callLogs, repId }: CallLogTabProps) {
   const allLogs = [...callLogs, ...localLogs.filter((l: CallLog) => !callLogs.some(cl => cl.id === l.id))].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
   const totalCalls = allLogs.length;
-  const todayCalls = allLogs.filter((l: CallLog) => l.created_at?.startsWith(new Date().toISOString().split('T')[0])).length;
+  const { startUTC: todayStartUTC, endUTC: todayEndUTC } = torontoDayBoundsUTC();
+  const todayCalls = allLogs.filter((l: CallLog) => l.created_at >= todayStartUTC && l.created_at <= todayEndUTC).length;
   const interestedCalls = allLogs.filter((l: CallLog) => l.outcome === 'discovery_completed' || l.outcome === 'booked_call').length;
   const bookedCalls = allLogs.filter((l: CallLog) => l.outcome === 'booked_call').length;
 
@@ -165,7 +167,7 @@ export default function CallLogTab({ callLogs, repId }: CallLogTabProps) {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: outcomeColors[oc] || '#555', boxShadow: `0 0 6px ${outcomeColors[oc] || '#555'}55` }} />
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>{log.business_name}</span>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#fff' }}>{log.business_name || (log as any).leads?.business_name || '—'}</span>
                     <span style={{ fontSize: '11px', color: '#444' }}>{(log as any).niche}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

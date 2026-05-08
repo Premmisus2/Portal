@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { OUTCOME_LABELS, OUTCOME_COLORS, NICHE_LIST, CALENDAR_ENDPOINT } from '@/lib/constants';
+import { todayInToronto, torontoDayBoundsUTC, weekStartInToronto } from '@/lib/date';
 import TopBar from '@/components/layout/TopBar';
 import LeadRow from './LeadRow';
 import QuickLogForm from './QuickLogForm';
@@ -76,15 +77,14 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
   };
 
   const loadStats = async () => {
-    const now = new Date();
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-    const weekStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - now.getDay()).toISOString();
+    const { startUTC: todayStart } = torontoDayBoundsUTC();
+    const { startUTC: weekStart } = torontoDayBoundsUTC(weekStartInToronto());
     let logQuery = supabase.from('call_logs').select('*', { count: 'exact' });
     if (!isDirector) logQuery = logQuery.eq('rep_id', repId);
     const { count: todayCount } = await logQuery.gte('created_at', todayStart);
     const { count: weekCount } = await supabase.from('call_logs').select('*', { count: 'exact' }).eq('rep_id', repId).gte('created_at', weekStart);
     const { count: bookedCount } = await supabase.from('call_logs').select('*', { count: 'exact' }).eq('rep_id', repId).eq('outcome', 'booked_call');
-    const today = new Date().toISOString().split('T')[0];
+    const today = todayInToronto();
     const { count: pendingCount } = await supabase.from('call_logs').select('*', { count: 'exact' }).eq('rep_id', repId).eq('outcome', 'callback_requested').gte('callback_date', today);
     setStats({ today: todayCount || 0, week: weekCount || 0, booked: bookedCount || 0, pending: pendingCount || 0 });
   };
@@ -114,7 +114,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
   };
 
   const priorityOrder: Record<string, number> = { HOT: 0, HIGH: 1, MEDIUM: 2 };
-  const today = new Date().toISOString().split('T')[0];
+  const today = todayInToronto();
   const callbackLeads = leads.filter(l => {
     const logs = callLogs[l.id] || [];
     return logs.some((log: any) => log.callback_date && log.callback_date <= today);
