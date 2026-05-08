@@ -32,6 +32,7 @@ export async function POST(request: Request) {
       To: repPhone,
       From: FROM,
       Url: twimlUrl,
+      Method: 'GET',
       StatusCallback: statusUrl,
       StatusCallbackEvent: 'initiated ringing answered completed',
       StatusCallbackMethod: 'POST',
