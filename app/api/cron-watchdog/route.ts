@@ -18,6 +18,7 @@ import {
   checkMonitoredN8nWorkflows,
   type N8nExecutionCheck,
 } from '@/lib/n8n-client';
+import { reportServerError } from '@/lib/server-error';
 
 const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 
@@ -140,6 +141,47 @@ export async function GET(request: Request) {
     const stuckRows = await sbQuery(
       `cron_runs?select=job_name,started_at&status=eq.running&started_at=lt.${stuckCutoff}&order=started_at.desc&limit=10`,
     ) as Array<{ job_name: string; started_at: string }>;
+
+    // ── Detect stuck Twilio call_logs (twilio_status='initiated' >5min) ─────
+    // Catches the failure mode where Twilio fires the call but the StatusCallback
+    // never lands (TwiML 405, webhook outage, network blip). Without this,
+    // call_logs rows stay at 'initiated' forever and we never know.
+    // Marks each stuck row as failed and fires a Telegram alert via reportServerError.
+    const stuckCallCutoff = new Date(now.getTime() - 5 * 60 * 1000).toISOString();
+    const stuckCalls = await sbQuery(
+      `call_logs?select=id,call_sid,business_name,created_at,rep_id&twilio_status=eq.initiated&created_at=lt.${encodeURIComponent(stuckCallCutoff)}&order=created_at.desc&limit=50`,
+    ) as Array<{ id: string; call_sid: string | null; business_name: string | null; created_at: string; rep_id: string | null }>;
+
+    if (stuckCalls.length > 0) {
+      const sbKey = process.env.SUPABASE_SERVICE_KEY || '';
+      const ids = stuckCalls.map((c) => c.id);
+      try {
+        await fetch(`${SUPABASE_URL}/rest/v1/call_logs?id=in.(${ids.join(',')})`, {
+          method: 'PATCH',
+          headers: {
+            apikey: sbKey,
+            Authorization: `Bearer ${sbKey}`,
+            'Content-Type': 'application/json',
+            Prefer: 'return=minimal',
+          },
+          body: JSON.stringify({ twilio_status: 'failed', notes: 'Auto-failed by watchdog: Twilio StatusCallback never landed (>5min stuck at initiated)' }),
+        });
+      } catch (err) {
+        await reportServerError(
+          'cron-watchdog.markStuckCallsFailed',
+          err,
+          { count: stuckCalls.length, sample_ids: ids.slice(0, 3).join(',') },
+          'stuck-call-watchdog',
+        );
+      }
+      const sample = stuckCalls.slice(0, 5).map((c) => `${c.business_name ?? 'Unknown'} (${c.call_sid ?? 'no-sid'})`).join('; ');
+      await reportServerError(
+        'cron-watchdog.stuckTwilioCalls',
+        `${stuckCalls.length} call_log(s) stuck at twilio_status='initiated' for >5min — auto-marked failed. Sample: ${sample}`,
+        { count: stuckCalls.length, oldest: stuckCalls[stuckCalls.length - 1]?.created_at ?? '' },
+        'stuck-call-watchdog',
+      );
+    }
 
     // ── n8n coverage ─────────────────────────────────────────────────────────
     const n8nChecks: N8nExecutionCheck[] = await checkMonitoredN8nWorkflows(now);
@@ -293,6 +335,7 @@ export async function GET(request: Request) {
       metadata: {
         vercel_alerting: alertingJobs.length,
         stuck_count: stuckRows.length,
+        stuck_calls_count: stuckCalls.length,
         n8n_overdue: n8nOverdue.length,
         n8n_errored: n8nErrored.length,
         n8n_stuck: n8nStuck.length,

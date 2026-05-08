@@ -68,6 +68,10 @@ export interface CallLog {
   callback_date?: string;
   callback_reason?: string;
   booking_type?: string;
+  outcome_auto?: string | null;
+  outcome_auto_confidence?: number | null;
+  outcome_auto_reasoning?: string | null;
+  outcome_auto_at?: string | null;
   created_at: string;
   reps?: { name: string };
 }

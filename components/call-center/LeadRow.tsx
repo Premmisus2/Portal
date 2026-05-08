@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { OUTCOME_LABELS, OUTCOME_COLORS } from '@/lib/constants';
+import { reportClientError } from '@/lib/error-reporting';
 import CallLogger from './CallLogger';
 import TwilioCallModal from './TwilioCallModal';
 
@@ -50,12 +51,22 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
               if (!repId || !lead.id) { window.location.href = 'tel:' + lead.phone; return; }
               try {
                 const { error } = await supabase.from('call_logs').insert({ lead_id: lead.id, rep_id: repId, outcome: 'no_answer', call_type: 'manual', business_name: lead.business_name || null, notes: 'Auto-logged: tapped to call' });
-                if (!error) {
-                  await supabase.from('leads').update({ status: 'contacted', updated_at: new Date().toISOString() }).eq('id', lead.id);
+                if (error) {
+                  reportClientError('LeadRow.tapToCall.insertCallLog', error, { lead_id: lead.id, rep_id: repId, business_name: lead.business_name || null }, 'auto-log-hardening');
+                  if (setToast) setToast({ message: 'Auto-log failed — log this call manually', type: 'error' });
+                } else {
+                  const { error: leadUpdateErr } = await supabase.from('leads').update({ status: 'contacted', updated_at: new Date().toISOString() }).eq('id', lead.id);
+                  if (leadUpdateErr) {
+                    reportClientError('LeadRow.tapToCall.updateLeadStatus', leadUpdateErr, { lead_id: lead.id }, 'auto-log-hardening');
+                  }
                   if (setToast) setToast({ message: 'Call started — ' + (lead.business_name || 'Unknown'), type: 'success' });
                   if (onLogged) onLogged(lead.id, 'no_answer');
+                  window.dispatchEvent(new Event('refreshCallLogs'));
                 }
-              } catch {}
+              } catch (err) {
+                reportClientError('LeadRow.tapToCall.exception', err, { lead_id: lead.id, rep_id: repId }, 'auto-log-hardening');
+                if (setToast) setToast({ message: 'Auto-log failed — log this call manually', type: 'error' });
+              }
               window.location.href = 'tel:' + lead.phone;
             }} style={{fontSize:'12px', color:'#00F0FF', textDecoration:'none', fontFamily:'JetBrains Mono,monospace', fontWeight:600, background:'none', border:'none', cursor:'pointer', padding:0}}>{lead.phone}</button>
           )}
@@ -101,12 +112,22 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
             <div style={{marginBottom:'14px'}}>
               <p style={{fontSize:'9px', fontWeight:700, color:'#444', letterSpacing:'.12em', textTransform:'uppercase', margin:'0 0 8px'}}>Call History</p>
               <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
-                {callLogs.slice(0, 5).map((log: any) => (
-                  <div key={log.id} style={{display:'flex', flexDirection:'column', gap:'4px', padding:'6px 10px', background:'#080808', borderRadius:'6px', border:'1px solid #151515'}}>
-                    <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
+                {callLogs.slice(0, 5).map((log: any) => {
+                  const autoConfPct = typeof log.outcome_auto_confidence === 'number' ? Math.round(log.outcome_auto_confidence * 100) : null;
+                  const aiDisagrees = !!log.outcome_auto && log.outcome_auto !== log.outcome && (log.outcome_auto_confidence || 0) > 0.7;
+                  const aiAgrees = !!log.outcome_auto && log.outcome_auto === log.outcome;
+                  const aiBadgeColor = aiDisagrees ? '#F59E0B' : aiAgrees ? '#22c55e' : '#3B82F6';
+                  return (
+                  <div key={log.id} style={{display:'flex', flexDirection:'column', gap:'4px', padding:'6px 10px', background:'#080808', borderRadius:'6px', border:`1px solid ${aiDisagrees ? 'rgba(245,158,11,.35)' : '#151515'}`}}>
+                    <div style={{display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap'}}>
                       <div className={`call-history-dot outcome-${log.outcome}`}/>
                       <span style={{fontSize:'11px', color: OUTCOME_COLORS[log.outcome], fontWeight:600}}>{OUTCOME_LABELS[log.outcome]}</span>
                       {log.call_sid && <span style={{fontSize:'8px', fontWeight:700, padding:'1px 5px', borderRadius:'3px', background:'rgba(124,58,237,.15)', color:'#a78bfa', letterSpacing:'.05em', textTransform:'uppercase'}}>Twilio</span>}
+                      {log.outcome_auto && (
+                        <span title={log.outcome_auto_reasoning || ''} style={{fontSize:'8px', fontWeight:700, padding:'1px 5px', borderRadius:'3px', background:`${aiBadgeColor}1f`, color:aiBadgeColor, letterSpacing:'.05em', textTransform:'uppercase', cursor: log.outcome_auto_reasoning ? 'help' : 'default'}}>
+                          AI: {(OUTCOME_LABELS[log.outcome_auto] || log.outcome_auto).toUpperCase()}{autoConfPct != null ? ` ${autoConfPct}%` : ''}{aiDisagrees ? ' ⚠' : aiAgrees ? ' ✓' : ''}
+                        </span>
+                      )}
                       {log.duration_seconds != null && log.duration_seconds > 0 && (
                         <span style={{fontSize:'10px', color:'#888', fontFamily:'JetBrains Mono,monospace', fontWeight:500}}>{Math.floor(log.duration_seconds/60)}m {log.duration_seconds%60}s</span>
                       )}
@@ -117,13 +138,19 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
                           : <span onClick={e=>{e.stopPropagation(); setExpandedNote(expandedNote === log.id ? null : log.id);}} style={{fontSize:'10px', color:'#555', fontStyle:'italic', wordBreak:'break-word', whiteSpace:'normal', cursor: log.notes.length > 80 ? 'pointer' : 'default'}}>— {log.notes}</span>
                       )}
                     </div>
+                    {aiDisagrees && log.outcome_auto_reasoning && (
+                      <div style={{paddingLeft:'20px', fontSize:'10px', color:'#F59E0B', fontStyle:'italic'}}>
+                        AI suggests {OUTCOME_LABELS[log.outcome_auto] || log.outcome_auto}: {log.outcome_auto_reasoning}
+                      </div>
+                    )}
                     {log.recording_url && (
                       <div style={{paddingLeft:'20px'}} onClick={e=>e.stopPropagation()}>
                         <audio controls src={log.recording_url} style={{width:'100%', height:'32px'}} preload="none"/>
                       </div>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

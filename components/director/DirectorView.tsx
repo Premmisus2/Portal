@@ -97,6 +97,9 @@ export default function DirectorView(props: any) {
       await loadPendingCloses();
     };
     load();
+    const onRefresh = () => { load(); };
+    window.addEventListener('refreshCallLogs', onRefresh);
+    return () => window.removeEventListener('refreshCallLogs', onRefresh);
   }, []);
 
   return (

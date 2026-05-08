@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { OUTCOME_LABELS, OUTCOME_COLORS, CALL_LOG_WEBHOOK } from '@/lib/constants';
 
@@ -11,6 +11,26 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
   const [callbackReason, setCallbackReason] = useState('');
   const [bookingType, setBookingType] = useState('');
   const [saving, setSaving] = useState(false);
+  const [aiSuggestion, setAiSuggestion] = useState<{ outcome: string; confidence: number; reasoning: string } | null>(null);
+
+  useEffect(() => {
+    if (!existingCallLogId) { setAiSuggestion(null); return; }
+    let cancelled = false;
+    const tick = async () => {
+      const { data } = await supabase.from('call_logs').select('outcome_auto, outcome_auto_confidence, outcome_auto_reasoning').eq('id', existingCallLogId).maybeSingle();
+      if (cancelled || !data?.outcome_auto) return;
+      setAiSuggestion({
+        outcome: data.outcome_auto,
+        confidence: data.outcome_auto_confidence ?? 0,
+        reasoning: data.outcome_auto_reasoning ?? '',
+      });
+      if (!outcome) setOutcome(data.outcome_auto);
+    };
+    tick();
+    const interval = setInterval(tick, 8000);
+    const stop = setTimeout(() => clearInterval(interval), 90000);
+    return () => { cancelled = true; clearInterval(interval); clearTimeout(stop); };
+  }, [existingCallLogId]);
 
   const handleSubmit = async () => {
     if (!outcome) return;
@@ -34,6 +54,7 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
         }).catch(()=>{});
       }
       onLogged(lead.id, outcome, statusMap[outcome]);
+      window.dispatchEvent(new Event('refreshCallLogs'));
       // Notification triggers
       if (outcome === 'booked_call' || outcome === 'discovery_completed') {
         fetch('/api/notify-sms', { method: 'POST', headers: {'Content-Type':'application/json'},
@@ -56,6 +77,18 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
   return (
     <div style={{marginTop:'14px', padding:'16px', background:'rgba(0,240,255,.03)', border:'1px solid rgba(0,240,255,.15)', borderRadius:'10px'}} className="fadein">
       <p style={{margin:'0 0 12px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'#00F0FF'}}>Log Call</p>
+      {aiSuggestion && (
+        <div style={{marginBottom:'12px', padding:'10px 12px', background:'rgba(59,130,246,.06)', border:'1px solid rgba(59,130,246,.25)', borderRadius:'8px'}}>
+          <div style={{display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap'}}>
+            <span style={{fontSize:'9px', fontWeight:800, letterSpacing:'.15em', textTransform:'uppercase', color:'#3B82F6'}}>AI suggests</span>
+            <span style={{fontSize:'12px', fontWeight:700, color: OUTCOME_COLORS[aiSuggestion.outcome] || '#fff'}}>{OUTCOME_LABELS[aiSuggestion.outcome] || aiSuggestion.outcome}</span>
+            <span style={{fontSize:'10px', color:'#888', fontFamily:'JetBrains Mono,monospace'}}>{Math.round(aiSuggestion.confidence * 100)}% confidence</span>
+          </div>
+          {aiSuggestion.reasoning && (
+            <p style={{margin:'6px 0 0', fontSize:'11px', color:'#888', fontStyle:'italic', lineHeight:1.4}}>{aiSuggestion.reasoning}</p>
+          )}
+        </div>
+      )}
       <div style={{display:'flex', gap:'10px', flexWrap:'wrap', marginBottom:'12px'}}>
         {Object.entries(OUTCOME_LABELS).map(([key, label]) => (
           <button key={key} onClick={()=>setOutcome(key)}
