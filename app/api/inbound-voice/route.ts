@@ -1,16 +1,22 @@
 // Premmisus Dialer — Inbound voice handler
-// Twilio Voice URL target for the Premmisus number. Identifies the caller
-// from `leads.phone`, finds the most recent rep that called them, fires an
-// SMS heads-up to that rep, inserts a call_logs row keyed on the inbound
-// CallSid (so the existing recording-callback + classifier pipeline attaches
-// recording / transcript / outcome_auto automatically), then bridges with a
-// whisper announcement.
+// Twilio Voice URL target for the Premmisus number.
+//
+// Two modes, controlled by SARAH_ENABLED env var:
+//
+// 1) SARAH_ENABLED=true (front-door receptionist):
+//    Caller hits Vapi's Twilio inbound stream → Sarah greets, qualifies,
+//    books strategy calls or texts Elliott. Lead context (name, niche, city)
+//    is passed via Stream Parameters → assistantOverrides.variableValues.
+//
+// 2) SARAH_ENABLED=false or unset (legacy bridge to rep):
+//    Identifies caller from `leads.phone`, finds the most recent rep that
+//    called them, fires an SMS heads-up, inserts a call_logs row, and
+//    bridges with a whisper announcement.
 //
 // Schema constraints (call_logs): lead_id NOT NULL, rep_id NOT NULL,
 // outcome CHECK in (no_answer, voicemail_left, callback_requested,
-// not_interested, booked_call, wrong_number, discovery_completed, no_show).
-// Unknown callers can't be inserted (no lead row), so they only get bridged
-// + SMS heads-up. Add a stub-lead path later if we want full inbound coverage.
+// not_interested, booked_call, wrong_number, discovery_completed, no_show,
+// ai_receptionist).
 
 const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 const ELLIOTT_EMAIL = 'elliott@premmisus.com';
@@ -55,6 +61,9 @@ export async function POST(request: Request) {
   const TOKEN = process.env.TWILIO_AUTH_TOKEN || '';
   const TWILIO_FROM = (process.env.TWILIO_PHONE_NUMBER || '').trim();
   const BASE = (process.env.BASE_URL || '').trim();
+  const SARAH_ENABLED = (process.env.SARAH_ENABLED || 'false').trim().toLowerCase() === 'true';
+  const VAPI_KEY = (process.env.VAPI_API_KEY || '').trim();
+  const VAPI_ASSISTANT_ID = (process.env.VAPI_SARAH_ASSISTANT_ID || '').trim();
 
   let fromRaw = '';
   let callSid = '';
@@ -71,27 +80,64 @@ export async function POST(request: Request) {
   let leadAssignedRepId: string | null = null;
   let routeRepId: string | null = null;
   let routeToPhone = FALLBACK_PHONE;
+  let leadNiche = '';
+  let leadCity = '';
+  let leadOwnerFirstName = '';
 
   if (SB_KEY && fromDigits.length === 10) {
     try {
+      const digitPattern = fromDigits.split('').join('[^0-9]*');
       const leads = await sbGet(
-        `leads?phone=ilike.%25${fromDigits}%25&select=id,business_name,assigned_rep_id&limit=1`,
+        `leads?phone=match.${encodeURIComponent(digitPattern)}&select=id,business_name,niche,city,contact_name,assigned_rep_id&limit=1`,
         SB_KEY,
       );
       if (Array.isArray(leads) && leads.length > 0) {
         leadName = leads[0].business_name || '';
         leadId = leads[0].id;
         leadAssignedRepId = leads[0].assigned_rep_id || null;
+        leadNiche = leads[0].niche || '';
+        leadCity = leads[0].city || '';
+        leadOwnerFirstName = (leads[0].contact_name || '').split(' ')[0] || '';
 
-        routeRepId = await resolveRepId(leadId!, leadAssignedRepId, SB_KEY);
-        if (routeRepId) {
-          const phone = await resolveRepPhone(routeRepId, SB_KEY);
-          if (phone) routeToPhone = phone;
+        if (!SARAH_ENABLED) {
+          routeRepId = await resolveRepId(leadId!, leadAssignedRepId, SB_KEY);
+          if (routeRepId) {
+            const phone = await resolveRepPhone(routeRepId, SB_KEY);
+            if (phone) routeToPhone = phone;
+          }
         }
       }
     } catch (e) {
       console.error('inbound-voice lookup failed:', e);
     }
+  }
+
+  // ── Sarah front-door (Vapi AI receptionist) ──────────────────────────────
+  // Toggled by SARAH_ENABLED env var. When on, the call is forwarded to Vapi
+  // via Twilio <Connect><Stream>, with lead context passed as Stream
+  // Parameters → consumed by Sarah as assistantOverrides.variableValues.
+  if (SARAH_ENABLED && VAPI_KEY && VAPI_ASSISTANT_ID) {
+    const variables = {
+      leadId: leadId || 'unknown',
+      leadName: leadOwnerFirstName || 'unknown',
+      businessName: leadName || 'unknown',
+      niche: leadNiche || 'unknown',
+      city: leadCity || 'unknown',
+    };
+    const overridesJson = JSON.stringify({ variableValues: variables });
+    const streamUrl = 'wss://api.vapi.ai/twilio/inbound_call';
+
+    const sarahTwiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Connect>
+    <Stream url="${escapeXml(streamUrl)}">
+      <Parameter name="assistantId" value="${escapeXml(VAPI_ASSISTANT_ID)}"/>
+      <Parameter name="apiKey" value="${escapeXml(VAPI_KEY)}"/>
+      <Parameter name="assistantOverrides" value="${escapeXml(overridesJson)}"/>
+    </Stream>
+  </Connect>
+</Response>`;
+    return new Response(sarahTwiml, { headers: { 'Content-Type': 'application/xml' } });
   }
 
   // Insert call_logs row — fire-and-forget but await so failures surface.
