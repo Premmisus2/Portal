@@ -93,6 +93,19 @@ const TwilioCallModal = ({ lead, repId, repPhone, onClose, onCallComplete }: any
 
   const formatDuration = (s: number) => `${Math.floor(s/60)}m ${s%60}s`;
 
+  // Always hand the callLogId up if we have one, so the next CallLogger
+  // interaction UPDATEs the existing row instead of inserting a duplicate.
+  // This is the fix for the double-logging bug — onCallComplete used to only
+  // fire on the 'completed' branch, so failed/canceled/X-close paths left
+  // CallLogger with no existingCallLogId and it inserted a fresh row.
+  const handleClose = () => {
+    if (callLogId) {
+      onCallComplete({ callSid, callLogId, duration });
+    } else {
+      onClose();
+    }
+  };
+
   const statusConfig: Record<string, any> = {
     initiating: { dot: '#00F0FF', pulse: true, label: 'Initiating call...' },
     ringing:    { dot: '#F59E0B', pulse: true, label: 'Ringing your phone...' },
@@ -104,10 +117,10 @@ const TwilioCallModal = ({ lead, repId, repPhone, onClose, onCallComplete }: any
 
   return (
     <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,.85)', zIndex:600, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px'}}
-      onClick={e => { if (e.target === e.currentTarget && (status === 'completed' || status === 'failed')) onClose(); }}>
+      onClick={e => { if (e.target === e.currentTarget && (status === 'completed' || status === 'failed')) handleClose(); }}>
       <div style={{maxWidth:'400px', width:'100%', background:'#0d0d0d', border:'1px solid #1e1e1e', borderRadius:'12px', padding:'32px', position:'relative'}}>
         {/* Close X */}
-        <button onClick={onClose} style={{position:'absolute', top:'12px', right:'12px', background:'none', border:'none', color:'#555', cursor:'pointer', fontSize:'18px', lineHeight:1, padding:'4px'}}
+        <button onClick={handleClose} style={{position:'absolute', top:'12px', right:'12px', background:'none', border:'none', color:'#555', cursor:'pointer', fontSize:'18px', lineHeight:1, padding:'4px'}}
           onMouseEnter={e=>(e.currentTarget as HTMLElement).style.color='#fff'} onMouseLeave={e=>(e.currentTarget as HTMLElement).style.color='#555'}>×</button>
 
         {/* Business Name */}
@@ -153,7 +166,7 @@ const TwilioCallModal = ({ lead, repId, repPhone, onClose, onCallComplete }: any
             </button>
           )}
           {status === 'failed' && (
-            <a href={`tel:${lead.phone}`} style={{padding:'10px 24px', borderRadius:'8px', textDecoration:'none', display:'inline-block',
+            <a href={`tel:${lead.phone}`} onClick={handleClose} style={{padding:'10px 24px', borderRadius:'8px', textDecoration:'none', display:'inline-block',
               background:'transparent', border:'1px solid #333', color:'#888',
               fontWeight:800, fontSize:'12px', fontFamily:'Inter,sans-serif', letterSpacing:'.06em', textTransform:'uppercase', transition:'all .15s'}}
               onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor='#555'; (e.currentTarget as HTMLElement).style.color='#ccc';}}
