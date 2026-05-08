@@ -17,9 +17,32 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
   const today = new Date().toISOString().split('T')[0];
   const isOverdue = lastLog?.callback_date && lastLog.callback_date < today;
   const isDueToday = lastLog?.callback_date && lastLog.callback_date === today;
+  const isDnc = typeof lead.notes === 'string' && lead.notes.startsWith('🚫 DNC:');
   const statusBorderClass = (!isOverdue && !isDueToday && lead.status && lead.status !== 'new') ? ` status-${lead.status}` : '';
   const rowClass = `lead-row${isExpanded ? ' expanded' : ''}${isOverdue ? ' callback-overdue' : ''}${isDueToday ? ' callback-today' : ''}${statusBorderClass}`;
   const statusColors: Record<string, string> = { new:'#22c55e', contacted:'#3B82F6', callback:'#A855F7', booked:'#00F0FF', not_interested:'#555', discovery_completed:'#22c55e', no_show:'#ff6060', voicemail:'#F59E0B', wrong_number:'#555' };
+
+  const handleMarkDead = async () => {
+    const reason = window.prompt('Mark this lead as DEAD (will never be called again).\n\nReason? (e.g. cussed me out / wrong fit / out of business / has agency)');
+    if (!reason || !reason.trim()) return;
+    const tag = `🚫 DNC: ${reason.trim()} — `;
+    const existing = typeof lead.notes === 'string' && !lead.notes.startsWith('🚫 DNC:') ? lead.notes : '';
+    const newNotes = tag + existing;
+    try {
+      const { error } = await supabase.from('leads').update({ status: 'not_interested', notes: newNotes, updated_at: new Date().toISOString() }).eq('id', lead.id);
+      if (error) {
+        reportClientError('LeadRow.markDead', error, { lead_id: lead.id, reason }, 'mark-dead');
+        if (setToast) setToast({ message: 'Failed to mark dead — try again', type: 'error' });
+        return;
+      }
+      if (setToast) setToast({ message: '🚫 Marked dead — won\'t call again', type: 'success' });
+      if (onLogged) onLogged(lead.id, 'not_interested', 'not_interested');
+      window.dispatchEvent(new Event('refreshCallLogs'));
+    } catch (err) {
+      reportClientError('LeadRow.markDead.exception', err, { lead_id: lead.id, reason }, 'mark-dead');
+      if (setToast) setToast({ message: 'Failed to mark dead — try again', type: 'error' });
+    }
+  };
 
   return (
     <div className={rowClass} onClick={()=>onToggle(lead.id)}>
@@ -31,6 +54,9 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
           <span className="niche-badge">{lead.niche}</span>
           {lead.status && lead.status !== 'new' && (
             <span style={{fontSize:'9px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:`${statusColors[lead.status] || '#555'}15`, color: statusColors[lead.status] || '#555', letterSpacing:'.05em', textTransform:'uppercase'}}>{lead.status.replace('_',' ')}</span>
+          )}
+          {isDnc && (
+            <span title={lead.notes} style={{fontSize:'9px', fontWeight:800, padding:'2px 8px', borderRadius:'4px', background:'rgba(255,96,96,.15)', color:'#ff6060', letterSpacing:'.08em', textTransform:'uppercase', cursor:'help'}}>🚫 Dead</span>
           )}
         </div>
         <div style={{display:'flex', alignItems:'center', gap:'10px', flexShrink:0}}>
@@ -85,6 +111,15 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
               border: `1px solid ${shadowMode ? '#1e1e1e' : showQuickLog ? 'rgba(0,240,255,.4)' : 'rgba(0,240,255,.15)'}`,
               color: shadowMode ? '#444' : '#00F0FF', opacity: shadowMode ? .5 : 1,
             }}>{shadowMode ? 'Read Only' : 'Log Call'}</button>
+          {!shadowMode && !isDnc && (
+            <button onClick={e=>{e.stopPropagation(); handleMarkDead();}} title="Mark dead — never call again"
+              style={{padding:'5px 9px', borderRadius:'6px', cursor:'pointer', fontSize:'12px', fontWeight:700, lineHeight:1, transition:'all .15s',
+                background:'transparent', border:'1px solid rgba(255,96,96,.25)', color:'#ff6060'}}
+              onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(255,96,96,.1)'; (e.currentTarget as HTMLElement).style.borderColor='rgba(255,96,96,.5)';}}
+              onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='transparent'; (e.currentTarget as HTMLElement).style.borderColor='rgba(255,96,96,.25)';}}>
+              🚫
+            </button>
+          )}
         </div>
       </div>
 

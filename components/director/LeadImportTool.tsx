@@ -22,6 +22,8 @@ interface ImportBatch {
   created_at: string;
 }
 
+type DupeInfo = { phone: string; existing_niche: string | null; existing_status: string | null; is_dnc: boolean };
+
 export default function LeadImportTool() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<Record<string, string>[]>([]);
@@ -34,6 +36,8 @@ export default function LeadImportTool() {
   const [sourceTag, setSourceTag] = useState('');
   const [batchNotes, setBatchNotes] = useState('');
   const [recentBatches, setRecentBatches] = useState<ImportBatch[]>([]);
+  const [dupeCheck, setDupeCheck] = useState<{ checking: boolean; dupes: DupeInfo[]; dncCount: number } | null>(null);
+  const [skipDupes, setSkipDupes] = useState(true);
 
   useEffect(() => { loadBatches(); }, []);
 
@@ -69,8 +73,29 @@ export default function LeadImportTool() {
     });
   };
 
+  const checkDupes = async (rows: Record<string, string>[]) => {
+    const phones = Array.from(new Set(rows.map(r => (r['Phone'] || '').trim()).filter(Boolean)));
+    if (phones.length === 0) { setDupeCheck({ checking: false, dupes: [], dncCount: 0 }); return; }
+    setDupeCheck({ checking: true, dupes: [], dncCount: 0 });
+    const dupes: DupeInfo[] = [];
+    let dncCount = 0;
+    for (let i = 0; i < phones.length; i += 200) {
+      const chunk = phones.slice(i, i + 200);
+      const { data } = await sb.from('leads').select('phone, niche, status, notes').in('phone', chunk);
+      if (data) {
+        for (const row of data as Array<{ phone: string; niche: string | null; status: string | null; notes: string | null }>) {
+          const isDnc = typeof row.notes === 'string' && row.notes.startsWith('🚫 DNC:');
+          if (isDnc) dncCount += 1;
+          dupes.push({ phone: row.phone, existing_niche: row.niche, existing_status: row.status, is_dnc: isDnc });
+        }
+      }
+    }
+    setDupeCheck({ checking: false, dupes, dncCount });
+  };
+
   const handleFile = (f: File) => {
     setFile(f); setDone(false);
+    setDupeCheck(null);
     if (!batchLabel) setBatchLabel(f.name.replace(/\.csv$/i, ''));
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -79,6 +104,7 @@ export default function LeadImportTool() {
       setProgress({ done: 0, total: rows.length, errors: 0 });
       const niches = [...new Set(rows.slice(0, 100).map(r => r['Niche']).filter(Boolean))];
       if (niches.length > 0 && !sourceTag) setSourceTag(niches.length === 1 ? niches[0] : niches.join(', '));
+      checkDupes(rows);
     };
     reader.readAsText(f);
   };
@@ -101,8 +127,19 @@ export default function LeadImportTool() {
 
     const reader = new FileReader();
     reader.onload = async (e) => {
-      const rows = parseCSV(e.target?.result as string);
+      let rows = parseCSV(e.target?.result as string);
       const isWarm = rows[0] && 'Last Result' in rows[0];
+      const dupePhoneSet = new Set((dupeCheck?.dupes || []).map(d => d.phone));
+      const originalCount = rows.length;
+      let skipped = 0;
+      if (skipDupes && dupePhoneSet.size > 0) {
+        rows = rows.filter(r => {
+          const phone = (r['Phone'] || '').trim();
+          if (phone && dupePhoneSet.has(phone)) { skipped += 1; return false; }
+          return true;
+        });
+      }
+      setProgress({ done: 0, total: rows.length, errors: 0 });
       let imported = 0, errors = 0;
 
       for (let i = 0; i < rows.length; i += 200) {
@@ -155,7 +192,7 @@ export default function LeadImportTool() {
       audit(auditFromLocalStorage({
         actionType: 'leads.imported',
         targetType: 'import_batch', targetId: batchId,
-        metadata: { imported, errors, total: rows.length, source_tag: tag, batch_label: batchLabel },
+        metadata: { imported, errors, total: originalCount, skipped_dupes: skipped, source_tag: tag, batch_label: batchLabel },
       }));
 
       setImporting(false);
@@ -239,11 +276,33 @@ export default function LeadImportTool() {
         </div>
       )}
 
+      {dupeCheck && (dupeCheck.checking || dupeCheck.dupes.length > 0) && (
+        <div style={{ marginTop: '16px', padding: '14px 18px', background: dupeCheck.dncCount > 0 ? 'rgba(255,96,96,.06)' : 'rgba(245,158,11,.06)', border: `1px solid ${dupeCheck.dncCount > 0 ? 'rgba(255,96,96,.3)' : 'rgba(245,158,11,.3)'}`, borderRadius: '8px' }}>
+          {dupeCheck.checking ? (
+            <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>Checking for cross-niche duplicates...</p>
+          ) : (
+            <>
+              <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 700, color: dupeCheck.dncCount > 0 ? '#ff6060' : '#F59E0B' }}>
+                ⚠ {dupeCheck.dupes.length} duplicate phone{dupeCheck.dupes.length === 1 ? '' : 's'} already in DB
+                {dupeCheck.dncCount > 0 && ` — ${dupeCheck.dncCount} marked DEAD`}
+              </p>
+              <p style={{ margin: '0 0 10px', fontSize: '11px', color: '#888' }}>
+                These phone numbers exist in `leads` under another niche or this same niche. {dupeCheck.dncCount > 0 ? 'Some are flagged as DNC — re-importing them would resurrect dead leads.' : 'Re-importing creates duplicate records.'}
+              </p>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', color: '#fff' }}>
+                <input type="checkbox" checked={skipDupes} onChange={e => setSkipDupes(e.target.checked)} style={{ cursor: 'pointer' }} />
+                <span>Skip duplicates ({skipDupes ? `${dupeCheck.dupes.length} will be skipped, ${progress.total - dupeCheck.dupes.length} imported` : 'all rows will be imported'})</span>
+              </label>
+            </>
+          )}
+        </div>
+      )}
+
       {file && !done && (
         <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button onClick={handleImport} disabled={importing || !batchLabel.trim()}
             className="btn-primary" style={{ width: 'auto', padding: '12px 28px', opacity: (importing || !batchLabel.trim()) ? .6 : 1 }}>
-            {importing ? `Importing... ${progress.done}/${progress.total}` : `Import ${progress.total} Leads`}
+            {importing ? `Importing... ${progress.done}/${progress.total}` : `Import ${skipDupes && dupeCheck?.dupes.length ? progress.total - dupeCheck.dupes.length : progress.total} Leads`}
           </button>
           {importing && (
             <div style={{ flex: 1 }}>
