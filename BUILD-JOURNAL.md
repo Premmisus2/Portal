@@ -17,6 +17,54 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 ---
 
 <!-- ENTRIES BELOW -->
+## 2026-05-08 [UNTAGGED] fix(inbound-voice): regex-match phone digits across separators
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `7d8dc844cb063f71b423a0f900d2ab22b7bffcb9` (`7d8dc84`)
+
+**Files:**
+- `app/api/inbound-voice/route.ts`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert 7d8dc84
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-08 [UNTAGGED] feat(twilio): log inbound callbacks to call_logs + attach recording
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `075cf863b7e188056e13c2b6ed0ffd83bd6d96bc` (`075cf86`)
+
+**Files:**
+- `app/api/inbound-voice/route.ts`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert 075cf86
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
 <a id="2026-05-05-leaderboard"></a>
 ## 2026-05-05 #leaderboard — Live team standup leaderboard + 7PM ET SMS broadcast + director test console
 
