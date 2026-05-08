@@ -169,7 +169,21 @@ ${transcript.slice(0, 8000)}`;
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: { maxOutputTokens: 256, temperature: 0.0, responseMimeType: 'application/json' },
+          generationConfig: {
+            maxOutputTokens: 256,
+            temperature: 0.0,
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: 'object',
+              properties: {
+                outcome: { type: 'string', enum: [...ALLOWED_OUTCOMES] },
+                confidence: { type: 'number' },
+                reasoning: { type: 'string' },
+              },
+              required: ['outcome', 'confidence', 'reasoning'],
+              propertyOrdering: ['outcome', 'confidence', 'reasoning'],
+            },
+          },
         }),
       }
     );
