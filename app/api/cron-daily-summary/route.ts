@@ -39,11 +39,20 @@ export async function GET(request: Request) {
 
   const runId = await startRun('cron-daily-summary');
 
+  // Optional ?date=YYYY-MM-DD override for backfilling a missed day.
+  // Still requires the Bearer CRON_SECRET, so this stays admin-only.
+  const url = new URL(request.url);
+  const dateOverride = url.searchParams.get('date');
+  const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+  if (dateOverride && !datePattern.test(dateOverride)) {
+    return NextResponse.json({ error: 'Invalid date param. Use YYYY-MM-DD.' }, { status: 400 });
+  }
+
   try {
     // "Today" = Toronto calendar day. The cron fires at 21:00 ET, which is
     // already the next UTC day in DST — using `new Date().toISOString()` here
     // would stamp the report with tomorrow's date and miss the day's data.
-    const today = todayInToronto();
+    const today = dateOverride ?? todayInToronto();
     const { startUTC, endUTC } = torontoDayBoundsUTC(today);
 
     // Get all reps (including directors — Elliott calls now too)
