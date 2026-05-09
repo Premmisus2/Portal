@@ -168,7 +168,7 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
                       {log.duration_seconds != null && log.duration_seconds > 0 && (
                         <span style={{fontSize:'10px', color:'#888', fontFamily:'JetBrains Mono,monospace', fontWeight:500}}>{Math.floor(log.duration_seconds/60)}m {log.duration_seconds%60}s</span>
                       )}
-                      <span style={{fontSize:'10px', color:'#333', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString()}</span>
+                      <span style={{fontSize:'10px', color:'#333', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString(undefined, { timeZone: 'America/Toronto' })}</span>
                       {log.notes && (
                         log.notes.length > 80 && expandedNote !== log.id
                           ? <span onClick={e=>{e.stopPropagation(); setExpandedNote(log.id);}} style={{fontSize:'10px', color:'#555', fontStyle:'italic', maxWidth:'200px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', cursor:'pointer'}} title="Click to expand">— {log.notes.slice(0,80)}...</span>

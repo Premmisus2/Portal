@@ -174,7 +174,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
             const batchLeadCount = leads.filter(l => l.batch_id === b.id && countFn(l)).length;
             return (
               <button key={b.id} className={`call-tab${selectedBatch===b.id?' active':''}`} onClick={()=>setSelectedBatch(b.id)}>
-                {b.label || `Batch — ${new Date(b.created_at).toLocaleDateString()}`}
+                {b.label || `Batch — ${new Date(b.created_at).toLocaleDateString(undefined, { timeZone: 'America/Toronto' })}`}
                 <span style={{marginLeft:'6px', fontSize:'10px', opacity:0.7}}>{batchLeadCount}</span>
               </button>
             );
@@ -188,7 +188,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
           return (
             <div style={{display:'flex', alignItems:'center', gap:'12px', padding:'8px 14px', marginBottom:'12px', borderRadius:'8px', background:'rgba(0,240,255,.04)', border:'1px solid rgba(0,240,255,.12)', fontSize:'12px', color:'#888'}}>
               <span style={{fontWeight:700, color:'#00F0FF'}}>{batch.label || `Batch ${batch.id.slice(0,6)}`}</span>
-              <span>{new Date(batch.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric' })}</span>
+              <span>{new Date(batch.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', timeZone: 'America/Toronto' })}</span>
               <span style={{color:'#555'}}>|</span>
               <span>{batchLeads.length} leads</span>
               <span style={{color:'#555'}}>|</span>
@@ -391,7 +391,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                           <span style={{fontSize:'13px', fontWeight:700, color:'#fff'}}>{bizName}</span>
                           <span style={{fontSize:'10px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:`${OUTCOME_COLORS[log.outcome] || '#555'}15`, color: OUTCOME_COLORS[log.outcome] || '#555', letterSpacing:'.05em', textTransform:'uppercase'}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
                           {duration && <span style={{fontSize:'10px', color:'#666', fontFamily:'monospace'}}>{duration}</span>}
-                          <span style={{fontSize:'11px', color:'#444', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString()} {new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                          <span style={{fontSize:'11px', color:'#444', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString(undefined, { timeZone: 'America/Toronto' })} {new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', timeZone: 'America/Toronto'})}</span>
                           {log.callback_date && <span style={{fontSize:'10px', color:'#F59E0B', fontWeight:600}}>CB: {log.callback_date}</span>}
                           {!shadowMode && log.rep_id === repId && (
                             <button
@@ -546,7 +546,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                     const lastCbLog = logs.find((log: any) => log.outcome === 'callback_requested');
                     return { ...l, _cbDate: lastCbLog?.callback_date || null, _cbReason: lastCbLog?.callback_reason || null, _cbNotes: lastCbLog?.notes || null };
                   });
-                  const todayStr = new Date().toISOString().split('T')[0];
+                  const todayStr = todayInToronto();
                   const overdue = followUpLeads.filter(l => l._cbDate && l._cbDate < todayStr).sort((a,b) => (a._cbDate || '').localeCompare(b._cbDate || ''));
                   const dueToday = followUpLeads.filter(l => l._cbDate === todayStr);
                   const upcoming = followUpLeads.filter(l => !l._cbDate || l._cbDate > todayStr).sort((a,b) => (a._cbDate || 'z').localeCompare(b._cbDate || 'z'));
@@ -632,7 +632,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                             )}
                             {lead._bookingDate && (
                               <span style={{fontSize:'11px', color:'#666', fontFamily:'monospace', marginLeft:'auto'}}>
-                                {new Date(lead._bookingDate).toLocaleDateString()} {new Date(lead._bookingDate).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                                {new Date(lead._bookingDate).toLocaleDateString(undefined, { timeZone: 'America/Toronto' })} {new Date(lead._bookingDate).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', timeZone: 'America/Toronto'})}
                               </span>
                             )}
                           </div>
@@ -696,7 +696,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                                   <div style={{width:'6px', height:'6px', borderRadius:'50%', background: OUTCOME_COLORS[log.outcome] || '#555'}}/>
                                   <span style={{fontSize:'12px', color:'#fff', fontWeight:600}}>{log.business_name || logLead?.business_name || 'Unknown'}</span>
                                   <span style={{fontSize:'10px', color: OUTCOME_COLORS[log.outcome] || '#555', fontWeight:600}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
-                                  <span style={{fontSize:'10px', color:'#333', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                                  <span style={{fontSize:'10px', color:'#333', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', timeZone: 'America/Toronto'})}</span>
                                 </div>
                               );
                             })}
@@ -755,7 +755,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
 
                       {/* DAILY DEBRIEF */}
                       {(() => {
-                        const debriefDate = new Date().toISOString().split('T')[0];
+                        const debriefDate = todayInToronto();
                         const debriefKey = `pmss_debrief_${debriefDate}`;
                         const savedDebrief = JSON.parse(localStorage.getItem(debriefKey) || '{}');
                         const debriefFields = [
@@ -867,7 +867,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                                 <span style={{fontSize:'14px', fontWeight:700, color:'#fff'}}>{bizName}</span>
                                 <span style={{fontSize:'10px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:`${OUTCOME_COLORS[log.outcome] || '#555'}15`, color: OUTCOME_COLORS[log.outcome] || '#555', letterSpacing:'.05em', textTransform:'uppercase'}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
                                 {duration && <span style={{fontSize:'11px', color:'#666', fontFamily:'monospace'}}>{duration}</span>}
-                                <span style={{fontSize:'11px', color:'#444', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString()} {new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                                <span style={{fontSize:'11px', color:'#444', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString(undefined, { timeZone: 'America/Toronto' })} {new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', timeZone: 'America/Toronto'})}</span>
                               </div>
                               {isExpanded && (
                                 <div style={{marginTop:'12px'}} onClick={e=>e.stopPropagation()}>

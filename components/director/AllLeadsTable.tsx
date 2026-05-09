@@ -316,7 +316,7 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
       {/* Filters Row 2 */}
       <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', flexWrap: 'wrap', alignItems: 'center' }}>
         <select value={filterSource} onChange={e => { setFilterSource(e.target.value); setPage(0); }} className="field" style={{ maxWidth: '180px', padding: '8px 12px', fontSize: '12px' }}><option value="all">All Sources</option>{uniqueSourceTags.map(t => <option key={t} value={t}>{t}</option>)}</select>
-        <select value={filterBatch} onChange={e => { setFilterBatch(e.target.value); setPage(0); }} className="field" style={{ maxWidth: '220px', padding: '8px 12px', fontSize: '12px' }}><option value="all">All Batches</option>{batches.map(b => <option key={b.id} value={b.id}>{b.label} ({new Date(b.created_at).toLocaleDateString('en-CA')})</option>)}</select>
+        <select value={filterBatch} onChange={e => { setFilterBatch(e.target.value); setPage(0); }} className="field" style={{ maxWidth: '220px', padding: '8px 12px', fontSize: '12px' }}><option value="all">All Batches</option>{batches.map(b => <option key={b.id} value={b.id}>{b.label} ({new Date(b.created_at).toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })})</option>)}</select>
         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: '8px' }}>
           <span style={{ fontSize: '10px', color: '#555', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Group:</span>
           {[['none', 'None'], ['niche', 'Niche'], ['source_tag', 'Source'], ['city', 'City'], ['priority', 'Priority']].map(([val, label]) => (

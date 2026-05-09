@@ -24,7 +24,7 @@ export default function NotificationPopup({ events, lastVisit, onDismiss }: Noti
     const diffMs = now.getTime() - date.getTime();
     if (diffMs < 3600000) return Math.floor(diffMs / 60000) + 'm ago';
     if (diffMs < 86400000) return Math.floor(diffMs / 3600000) + 'h ago';
-    return date.toLocaleDateString();
+    return date.toLocaleDateString(undefined, { timeZone: 'America/Toronto' });
   };
 
   return (

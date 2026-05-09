@@ -31,7 +31,7 @@ export default function AnnouncementsBanner() {
               <span style={{fontSize:'12px', fontWeight:800, color:'#fff'}}>{a.title}</span>
               {a.priority === 'urgent' && <span style={{fontSize:'8px', fontWeight:700, padding:'2px 6px', borderRadius:'3px', background:'rgba(255,136,0,.12)', border:'1px solid rgba(255,136,0,.3)', color:'#ff8800', letterSpacing:'.1em', textTransform:'uppercase'}}>Urgent</span>}
               <span style={{fontSize:'9px', color:'#333', fontFamily:'monospace', marginLeft:'auto'}}>
-                {new Date(a.created_at).toLocaleDateString('en-CA', { month:'short', day:'numeric' })}
+                {new Date(a.created_at).toLocaleDateString('en-CA', { month:'short', day:'numeric', timeZone: 'America/Toronto' })}
               </span>
             </div>
             <p style={{margin:0, fontSize:'12px', color:'#888', lineHeight:1.5}}>{a.message}</p>

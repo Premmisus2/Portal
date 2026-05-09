@@ -341,7 +341,7 @@ export default function LeadImportTool() {
                     <td style={{ padding: '8px 12px' }}><span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px', background: 'rgba(0,240,255,.1)', color: '#00F0FF', fontWeight: 700 }}>{SOURCE_TYPES.find(s => s.value === b.source_type)?.label || b.source_type}</span></td>
                     <td style={{ padding: '8px 12px', color: '#666', fontSize: '11px' }}>{b.filename || '\u2014'}</td>
                     <td style={{ padding: '8px 12px', textAlign: 'center', color: '#fff', fontFamily: 'monospace', fontWeight: 700 }}>{b.lead_count}</td>
-                    <td style={{ padding: '8px 12px', color: '#666', fontSize: '11px' }}>{new Date(b.created_at).toLocaleDateString('en-CA')}</td>
+                    <td style={{ padding: '8px 12px', color: '#666', fontSize: '11px' }}>{new Date(b.created_at).toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}</td>
                     <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                       <button onClick={() => deleteBatch(b)} style={{ background: 'none', border: 'none', color: '#ff4444', cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}>Delete Batch</button>
                     </td>

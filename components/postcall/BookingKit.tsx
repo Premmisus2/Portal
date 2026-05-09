@@ -29,6 +29,7 @@ const BookingKit = () => {
           weekday: 'long',
           month: 'long',
           day: 'numeric',
+          timeZone: 'America/Toronto',
         })
       : '[DATE]';
 
@@ -38,6 +39,7 @@ const BookingKit = () => {
           hour: 'numeric',
           minute: '2-digit',
           hour12: true,
+          timeZone: 'America/Toronto',
         })
       : '[TIME]';
 

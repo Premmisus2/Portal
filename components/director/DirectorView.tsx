@@ -40,7 +40,7 @@ function PendingClosesTab({ closes, onApprove, onReject }: { closes: any[]; onAp
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {closes.map((c: any) => {
-          const date = new Date(c.created_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+          const date = new Date(c.created_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/Toronto' });
           return (
             <div key={c.id} style={{ background: '#0d0d0d', border: '1px solid rgba(245,158,11,.2)', borderRadius: '10px', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
               <div style={{ flex: 1 }}>

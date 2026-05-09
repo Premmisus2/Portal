@@ -5,6 +5,7 @@
 
 import { NextResponse } from 'next/server';
 import { requireDirector } from '@/lib/api-auth';
+import { todayInToronto, torontoDayBoundsUTC } from '@/lib/date';
 
 const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 
@@ -41,14 +42,16 @@ export async function POST(request: Request) {
     onlyMe = !!body?.onlyMe;
   } catch { /* no body */ }
 
-  const today = new Date().toISOString().split('T')[0];
+  // Toronto-bounded day window — UTC drifts past midnight ET every evening.
+  const today = todayInToronto();
+  const { startUTC, endUTC } = torontoDayBoundsUTC(today);
 
   // Fetch reps + today's logs in parallel.
   const [repsRes, logsRes] = await Promise.all([
     fetch(`${SUPABASE_URL}/rest/v1/reps?select=id,name,role,phone&order=created_at.asc`, {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
     }),
-    fetch(`${SUPABASE_URL}/rest/v1/call_logs?select=rep_id,outcome&created_at=gte.${today}T00:00:00`, {
+    fetch(`${SUPABASE_URL}/rest/v1/call_logs?select=rep_id,outcome&created_at=gte.${startUTC}&created_at=lt.${endUTC}`, {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
     }),
   ]);

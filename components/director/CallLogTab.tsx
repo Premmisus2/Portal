@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { supabase as sb } from '@/lib/supabase';
-import { torontoDayBoundsUTC } from '@/lib/date';
+import { todayInToronto, torontoDayBoundsUTC } from '@/lib/date';
 import type { CallLog } from '@/lib/types';
 
 interface CallLogTabProps {
@@ -32,7 +32,7 @@ export default function CallLogTab({ callLogs, repId }: CallLogTabProps) {
   const [callNiche, setCallNiche] = useState('Cleaning');
   const [callOutcome, setCallOutcome] = useState('no_answer');
   const [callNotes, setCallNotes] = useState('');
-  const [callDate, setCallDate] = useState(new Date().toISOString().split('T')[0]);
+  const [callDate, setCallDate] = useState(todayInToronto());
   const [saving, setSaving] = useState(false);
 
   const saveCall = async () => {
@@ -172,7 +172,7 @@ export default function CallLogTab({ callLogs, repId }: CallLogTabProps) {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <span style={{ fontSize: '10px', fontWeight: 700, padding: '3px 10px', borderRadius: '4px', border: `1px solid ${outcomeColors[oc]}33`, color: outcomeColors[oc], background: `${outcomeColors[oc]}11`, fontFamily: 'JetBrains Mono,monospace' }}>{outcomeLabels[oc]}</span>
-                    <span style={{ fontSize: '11px', color: '#333' }}>{new Date(log.created_at).toLocaleDateString()}</span>
+                    <span style={{ fontSize: '11px', color: '#333' }}>{new Date(log.created_at).toLocaleDateString(undefined, { timeZone: 'America/Toronto' })}</span>
                   </div>
                 </div>
                 {log.notes && <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#666', lineHeight: 1.5 }}>{log.notes}</p>}
