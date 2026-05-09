@@ -13,6 +13,7 @@
 
 import { NextResponse } from 'next/server';
 import { startRun, finishRun } from '@/lib/cron-tracker';
+import { todayInToronto } from '@/lib/date';
 
 const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 
@@ -32,7 +33,7 @@ export async function GET(request: Request) {
   const runId = await startRun('cron-callback-reminder');
 
   try {
-    const today = new Date().toISOString().split('T')[0];
+    const today = todayInToronto();
 
     // Find call logs with callback_date <= today
     const logsRes = await fetch(

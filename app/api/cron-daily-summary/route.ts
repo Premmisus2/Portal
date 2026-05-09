@@ -7,6 +7,7 @@
 
 import { NextResponse } from 'next/server';
 import { startRun, finishRun } from '@/lib/cron-tracker';
+import { todayInToronto, torontoDayBoundsUTC } from '@/lib/date';
 
 const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 
@@ -39,7 +40,11 @@ export async function GET(request: Request) {
   const runId = await startRun('cron-daily-summary');
 
   try {
-    const today = new Date().toISOString().split('T')[0];
+    // "Today" = Toronto calendar day. The cron fires at 21:00 ET, which is
+    // already the next UTC day in DST — using `new Date().toISOString()` here
+    // would stamp the report with tomorrow's date and miss the day's data.
+    const today = todayInToronto();
+    const { startUTC, endUTC } = torontoDayBoundsUTC(today);
 
     // Get all reps (including directors — Elliott calls now too)
     const repsRes = await fetch(`${SUPABASE_URL}/rest/v1/reps?select=id,name,role,phone&order=created_at.asc`, {
@@ -47,8 +52,8 @@ export async function GET(request: Request) {
     });
     const reps = await repsRes.json();
 
-    // Get today's call logs
-    const logsRes = await fetch(`${SUPABASE_URL}/rest/v1/call_logs?select=*&created_at=gte.${today}T00:00:00&order=created_at.desc`, {
+    // Get today's call logs (bounded by Toronto-day UTC range)
+    const logsRes = await fetch(`${SUPABASE_URL}/rest/v1/call_logs?select=*&created_at=gte.${startUTC}&created_at=lt.${endUTC}&order=created_at.desc`, {
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` },
     });
     const logs = await logsRes.json();
@@ -124,7 +129,7 @@ export async function GET(request: Request) {
     // Failures here are non-fatal: missing logins shouldn't kill the summary.
     try {
       const authRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/audit_log?select=actor_rep_id,action_type,created_at&action_type=in.(auth.signed_in,auth.registered)&created_at=gte.${today}T00:00:00&order=created_at.asc`,
+        `${SUPABASE_URL}/rest/v1/audit_log?select=actor_rep_id,action_type,created_at&action_type=in.(auth.signed_in,auth.registered)&created_at=gte.${startUTC}&created_at=lt.${endUTC}&order=created_at.asc`,
         { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } },
       );
       const authEvents = await authRes.json();

@@ -5,6 +5,7 @@
 
 import { NextResponse } from 'next/server';
 import { startRun, finishRun } from '@/lib/cron-tracker';
+import { torontoDayBoundsUTC } from '@/lib/date';
 
 const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 
@@ -60,7 +61,10 @@ export async function GET(request: Request) {
 
   try {
     const now = new Date();
-    const today = now.toISOString().split('T')[0];
+    // Toronto-day window for the idle dedupe check. Avoids the UTC vs ET drift
+    // that hits crons firing late in the ET evening (where UTC has already
+    // rolled to the next day).
+    const { startUTC, endUTC } = torontoDayBoundsUTC();
 
     // Get all non-director reps
     const reps = await sbQuery('reps?select=id,name,role&role=eq.rep', SB_KEY);
@@ -69,8 +73,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ message: 'No reps found' });
     }
 
-    // Check already-sent notifications today
-    const sentToday = await sbQuery(`notifications_log?select=recipient&type=eq.idle&created_at=gte.${today}T00:00:00`, SB_KEY);
+    // Check already-sent notifications today (bounded to Toronto day in UTC)
+    const sentToday = await sbQuery(`notifications_log?select=recipient&type=eq.idle&created_at=gte.${startUTC}&created_at=lt.${endUTC}`, SB_KEY);
     const alreadyNotified = new Set((Array.isArray(sentToday) ? sentToday : []).map((n: any) => n.recipient));
 
     const idleReps: string[] = [];
