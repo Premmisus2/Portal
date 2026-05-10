@@ -35,3 +35,6 @@ Sentry.init({
     tags: { surface: 'browser' },
   },
 });
+
+// Required by Sentry SDK v10+ to instrument client-side navigations.
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
