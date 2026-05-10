@@ -17,6 +17,137 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 ---
 
 <!-- ENTRIES BELOW -->
+## 2026-05-10 [UNTAGGED] chore: redeploy to pick up Sentry DSN env vars
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `bdde3f08f54a4e3bc7303843ae8d498018102288` (`bdde3f0`)
+
+**Files:**
+- _(no files reported)_
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert bdde3f0
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-09 [UNTAGGED] fix(timezone): Toronto-aware dates everywhere — server, UI defaults, displays
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `2f4602b34539049cd948141f62c40e72410a3f89` (`2f4602b`)
+
+**Files:**
+- `app/api/send-team-summary/route.ts`
+- `components/call-center/ColdCallView.tsx`
+- `components/call-center/LeadRow.tsx`
+- `components/director/AllLeadsTable.tsx`
+- `components/director/CallLogTab.tsx`
+- `components/director/DirectorView.tsx`
+- `components/director/LeadImportTool.tsx`
+- `components/director/NotificationPopup.tsx`
+- `components/home/AnnouncementsBanner.tsx`
+- `components/postcall/BookingKit.tsx`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert 2f4602b
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-09 [UNTAGGED] feat(cron-daily-summary): allow ?date=YYYY-MM-DD override for backfills
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `584495b96fcc4422f42fc443d9eee0f4a6ee2cd8` (`584495b`)
+
+**Files:**
+- `app/api/cron-daily-summary/route.ts`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert 584495b
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-08 [UNTAGGED] fix(cron): use Toronto-day boundaries instead of UTC date string
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `ff91603fc5c4863a02bd82df677f1b0dff1b6404` (`ff91603`)
+
+**Files:**
+- `app/api/cron-callback-reminder/route.ts`
+- `app/api/cron-daily-summary/route.ts`
+- `app/api/cron-idle-check/route.ts`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert ff91603
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-08 [UNTAGGED] chore(sql): migration for Sarah + inbound callback outcomes
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `15005a64ad0602342808e740e472f3211a81661c` (`15005a6`)
+
+**Files:**
+- `supabase/migrations/20260508_sarah_inbound_outcomes.sql`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert 15005a6
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
 ## 2026-05-08 [UNTAGGED] fix(inbound-voice): regex-match phone digits across separators
 
 **Status:** 🟡 STUB — needs enrichment
