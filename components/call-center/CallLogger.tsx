@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { OUTCOME_LABELS, OUTCOME_COLORS, CALL_LOG_WEBHOOK } from '@/lib/constants';
+import { OUTCOME_LABELS, OUTCOME_COLORS, CALLBACK_REASON_LABELS, CALLBACK_REASON_COLORS, CALL_LOG_WEBHOOK } from '@/lib/constants';
 
 const STATUS_MAP: Record<string, string> = {
   no_answer: 'contacted',
@@ -22,7 +22,9 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
   const primary = selected[0] || '';
   const [notes, setNotes] = useState('');
   const [callbackDate, setCallbackDate] = useState('');
-  const [callbackReason, setCallbackReason] = useState('');
+  const [callbackTime, setCallbackTime] = useState('');
+  const [reasonSelected, setReasonSelected] = useState<string[]>([]);
+  const callbackReason = reasonSelected[0] || '';
   const [bookingType, setBookingType] = useState('');
   const [saving, setSaving] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<{ outcome: string; confidence: number; reasoning: string } | null>(null);
@@ -50,10 +52,15 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
     setSelected(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
   };
 
+  const toggleReason = (key: string) => {
+    setReasonSelected(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+  };
+
   const handleSubmit = async () => {
     if (!primary) return;
     setSaving(true);
     const additional = selected.slice(1);
+    const additionalReasons = reasonSelected.slice(1);
     try {
       const insertPayload: Record<string, any> = {
         lead_id: lead.id,
@@ -61,6 +68,7 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
         outcome: primary,
         notes: notes || null,
         callback_date: callbackDate || null,
+        callback_time: callbackTime || null,
         business_name: lead.business_name || null,
         callback_reason: callbackReason || null,
         booking_type: bookingType || null,
@@ -69,15 +77,17 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
         outcome: primary,
         notes: notes || null,
         callback_date: callbackDate || null,
+        callback_time: callbackTime || null,
         callback_reason: callbackReason || null,
         booking_type: bookingType || null,
       };
-      // Only attach additional_outcomes when there ARE secondaries. Lets the
-      // feature ship before the DDL lands — single-outcome logs (the default)
-      // don't reference the new column at all.
       if (additional.length > 0) {
         insertPayload.additional_outcomes = additional;
         updatePayload.additional_outcomes = additional;
+      }
+      if (additionalReasons.length > 0) {
+        insertPayload.additional_callback_reasons = additionalReasons;
+        updatePayload.additional_callback_reasons = additionalReasons;
       }
       if (existingCallLogId) {
         const { error: updateLogErr } = await supabase.from('call_logs').update(updatePayload).eq('id', existingCallLogId);
@@ -110,7 +120,7 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
           body: JSON.stringify({ type: 'callback', repName: userName || 'Rep', businessName: lead.business_name, notes: notes })
         }).catch(() => {});
       }
-      setSelected([]); setNotes(''); setCallbackDate(''); setCallbackReason(''); setBookingType('');
+      setSelected([]); setNotes(''); setCallbackDate(''); setCallbackTime(''); setReasonSelected([]); setBookingType('');
     } catch (err: any) { console.error('Call log error:', err); alert('Failed to save call log: ' + (err.message || 'Unknown error')); }
     setSaving(false);
   };
@@ -170,20 +180,55 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
       </div>
       {showCallback && (
         <div style={{marginBottom:'12px'}}>
-          <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Callback Date</label>
-          <input type="date" value={callbackDate} onChange={e=>setCallbackDate(e.target.value)}
-            className="field" style={{maxWidth:'200px', colorScheme:'dark'}}/>
-          <div style={{marginTop:'10px'}}>
+          <div style={{display:'flex', gap:'10px', flexWrap:'wrap'}}>
+            <div>
+              <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Callback Date</label>
+              <input type="date" value={callbackDate} onChange={e=>setCallbackDate(e.target.value)}
+                className="field" style={{maxWidth:'180px', colorScheme:'dark'}}/>
+            </div>
+            <div>
+              <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Callback Time</label>
+              <input type="time" value={callbackTime} onChange={e=>setCallbackTime(e.target.value)}
+                className="field" style={{maxWidth:'140px', colorScheme:'dark'}}/>
+            </div>
+          </div>
+          <div style={{marginTop:'12px'}}>
             <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Callback Reason</label>
-            <select value={callbackReason} onChange={e => setCallbackReason(e.target.value)} className="field" style={{maxWidth:'280px', padding:'8px 12px', fontSize:'12px'}}>
-              <option value="">Select reason...</option>
-              <option value="too_busy">Too Busy / On Job Site</option>
-              <option value="has_someone">Has Someone Working On It</option>
-              <option value="call_later">Asked to Call Back Later</option>
-              <option value="interested">Interested But Not Ready</option>
-              <option value="wants_info">Wants More Information</option>
-              <option value="other">Other</option>
-            </select>
+            <p style={{margin:'0 0 8px', fontSize:'9px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'#444'}}>
+              Tap to select. First pick is primary; add more if needed.
+            </p>
+            <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
+              {Object.entries(CALLBACK_REASON_LABELS).map(([key, label]) => {
+                const idx = reasonSelected.indexOf(key);
+                const isPrimary = idx === 0;
+                const isSecondary = idx > 0;
+                const isSelected = idx >= 0;
+                const color = CALLBACK_REASON_COLORS[key];
+                return (
+                  <button key={key} onClick={()=>toggleReason(key)}
+                    style={{
+                      padding:'6px 12px', borderRadius:'7px', cursor:'pointer', fontSize:'11px', fontWeight:700,
+                      fontFamily:'Inter,sans-serif', transition:'all .15s',
+                      display:'inline-flex', alignItems:'center', gap:'6px',
+                      background: isPrimary ? `${color}28` : isSecondary ? `${color}12` : 'transparent',
+                      border: `1px solid ${isPrimary ? color : isSecondary ? color + '55' : '#1e1e1e'}`,
+                      color: isSelected ? color : '#555',
+                      boxShadow: isPrimary ? `0 0 0 1px ${color}44 inset` : 'none',
+                    }}>
+                    {isSelected && (
+                      <span style={{
+                        fontSize:'9px', fontWeight:800, padding:'1px 5px', borderRadius:'4px',
+                        background: isPrimary ? `${color}44` : 'transparent',
+                        border: isPrimary ? 'none' : `1px solid ${color}66`,
+                        color: isPrimary ? '#fff' : color,
+                        fontFamily:'JetBrains Mono,monospace', letterSpacing:'.05em',
+                      }}>{isPrimary ? 'PRIMARY' : `+${idx}`}</span>
+                    )}
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}

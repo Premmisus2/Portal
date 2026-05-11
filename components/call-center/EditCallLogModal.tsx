@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { OUTCOME_LABELS, OUTCOME_COLORS } from '@/lib/constants';
+import { OUTCOME_LABELS, OUTCOME_COLORS, CALLBACK_REASON_LABELS, CALLBACK_REASON_COLORS } from '@/lib/constants';
 
 const STATUS_FROM_OUTCOME: Record<string, string> = {
   no_answer: 'contacted',
@@ -35,12 +35,25 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
   const outcome = selected[0] || '';
   const [notes, setNotes] = useState(log.notes || '');
   const [callbackDate, setCallbackDate] = useState(log.callback_date || '');
+  const [callbackTime, setCallbackTime] = useState(log.callback_time || '');
+  const initialReasonSelected = (() => {
+    const arr: string[] = [];
+    if (log.callback_reason) arr.push(log.callback_reason);
+    if (Array.isArray(log.additional_callback_reasons)) {
+      for (const r of log.additional_callback_reasons) if (r && !arr.includes(r)) arr.push(r);
+    }
+    return arr;
+  })();
+  const [reasonSelected, setReasonSelected] = useState<string[]>(initialReasonSelected);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const toggleOutcome = (key: string) => {
     setSelected(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+  };
+  const toggleReason = (key: string) => {
+    setReasonSelected(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
   };
 
   useEffect(() => {
@@ -54,16 +67,22 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
     setSaving(true);
     setError(null);
     const additional = selected.slice(1);
+    const additionalReasons = reasonSelected.slice(1);
+    const isCallback = selected.includes('callback_requested');
+    const primaryReason = reasonSelected[0] || '';
     try {
       const updates: Record<string, any> = {
         outcome,
         notes: notes || null,
-        callback_date: selected.includes('callback_requested') ? (callbackDate || null) : null,
+        callback_date: isCallback ? (callbackDate || null) : null,
+        callback_time: isCallback ? (callbackTime || null) : null,
+        callback_reason: isCallback ? (primaryReason || null) : null,
         business_name: businessName || null,
       };
-      // Only attach the secondary tags when there are any — keeps single-outcome
-      // edits working even before the additional_outcomes column lands.
       if (additional.length > 0) updates.additional_outcomes = additional;
+      if (isCallback && additionalReasons.length > 0) {
+        updates.additional_callback_reasons = additionalReasons;
+      }
       const { error: logErr } = await supabase.from('call_logs').update(updates).eq('id', log.id);
       if (logErr) throw logErr;
 
@@ -215,14 +234,68 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
 
         {selected.includes('callback_requested') && (
           <div style={{ marginBottom: '16px' }}>
-            <label style={labelStyle}>Callback Date</label>
-            <input
-              type="date"
-              value={callbackDate}
-              onChange={e => setCallbackDate(e.target.value)}
-              style={{ ...fieldStyle, maxWidth: '200px', colorScheme: 'dark' }}
-              className="field"
-            />
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '12px' }}>
+              <div>
+                <label style={labelStyle}>Callback Date</label>
+                <input
+                  type="date"
+                  value={callbackDate}
+                  onChange={e => setCallbackDate(e.target.value)}
+                  style={{ ...fieldStyle, maxWidth: '180px', colorScheme: 'dark' }}
+                  className="field"
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Callback Time</label>
+                <input
+                  type="time"
+                  value={callbackTime}
+                  onChange={e => setCallbackTime(e.target.value)}
+                  style={{ ...fieldStyle, maxWidth: '140px', colorScheme: 'dark' }}
+                  className="field"
+                />
+              </div>
+            </div>
+            <label style={labelStyle}>Callback Reason</label>
+            <p style={{ margin: '0 0 8px', fontSize: '9px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#444' }}>
+              Tap to select. First pick is primary; add more if needed.
+            </p>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {Object.entries(CALLBACK_REASON_LABELS).map(([key, label]) => {
+                const idx = reasonSelected.indexOf(key);
+                const isPrimary = idx === 0;
+                const isSecondary = idx > 0;
+                const isSelected = idx >= 0;
+                const color = CALLBACK_REASON_COLORS[key];
+                return (
+                  <button
+                    key={key}
+                    onClick={() => toggleReason(key)}
+                    style={{
+                      padding: '6px 12px', borderRadius: '7px', cursor: 'pointer',
+                      fontSize: '11px', fontWeight: 700, fontFamily: 'Inter,sans-serif',
+                      transition: 'all .15s',
+                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      background: isPrimary ? `${color}28` : isSecondary ? `${color}12` : 'transparent',
+                      border: `1px solid ${isPrimary ? color : isSecondary ? color + '55' : '#1e1e1e'}`,
+                      color: isSelected ? color : '#555',
+                      boxShadow: isPrimary ? `0 0 0 1px ${color}44 inset` : 'none',
+                    }}
+                  >
+                    {isSelected && (
+                      <span style={{
+                        fontSize: '9px', fontWeight: 800, padding: '1px 5px', borderRadius: '4px',
+                        background: isPrimary ? `${color}44` : 'transparent',
+                        border: isPrimary ? 'none' : `1px solid ${color}66`,
+                        color: isPrimary ? '#fff' : color,
+                        fontFamily: 'JetBrains Mono,monospace', letterSpacing: '.05em',
+                      }}>{isPrimary ? 'PRIMARY' : `+${idx}`}</span>
+                    )}
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 

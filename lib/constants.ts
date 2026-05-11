@@ -24,6 +24,26 @@ export const OUTCOME_LABELS: Record<string, string> = {
   wrong_number: 'Wrong Number',
 };
 
+export const CALLBACK_REASON_LABELS: Record<string, string> = {
+  too_busy: 'Too Busy / On Job Site',
+  has_someone: 'Has Someone Working On It',
+  call_later: 'Asked to Call Back Later',
+  interested: 'Interested But Not Ready',
+  wants_info: 'Wants More Information',
+  owner_away: 'Owner Away from Phone',
+  other: 'Other',
+};
+
+export const CALLBACK_REASON_COLORS: Record<string, string> = {
+  too_busy: '#F59E0B',
+  has_someone: '#888',
+  call_later: '#F59E0B',
+  interested: '#22c55e',
+  wants_info: '#3B82F6',
+  owner_away: '#A78BFA',
+  other: '#555',
+};
+
 export const OUTCOME_COLORS: Record<string, string> = {
   no_answer: '#555',
   voicemail_left: '#F59E0B',
