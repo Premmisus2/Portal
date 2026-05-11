@@ -73,30 +73,12 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
               {lead.phone}
             </button>
           ) : (
-            <button onClick={async e=>{
-              e.stopPropagation();
-              if (shadowMode) { window.location.href = 'tel:' + lead.phone; return; }
-              if (!repId || !lead.id) { window.location.href = 'tel:' + lead.phone; return; }
-              try {
-                const { error } = await supabase.from('call_logs').insert({ lead_id: lead.id, rep_id: repId, outcome: 'no_answer', call_type: 'manual', business_name: lead.business_name || null, notes: 'Auto-logged: tapped to call' });
-                if (error) {
-                  reportClientError('LeadRow.tapToCall.insertCallLog', error, { lead_id: lead.id, rep_id: repId, business_name: lead.business_name || null }, 'auto-log-hardening');
-                  if (setToast) setToast({ message: 'Auto-log failed — log this call manually', type: 'error' });
-                } else {
-                  const { error: leadUpdateErr } = await supabase.from('leads').update({ status: 'contacted', updated_at: new Date().toISOString() }).eq('id', lead.id);
-                  if (leadUpdateErr) {
-                    reportClientError('LeadRow.tapToCall.updateLeadStatus', leadUpdateErr, { lead_id: lead.id }, 'auto-log-hardening');
-                  }
-                  if (setToast) setToast({ message: 'Call started — ' + (lead.business_name || 'Unknown'), type: 'success' });
-                  if (onLogged) onLogged(lead.id, 'no_answer');
-                  window.dispatchEvent(new Event('refreshCallLogs'));
-                }
-              } catch (err) {
-                reportClientError('LeadRow.tapToCall.exception', err, { lead_id: lead.id, rep_id: repId }, 'auto-log-hardening');
-                if (setToast) setToast({ message: 'Auto-log failed — log this call manually', type: 'error' });
-              }
-              window.location.href = 'tel:' + lead.phone;
-            }} style={{fontSize:'12px', color:'#00F0FF', textDecoration:'none', fontFamily:'JetBrains Mono,monospace', fontWeight:600, background:'none', border:'none', cursor:'pointer', padding:0}}>{lead.phone}</button>
+            // Tap-to-call fallback (no rep phone configured OR shadow mode): open native dialer only.
+            // Do NOT auto-log a row here — it inflates dial counts with phantom rows that never went through Twilio.
+            // Rep must use the "Log Call" button after the call to record outcome.
+            <a href={'tel:' + lead.phone}
+              onClick={e=>e.stopPropagation()}
+              style={{fontSize:'12px', color:'#00F0FF', textDecoration:'none', fontFamily:'JetBrains Mono,monospace', fontWeight:600, background:'none', border:'none', cursor:'pointer', padding:0}}>{lead.phone}</a>
           )}
           {lastLog && (
             <span style={{fontSize:'10px', color: OUTCOME_COLORS[lastLog.outcome] || '#555', fontWeight:700}}>{OUTCOME_LABELS[lastLog.outcome]}</span>
