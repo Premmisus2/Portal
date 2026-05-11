@@ -23,12 +23,25 @@ type EditCallLogModalProps = {
 
 const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
   const [businessName, setBusinessName] = useState(log.business_name || '');
-  const [outcome, setOutcome] = useState(log.outcome || '');
+  const initialSelected = (() => {
+    const arr: string[] = [];
+    if (log.outcome) arr.push(log.outcome);
+    if (Array.isArray(log.additional_outcomes)) {
+      for (const o of log.additional_outcomes) if (o && !arr.includes(o)) arr.push(o);
+    }
+    return arr;
+  })();
+  const [selected, setSelected] = useState<string[]>(initialSelected);
+  const outcome = selected[0] || '';
   const [notes, setNotes] = useState(log.notes || '');
   const [callbackDate, setCallbackDate] = useState(log.callback_date || '');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const toggleOutcome = (key: string) => {
+    setSelected(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+  };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -40,13 +53,17 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
     if (!outcome) { setError('Outcome is required'); return; }
     setSaving(true);
     setError(null);
+    const additional = selected.slice(1);
     try {
       const updates: Record<string, any> = {
         outcome,
         notes: notes || null,
-        callback_date: outcome === 'callback_requested' ? (callbackDate || null) : null,
+        callback_date: selected.includes('callback_requested') ? (callbackDate || null) : null,
         business_name: businessName || null,
       };
+      // Only attach the secondary tags when there are any — keeps single-outcome
+      // edits working even before the additional_outcomes column lands.
+      if (additional.length > 0) updates.additional_outcomes = additional;
       const { error: logErr } = await supabase.from('call_logs').update(updates).eq('id', log.id);
       if (logErr) throw logErr;
 
@@ -155,25 +172,48 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
 
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>Outcome *</label>
+          <p style={{ margin: '0 0 8px', fontSize: '9px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#444' }}>
+            Tap to select. First pick is primary; add more if needed.
+          </p>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            {Object.entries(OUTCOME_LABELS).map(([key, label]) => (
-              <button
-                key={key}
-                onClick={() => setOutcome(key)}
-                style={{
-                  padding: '7px 14px', borderRadius: '7px', cursor: 'pointer',
-                  fontSize: '11px', fontWeight: 700, fontFamily: 'Inter,sans-serif',
-                  transition: 'all .15s',
-                  background: outcome === key ? `${OUTCOME_COLORS[key]}18` : 'transparent',
-                  border: `1px solid ${outcome === key ? OUTCOME_COLORS[key] + '66' : '#1e1e1e'}`,
-                  color: outcome === key ? OUTCOME_COLORS[key] : '#555',
-                }}
-              >{label}</button>
-            ))}
+            {Object.entries(OUTCOME_LABELS).map(([key, label]) => {
+              const idx = selected.indexOf(key);
+              const isPrimary = idx === 0;
+              const isSecondary = idx > 0;
+              const isSelected = idx >= 0;
+              const color = OUTCOME_COLORS[key];
+              return (
+                <button
+                  key={key}
+                  onClick={() => toggleOutcome(key)}
+                  style={{
+                    padding: '7px 14px', borderRadius: '7px', cursor: 'pointer',
+                    fontSize: '11px', fontWeight: 700, fontFamily: 'Inter,sans-serif',
+                    transition: 'all .15s',
+                    display: 'inline-flex', alignItems: 'center', gap: '6px',
+                    background: isPrimary ? `${color}28` : isSecondary ? `${color}12` : 'transparent',
+                    border: `1px solid ${isPrimary ? color : isSecondary ? color + '55' : '#1e1e1e'}`,
+                    color: isSelected ? color : '#555',
+                    boxShadow: isPrimary ? `0 0 0 1px ${color}44 inset` : 'none',
+                  }}
+                >
+                  {isSelected && (
+                    <span style={{
+                      fontSize: '9px', fontWeight: 800, padding: '1px 5px', borderRadius: '4px',
+                      background: isPrimary ? `${color}44` : 'transparent',
+                      border: isPrimary ? 'none' : `1px solid ${color}66`,
+                      color: isPrimary ? '#fff' : color,
+                      fontFamily: 'JetBrains Mono,monospace', letterSpacing: '.05em',
+                    }}>{isPrimary ? 'PRIMARY' : `+${idx}`}</span>
+                  )}
+                  {label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {outcome === 'callback_requested' && (
+        {selected.includes('callback_requested') && (
           <div style={{ marginBottom: '16px' }}>
             <label style={labelStyle}>Callback Date</label>
             <input

@@ -4,8 +4,22 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { OUTCOME_LABELS, OUTCOME_COLORS, CALL_LOG_WEBHOOK } from '@/lib/constants';
 
+const STATUS_MAP: Record<string, string> = {
+  no_answer: 'contacted',
+  voicemail_left: 'voicemail',
+  callback_requested: 'callback',
+  not_interested: 'not_interested',
+  booked_call: 'booked',
+  discovery_completed: 'discovery_completed',
+  no_show: 'no_show',
+  wrong_number: 'wrong_number',
+};
+
 const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any) => {
-  const [outcome, setOutcome] = useState('');
+  // Ordered selection. First entry is the PRIMARY outcome (drives lead.status,
+  // AI suggestion match, notifications). Subsequent entries are secondary tags.
+  const [selected, setSelected] = useState<string[]>([]);
+  const primary = selected[0] || '';
   const [notes, setNotes] = useState('');
   const [callbackDate, setCallbackDate] = useState('');
   const [callbackReason, setCallbackReason] = useState('');
@@ -24,7 +38,7 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
         confidence: data.outcome_auto_confidence ?? 0,
         reasoning: data.outcome_auto_reasoning ?? '',
       });
-      if (!outcome) setOutcome(data.outcome_auto);
+      setSelected(prev => prev.length === 0 ? [data.outcome_auto] : prev);
     };
     tick();
     const interval = setInterval(tick, 8000);
@@ -32,31 +46,58 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
     return () => { cancelled = true; clearInterval(interval); clearTimeout(stop); };
   }, [existingCallLogId]);
 
+  const toggleOutcome = (key: string) => {
+    setSelected(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+  };
+
   const handleSubmit = async () => {
-    if (!outcome) return;
+    if (!primary) return;
     setSaving(true);
+    const additional = selected.slice(1);
     try {
-      const insertPayload = { lead_id: lead.id, rep_id: repId, outcome, notes: notes || null, callback_date: callbackDate || null, business_name: lead.business_name || null, callback_reason: callbackReason || null, booking_type: bookingType || null };
+      const insertPayload: Record<string, any> = {
+        lead_id: lead.id,
+        rep_id: repId,
+        outcome: primary,
+        notes: notes || null,
+        callback_date: callbackDate || null,
+        business_name: lead.business_name || null,
+        callback_reason: callbackReason || null,
+        booking_type: bookingType || null,
+      };
+      const updatePayload: Record<string, any> = {
+        outcome: primary,
+        notes: notes || null,
+        callback_date: callbackDate || null,
+        callback_reason: callbackReason || null,
+        booking_type: bookingType || null,
+      };
+      // Only attach additional_outcomes when there ARE secondaries. Lets the
+      // feature ship before the DDL lands — single-outcome logs (the default)
+      // don't reference the new column at all.
+      if (additional.length > 0) {
+        insertPayload.additional_outcomes = additional;
+        updatePayload.additional_outcomes = additional;
+      }
       if (existingCallLogId) {
-        // Update mode — Twilio call already created the row, just add outcome + notes
-        const { error: updateLogErr } = await supabase.from('call_logs').update({ outcome, notes: notes || null, callback_date: callbackDate || null, callback_reason: callbackReason || null, booking_type: bookingType || null }).eq('id', existingCallLogId);
+        const { error: updateLogErr } = await supabase.from('call_logs').update(updatePayload).eq('id', existingCallLogId);
         if (updateLogErr) { alert('Failed to update call log: ' + updateLogErr.message); setSaving(false); return; }
       } else {
         const { error: insertErr } = await supabase.from('call_logs').insert(insertPayload);
         if (insertErr) { alert('Failed to save call log: ' + insertErr.message); setSaving(false); return; }
       }
-      const statusMap: Record<string, string> = { no_answer:'contacted', voicemail_left:'voicemail', callback_requested:'callback', not_interested:'not_interested', booked_call:'booked', discovery_completed:'discovery_completed', no_show:'no_show', wrong_number:'wrong_number' };
-      const { error: updateErr } = await supabase.from('leads').update({ status: statusMap[outcome] || 'contacted', updated_at: new Date().toISOString() }).eq('id', lead.id);
+      const { error: updateErr } = await supabase.from('leads').update({ status: STATUS_MAP[primary] || 'contacted', updated_at: new Date().toISOString() }).eq('id', lead.id);
       if (updateErr) { alert('Call logged but failed to update lead status: ' + updateErr.message); setSaving(false); return; }
       if (CALL_LOG_WEBHOOK) {
         fetch(CALL_LOG_WEBHOOK, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ businessName: lead.business_name, contactName: lead.contact_name, phone: lead.phone, niche: lead.niche, city: lead.city, outcome, notes, callbackDate, priority: lead.priority, source: 'Cold Call', timestamp: new Date().toISOString() })
+          body: JSON.stringify({ businessName: lead.business_name, contactName: lead.contact_name, phone: lead.phone, niche: lead.niche, city: lead.city, outcome: primary, additionalOutcomes: additional, notes, callbackDate, priority: lead.priority, source: 'Cold Call', timestamp: new Date().toISOString() })
         }).catch(()=>{});
       }
-      onLogged(lead.id, outcome, statusMap[outcome]);
+      onLogged(lead.id, primary, STATUS_MAP[primary]);
       window.dispatchEvent(new Event('refreshCallLogs'));
-      // Notification triggers
-      if (outcome === 'booked_call' || outcome === 'discovery_completed') {
+      // Notification triggers — fire on ANY selected outcome (primary or secondary).
+      const bookedHit = selected.includes('booked_call') || selected.includes('discovery_completed');
+      if (bookedHit) {
         fetch('/api/notify-sms', { method: 'POST', headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ type: 'booked', repName: userName || 'Rep', businessName: lead.business_name, phone: lead.phone, notes: notes })
         }).catch(() => {});
@@ -64,15 +105,18 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
           body: JSON.stringify({ type: 'booked', repName: userName || 'Rep', businessName: lead.business_name, phone: lead.phone, notes: notes })
         }).catch(() => {});
       }
-      if (outcome === 'callback_requested') {
+      if (selected.includes('callback_requested')) {
         fetch('/api/notify-sms', { method: 'POST', headers: {'Content-Type':'application/json'},
           body: JSON.stringify({ type: 'callback', repName: userName || 'Rep', businessName: lead.business_name, notes: notes })
         }).catch(() => {});
       }
-      setOutcome(''); setNotes(''); setCallbackDate('');
+      setSelected([]); setNotes(''); setCallbackDate(''); setCallbackReason(''); setBookingType('');
     } catch (err: any) { console.error('Call log error:', err); alert('Failed to save call log: ' + (err.message || 'Unknown error')); }
     setSaving(false);
   };
+
+  const showCallback = selected.includes('callback_requested');
+  const showBooking = selected.includes('booked_call');
 
   return (
     <div style={{marginTop:'14px', padding:'16px', background:'rgba(0,240,255,.03)', border:'1px solid rgba(0,240,255,.15)', borderRadius:'10px'}} className="fadein">
@@ -89,17 +133,42 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
           )}
         </div>
       )}
+      <p style={{margin:'0 0 8px', fontSize:'9px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'#444'}}>
+        Outcome — tap to select. First pick is primary; add more if needed.
+      </p>
       <div style={{display:'flex', gap:'10px', flexWrap:'wrap', marginBottom:'12px'}}>
-        {Object.entries(OUTCOME_LABELS).map(([key, label]) => (
-          <button key={key} onClick={()=>setOutcome(key)}
-            style={{padding:'7px 14px', borderRadius:'7px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif', transition:'all .15s',
-              background: outcome===key ? `${OUTCOME_COLORS[key]}18` : 'transparent',
-              border: `1px solid ${outcome===key ? OUTCOME_COLORS[key]+'66' : '#1e1e1e'}`,
-              color: outcome===key ? OUTCOME_COLORS[key] : '#555',
-            }}>{label}</button>
-        ))}
+        {Object.entries(OUTCOME_LABELS).map(([key, label]) => {
+          const idx = selected.indexOf(key);
+          const isPrimary = idx === 0;
+          const isSecondary = idx > 0;
+          const isSelected = idx >= 0;
+          const color = OUTCOME_COLORS[key];
+          return (
+            <button key={key} onClick={()=>toggleOutcome(key)}
+              style={{
+                padding:'7px 14px', borderRadius:'7px', cursor:'pointer', fontSize:'11px', fontWeight:700,
+                fontFamily:'Inter,sans-serif', transition:'all .15s',
+                display:'inline-flex', alignItems:'center', gap:'6px',
+                background: isPrimary ? `${color}28` : isSecondary ? `${color}12` : 'transparent',
+                border: `1px solid ${isPrimary ? color : isSecondary ? color + '55' : '#1e1e1e'}`,
+                color: isSelected ? color : '#555',
+                boxShadow: isPrimary ? `0 0 0 1px ${color}44 inset` : 'none',
+              }}>
+              {isSelected && (
+                <span style={{
+                  fontSize:'9px', fontWeight:800, padding:'1px 5px', borderRadius:'4px',
+                  background: isPrimary ? `${color}44` : 'transparent',
+                  border: isPrimary ? 'none' : `1px solid ${color}66`,
+                  color: isPrimary ? '#fff' : color,
+                  fontFamily:'JetBrains Mono,monospace', letterSpacing:'.05em',
+                }}>{isPrimary ? 'PRIMARY' : `+${idx}`}</span>
+              )}
+              {label}
+            </button>
+          );
+        })}
       </div>
-      {outcome === 'callback_requested' && (
+      {showCallback && (
         <div style={{marginBottom:'12px'}}>
           <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Callback Date</label>
           <input type="date" value={callbackDate} onChange={e=>setCallbackDate(e.target.value)}
@@ -118,7 +187,7 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
           </div>
         </div>
       )}
-      {outcome === 'booked_call' && (
+      {showBooking && (
         <div style={{marginBottom:'12px'}}>
           <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Booking Type</label>
           <select value={bookingType} onChange={e => setBookingType(e.target.value)} className="field" style={{maxWidth:'280px', padding:'8px 12px', fontSize:'12px'}}>
@@ -131,9 +200,9 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
       )}
       <textarea value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Quick notes (optional)..."
         className="field" style={{minHeight:'60px', resize:'vertical', marginBottom:'12px'}} rows={2}/>
-      <button onClick={handleSubmit} disabled={!outcome || saving}
-        style={{padding:'10px 24px', borderRadius:'8px', cursor: (!outcome||saving)?'not-allowed':'pointer', border:'none',
-          background: outcome ? '#00F0FF' : '#1e1e1e', color: outcome ? '#000' : '#444',
+      <button onClick={handleSubmit} disabled={!primary || saving}
+        style={{padding:'10px 24px', borderRadius:'8px', cursor: (!primary||saving)?'not-allowed':'pointer', border:'none',
+          background: primary ? '#00F0FF' : '#1e1e1e', color: primary ? '#000' : '#444',
           fontWeight:800, fontSize:'12px', fontFamily:'Inter,sans-serif', letterSpacing:'.06em', textTransform:'uppercase',
           opacity: saving ? .6 : 1, transition:'all .15s',
         }}>{saving ? 'Saving...' : 'Log Call'}</button>

@@ -55,6 +55,7 @@ export interface CallLog {
   lead_id?: string;
   rep_id: string;
   outcome: string;
+  additional_outcomes?: string[] | null;
   call_sid?: string;
   call_type?: string;
   twilio_status?: string;
