@@ -571,7 +571,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                             <div style={{marginLeft:'auto', display:'flex', gap:'6px', alignItems:'center'}}>
                               {repPhone && lead.phone ? (
                                 <button onClick={()=>setCallModalLead(lead)}
-                                  style={{display:'flex', alignItems:'center', gap:'5px', padding:'5px 12px', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'JetBrains Mono,monospace',
+                                  style={{display:'flex', alignItems:'center', gap:'5px', padding:'9px 14px', minHeight:'40px', borderRadius:'6px', cursor:'pointer', fontSize:'12px', fontWeight:700, fontFamily:'JetBrains Mono,monospace',
                                     background:'rgba(34,197,94,.08)', border:'1px solid rgba(34,197,94,.4)', color:'#22c55e', transition:'all .15s'}}
                                   onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(34,197,94,.18)';}}
                                   onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(34,197,94,.08)';}}>
@@ -587,7 +587,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                                 </a>
                               ) : null}
                               <button onClick={()=>{ setTab('allleads'); setQuickFilter('all'); setFilterStatus('all'); setSelectedBatch('all'); setSearchQuery(''); setExpandedLead(lead.id); }}
-                                style={{padding:'5px 12px', borderRadius:'6px', cursor:'pointer', fontSize:'10px', fontWeight:700, fontFamily:'Inter,sans-serif',
+                                style={{padding:'9px 12px', minHeight:'40px', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif',
                                   background:'transparent', border:'1px solid rgba(0,240,255,.3)', color:'#00F0FF', transition:'all .15s'}}
                                 onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(0,240,255,.08)';}}
                                 onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='transparent';}}>
@@ -659,7 +659,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                             {!shadowMode && lead.phone && (
                               repPhone ? (
                                 <button onClick={()=>setCallModalLead(lead)}
-                                  style={{display:'flex', alignItems:'center', gap:'5px', padding:'5px 12px', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'JetBrains Mono,monospace',
+                                  style={{display:'flex', alignItems:'center', gap:'5px', padding:'9px 14px', minHeight:'40px', borderRadius:'6px', cursor:'pointer', fontSize:'12px', fontWeight:700, fontFamily:'JetBrains Mono,monospace',
                                     background:'rgba(34,197,94,.08)', border:'1px solid rgba(34,197,94,.4)', color:'#22c55e', transition:'all .15s'}}
                                   onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(34,197,94,.18)';}}
                                   onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(34,197,94,.08)';}}>
