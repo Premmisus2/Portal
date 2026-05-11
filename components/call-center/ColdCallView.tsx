@@ -9,6 +9,7 @@ import LeadRow from './LeadRow';
 import QuickLogForm from './QuickLogForm';
 import CallTranscriptToggle from './CallTranscriptToggle';
 import EditCallLogModal from './EditCallLogModal';
+import TwilioCallModal from './TwilioCallModal';
 import { recordingProxySrc } from '@/lib/recording';
 
 const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, totalPoints, addClose, undoClose, repId, isDirector, shadowMode, repPhone }: any) => {
@@ -31,6 +32,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
   const [expandedPlayback, setExpandedPlayback] = useState<string | null>(null);
   const [selectedBatch, setSelectedBatch] = useState(() => { try { return localStorage.getItem('pmss_cc_batch') || 'all'; } catch { return 'all'; } });
   const [batches, setBatches] = useState<any[]>([]);
+  const [callModalLead, setCallModalLead] = useState<any | null>(null);
 
   useEffect(() => { try { localStorage.setItem('pmss_cc_batch', selectedBatch); } catch {} }, [selectedBatch]);
   useEffect(() => { try { localStorage.setItem('pmss_cc_tab', tab); } catch {} }, [tab]);
@@ -566,13 +568,32 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                             {lead._cbReason ? (CALLBACK_REASON_LABELS[lead._cbReason] || lead._cbReason) : 'No reason given'}
                           </span>
                           {!shadowMode && (
-                            <button onClick={()=>{ setTab('list'); setExpandedLead(lead.id); }}
-                              style={{marginLeft:'auto', padding:'5px 12px', borderRadius:'6px', cursor:'pointer', fontSize:'10px', fontWeight:700, fontFamily:'Inter,sans-serif',
-                                background:'transparent', border:'1px solid rgba(0,240,255,.3)', color:'#00F0FF', transition:'all .15s'}}
-                              onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(0,240,255,.08)';}}
-                              onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='transparent';}}>
-                              Call Again
-                            </button>
+                            <div style={{marginLeft:'auto', display:'flex', gap:'6px', alignItems:'center'}}>
+                              {repPhone && lead.phone ? (
+                                <button onClick={()=>setCallModalLead(lead)}
+                                  style={{display:'flex', alignItems:'center', gap:'5px', padding:'5px 12px', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'JetBrains Mono,monospace',
+                                    background:'rgba(34,197,94,.08)', border:'1px solid rgba(34,197,94,.4)', color:'#22c55e', transition:'all .15s'}}
+                                  onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(34,197,94,.18)';}}
+                                  onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(34,197,94,.08)';}}>
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                  Call Back
+                                </button>
+                              ) : lead.phone ? (
+                                <a href={'tel:' + lead.phone}
+                                  style={{display:'flex', alignItems:'center', gap:'5px', padding:'5px 12px', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'JetBrains Mono,monospace', textDecoration:'none',
+                                    background:'rgba(34,197,94,.08)', border:'1px solid rgba(34,197,94,.4)', color:'#22c55e'}}>
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                  Call Back
+                                </a>
+                              ) : null}
+                              <button onClick={()=>{ setTab('allleads'); setQuickFilter('all'); setFilterStatus('all'); setSelectedBatch('all'); setSearchQuery(''); setExpandedLead(lead.id); }}
+                                style={{padding:'5px 12px', borderRadius:'6px', cursor:'pointer', fontSize:'10px', fontWeight:700, fontFamily:'Inter,sans-serif',
+                                  background:'transparent', border:'1px solid rgba(0,240,255,.3)', color:'#00F0FF', transition:'all .15s'}}
+                                onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(0,240,255,.08)';}}
+                                onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='transparent';}}>
+                                Open
+                              </button>
+                            </div>
                           )}
                         </div>
                         {lead._cbNotes && <p style={{margin:0, fontSize:'12px', color:'#aaa', lineHeight:'1.5'}}>{lead._cbNotes}</p>}
@@ -634,6 +655,25 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                               <span style={{fontSize:'11px', color:'#666', fontFamily:'monospace', marginLeft:'auto'}}>
                                 {new Date(lead._bookingDate).toLocaleDateString(undefined, { timeZone: 'America/Toronto' })} {new Date(lead._bookingDate).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', timeZone: 'America/Toronto'})}
                               </span>
+                            )}
+                            {!shadowMode && lead.phone && (
+                              repPhone ? (
+                                <button onClick={()=>setCallModalLead(lead)}
+                                  style={{display:'flex', alignItems:'center', gap:'5px', padding:'5px 12px', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'JetBrains Mono,monospace',
+                                    background:'rgba(34,197,94,.08)', border:'1px solid rgba(34,197,94,.4)', color:'#22c55e', transition:'all .15s'}}
+                                  onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(34,197,94,.18)';}}
+                                  onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(34,197,94,.08)';}}>
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                  Call
+                                </button>
+                              ) : (
+                                <a href={'tel:' + lead.phone}
+                                  style={{display:'flex', alignItems:'center', gap:'5px', padding:'5px 12px', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'JetBrains Mono,monospace', textDecoration:'none',
+                                    background:'rgba(34,197,94,.08)', border:'1px solid rgba(34,197,94,.4)', color:'#22c55e'}}>
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                  Call
+                                </a>
+                              )
                             )}
                           </div>
                           {lead._bookingNotes && <p style={{margin:0, fontSize:'12px', color:'#aaa', lineHeight:'1.5'}}>{lead._bookingNotes}</p>}
@@ -906,6 +946,16 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
           log={editingLog}
           onClose={() => setEditingLog(null)}
           onSaved={() => { loadLeads(); loadStats(); }}
+        />
+      )}
+
+      {callModalLead && repPhone && !shadowMode && (
+        <TwilioCallModal
+          lead={callModalLead}
+          repId={repId}
+          repPhone={repPhone}
+          onClose={() => setCallModalLead(null)}
+          onCallComplete={() => { setCallModalLead(null); loadLeads(); loadStats(); }}
         />
       )}
     </div>
