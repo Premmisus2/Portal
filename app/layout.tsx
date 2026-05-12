@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, Roboto, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
+import { ANTI_FLASH_SCRIPT } from '@/lib/theme';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -31,7 +32,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${roboto.variable} ${jetbrains.variable}`}>
-      <body>{children}</body>
+      <body>
+        {/* Anti-flash: applies theme class BEFORE React hydrates so users
+            never see a flash of the wrong theme on first paint */}
+        <script dangerouslySetInnerHTML={{ __html: ANTI_FLASH_SCRIPT }} />
+        {children}
+      </body>
     </html>
   );
 }
