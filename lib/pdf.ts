@@ -1,28 +1,20 @@
-export async function downloadPDF(title: string) {
-  const el = document.querySelector('.print-area');
-  if (!el) { window.print(); return; }
+/* Portal PDF export.
+   Uses the browser's native print pipeline (window.print → "Save as PDF").
+   Why not html2pdf.js / jsPDF: html2canvas renders to a dark canvas before
+   any @media print rules apply, so portal PDFs were coming out dark with
+   missing headings. window.print() runs through Chrome's vector PDF path
+   and honors our globals.css @media print block, which overrides every
+   theme var to its light equivalent regardless of the user's selected
+   theme — so saved PDFs always render as a clean light "official document"
+   per the offer-page aesthetic Elliott approved.
 
-  try {
-    const html2pdf = (await import('html2pdf.js')).default;
-    const hidden: [HTMLElement, string][] = [];
-    el.querySelectorAll('.no-print').forEach((n) => {
-      const htmlEl = n as HTMLElement;
-      hidden.push([htmlEl, htmlEl.style.display]);
-      htmlEl.style.display = 'none';
-    });
+   The `title` arg is retained for API compatibility with existing callers
+   but the saved filename is controlled by the browser print dialog. */
 
-    const opt = {
-      margin: [10, 10, 10, 10],
-      filename: `Premmisus-${(title || 'Sales-Portal').replace(/[^a-zA-Z0-9-]/g, '-')}.pdf`,
-      image: { type: 'jpeg', quality: 0.97 },
-      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#000000', logging: false, windowWidth: 960 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'legacy'] },
-    };
-
-    await html2pdf().set(opt).from(el).save();
-    hidden.forEach(([n, d]) => { n.style.display = d; });
-  } catch {
-    window.print();
-  }
+export async function downloadPDF(_title?: string) {
+  if (typeof window === 'undefined') return;
+  // Allow the UI to settle (button label flip, etc.) before the modal print
+  // dialog blocks the main thread.
+  await new Promise((r) => setTimeout(r, 60));
+  window.print();
 }
