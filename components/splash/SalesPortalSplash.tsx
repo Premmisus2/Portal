@@ -103,7 +103,7 @@ export default function SalesPortalSplash({ onEnter }: { onEnter: () => void }) 
         </div>
 
         {/* Footer — identical to login */}
-        <p style={{ textAlign: 'center', color: '#2a2a2a', fontSize: '11px', marginTop: '20px', letterSpacing: '.15em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
+        <p style={{ textAlign: 'center', color: 'var(--text-faint)', fontSize: '11px', marginTop: '20px', letterSpacing: '.15em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
           Premmisus · Internal Access Only
         </p>
       </div>

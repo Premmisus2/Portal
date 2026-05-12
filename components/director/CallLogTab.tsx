@@ -12,18 +12,18 @@ interface CallLogTabProps {
 
 const outcomes = [
   { value: 'no_answer', label: 'No Answer', color: 'var(--text-muted)' },
-  { value: 'voicemail_left', label: 'Left Voicemail', color: '#F59E0B' },
+  { value: 'voicemail_left', label: 'Left Voicemail', color: 'var(--amber)' },
   { value: 'callback_requested', label: 'Callback Requested', color: '#a855f7' },
   { value: 'not_interested', label: 'Not Interested', color: '#ef4444' },
   { value: 'booked_call', label: 'Call Booked', color: 'var(--accent-ink)' },
   { value: 'wrong_number', label: 'Wrong Number', color: 'var(--text-tertiary)' },
-  { value: 'discovery_completed', label: 'Discovery Booked', color: '#22c55e' },
-  { value: 'no_show', label: 'No Show', color: '#F59E0B' },
+  { value: 'discovery_completed', label: 'Discovery Booked', color: 'var(--green)' },
+  { value: 'no_show', label: 'No Show', color: 'var(--amber)' },
 ];
 
 const niches = ['Cleaning', 'Landscaping', 'Plumbing', 'Window Washing', 'Pressure Washing', 'Construction', 'Roofing', 'Electrical', 'Painting', 'Pest Control', 'Moving', 'Auto Detailing', 'Flooring', 'Pool Cleaning'];
 
-const outcomeColors: Record<string, string> = { no_answer: 'var(--text-muted)', voicemail_left: '#F59E0B', callback_requested: '#a855f7', not_interested: '#ef4444', booked_call: 'var(--accent-ink)', wrong_number: 'var(--text-tertiary)', discovery_completed: '#22c55e', no_show: '#F59E0B' };
+const outcomeColors: Record<string, string> = { no_answer: 'var(--text-muted)', voicemail_left: 'var(--amber)', callback_requested: '#a855f7', not_interested: '#ef4444', booked_call: 'var(--accent-ink)', wrong_number: 'var(--text-tertiary)', discovery_completed: 'var(--green)', no_show: 'var(--amber)' };
 const outcomeLabels: Record<string, string> = { no_answer: 'No Answer', voicemail_left: 'Voicemail', callback_requested: 'Callback', not_interested: 'Not Interested', booked_call: 'Booked', wrong_number: 'Wrong Number', discovery_completed: 'Discovery Booked', no_show: 'No Show' };
 
 export default function CallLogTab({ callLogs, repId }: CallLogTabProps) {
@@ -89,12 +89,12 @@ export default function CallLogTab({ callLogs, repId }: CallLogTabProps) {
           <p style={{ fontSize: '26px', fontWeight: 900, color: 'var(--text-primary)', margin: 0, fontFamily: 'monospace' }}>{totalCalls}</p>
         </div>
         <div className="card-glow" style={{ padding: '16px 18px' }}>
-          <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#F59E0B', margin: '0 0 6px' }}>Today</p>
-          <p style={{ fontSize: '26px', fontWeight: 900, color: '#F59E0B', margin: 0, fontFamily: 'monospace' }}>{todayCalls}</p>
+          <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--amber)', margin: '0 0 6px' }}>Today</p>
+          <p style={{ fontSize: '26px', fontWeight: 900, color: 'var(--amber)', margin: 0, fontFamily: 'monospace' }}>{todayCalls}</p>
         </div>
         <div className="card-glow" style={{ padding: '16px 18px' }}>
-          <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#22c55e', margin: '0 0 6px' }}>Interested</p>
-          <p style={{ fontSize: '26px', fontWeight: 900, color: '#22c55e', margin: 0, fontFamily: 'monospace' }}>{interestedCalls}</p>
+          <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--green)', margin: '0 0 6px' }}>Interested</p>
+          <p style={{ fontSize: '26px', fontWeight: 900, color: 'var(--green)', margin: 0, fontFamily: 'monospace' }}>{interestedCalls}</p>
         </div>
         <div className="card-glow" style={{ padding: '16px 18px' }}>
           <p style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--accent-ink)', margin: '0 0 6px' }}>Calls Booked</p>

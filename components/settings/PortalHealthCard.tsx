@@ -30,9 +30,9 @@ type HealthPayload = {
 };
 
 const STATUS_COLOR: Record<Status, string> = {
-  ok: '#22c55e',
-  warn: '#F59E0B',
-  down: '#ff6060',
+  ok: 'var(--green)',
+  warn: 'var(--amber)',
+  down: 'var(--red)',
   unknown: 'var(--text-muted)',
 };
 
@@ -43,7 +43,7 @@ const GROUP_LABEL: Record<Subsystem['group'], string> = {
 };
 
 const tileStyle: CSSProperties = {
-  background: '#0e0e0e', border: '1px solid var(--border-soft)', borderRadius: '8px',
+  background: 'var(--bg-elev-1)', border: '1px solid var(--border-soft)', borderRadius: '8px',
   padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px',
 };
 
@@ -168,7 +168,7 @@ export default function PortalHealthCard() {
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         {errMsg && (
-          <p style={{ margin: 0, fontSize: '11px', color: '#ff6060', fontFamily: 'Roboto, sans-serif' }}>
+          <p style={{ margin: 0, fontSize: '11px', color: 'var(--red)', fontFamily: 'Roboto, sans-serif' }}>
             {errMsg}
           </p>
         )}
@@ -194,7 +194,7 @@ export default function PortalHealthCard() {
 
         {data && (
           <div style={{
-            marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #141414',
+            marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--border-soft)',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px',
           }}>
             <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>

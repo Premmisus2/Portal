@@ -104,9 +104,9 @@ const FoundationPanel = () => {
           <SecH>3. The "Anti-Agency" Protocol</SecH>
           <div className="card" style={{padding:'18px 20px'}}>
             <ul style={{padding:0,margin:0}}>
-              <Li><strong style={{color:'#ff8080'}}>Rule #1:</strong> Never lead with "I want to sell you marketing." Lead with the Asset.</Li>
-              <Li><strong style={{color:'#ff8080'}}>Rule #2:</strong> Lead with text/DM and a 30-second screen record of the preview. Cold email is secondary — use the outreach sequences in Sections 10-12.</Li>
-              <Li><strong style={{color:'#ff8080'}}>Rule #3:</strong> The System Expert Handoff. Your job is to lock the $500 split and book the Google Meet with our System Managers for the backend reveal.</Li>
+              <Li><strong style={{color:'var(--red)'}}>Rule #1:</strong> Never lead with "I want to sell you marketing." Lead with the Asset.</Li>
+              <Li><strong style={{color:'var(--red)'}}>Rule #2:</strong> Lead with text/DM and a 30-second screen record of the preview. Cold email is secondary — use the outreach sequences in Sections 10-12.</Li>
+              <Li><strong style={{color:'var(--red)'}}>Rule #3:</strong> The System Expert Handoff. Your job is to lock the $500 split and book the Google Meet with our System Managers for the backend reveal.</Li>
             </ul>
           </div>
         </div>
@@ -125,8 +125,8 @@ const FoundationPanel = () => {
 
           <SecH>Priority Tiers (by Google Reviews)</SecH>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))',gap:'10px',marginBottom:'16px'}}>
-            <div className="card" style={{padding:'16px 18px',borderLeft:'3px solid #ff4444'}}>
-              <p style={{fontSize:'10px',fontWeight:800,letterSpacing:'.15em',textTransform:'uppercase',color:'#ff4444',margin:'0 0 6px',fontFamily:"'JetBrains Mono',monospace"}}>HOT (0-19)</p>
+            <div className="card" style={{padding:'16px 18px',borderLeft:'3px solid var(--red-strong)'}}>
+              <p style={{fontSize:'10px',fontWeight:800,letterSpacing:'.15em',textTransform:'uppercase',color:'var(--red-strong)',margin:'0 0 6px',fontFamily:"'JetBrains Mono',monospace"}}>HOT (0-19)</p>
               <p style={{color:'var(--text-secondary)',fontSize:'13px',lineHeight:1.5,margin:0}}>Minimal online presence. NEED us most. <strong style={{color:'var(--text-primary)'}}>Call first.</strong></p>
             </div>
             <div className="card" style={{padding:'16px 18px',borderLeft:'3px solid #ff9933'}}>
@@ -137,7 +137,7 @@ const FoundationPanel = () => {
               <p style={{fontSize:'10px',fontWeight:800,letterSpacing:'.15em',textTransform:'uppercase',color:'#ffcc00',margin:'0 0 6px',fontFamily:"'JetBrains Mono',monospace"}}>MEDIUM (60-100)</p>
               <p style={{color:'var(--text-secondary)',fontSize:'13px',lineHeight:1.5,margin:0}}>More established, harder sell, bigger deals.</p>
             </div>
-            <div className="card" style={{padding:'16px 18px',borderLeft:'3px solid #666',opacity:0.6}}>
+            <div className="card" style={{padding:'16px 18px',borderLeft:'3px solid var(--text-muted)',opacity:0.6}}>
               <p style={{fontSize:'10px',fontWeight:800,letterSpacing:'.15em',textTransform:'uppercase',color:'var(--text-muted)',margin:'0 0 6px',fontFamily:"'JetBrains Mono',monospace"}}>DISQUALIFIED (100+)</p>
               <p style={{color:'var(--text-tertiary)',fontSize:'13px',lineHeight:1.5,margin:0}}>Skip. Too big, already have systems.</p>
             </div>
@@ -146,12 +146,12 @@ const FoundationPanel = () => {
           <SecH>Qualifying Checklist</SecH>
           <div className="card" style={{padding:'18px 20px',marginBottom:'16px'}}>
             <ul style={{padding:0,margin:0}}>
-              <Li><strong style={{color:'#4ade80'}}>&#10003;</strong> Under 100 Google reviews</Li>
-              <Li><strong style={{color:'#4ade80'}}>&#10003;</strong> Service-based business (trades, cleaning, landscaping, plumbing, etc.)</Li>
-              <Li><strong style={{color:'#4ade80'}}>&#10003;</strong> Has a phone number</Li>
-              <Li><strong style={{color:'#4ade80'}}>&#10003;</strong> Canadian location</Li>
-              <Li><strong style={{color:'#ff8080'}}>&#10007;</strong> NOT a large general contractor or commercial operation</Li>
-              <Li><strong style={{color:'#ff8080'}}>&#10007;</strong> NOT an Airbnb listing, car wash, duct cleaning, or laundromat</Li>
+              <Li><strong style={{color:'var(--green)'}}>&#10003;</strong> Under 100 Google reviews</Li>
+              <Li><strong style={{color:'var(--green)'}}>&#10003;</strong> Service-based business (trades, cleaning, landscaping, plumbing, etc.)</Li>
+              <Li><strong style={{color:'var(--green)'}}>&#10003;</strong> Has a phone number</Li>
+              <Li><strong style={{color:'var(--green)'}}>&#10003;</strong> Canadian location</Li>
+              <Li><strong style={{color:'var(--red)'}}>&#10007;</strong> NOT a large general contractor or commercial operation</Li>
+              <Li><strong style={{color:'var(--red)'}}>&#10007;</strong> NOT an Airbnb listing, car wash, duct cleaning, or laundromat</Li>
             </ul>
           </div>
 
@@ -171,7 +171,7 @@ const FoundationPanel = () => {
           <div className="card" style={{padding:'18px 20px'}}>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
               <div>
-                <p style={{fontSize:'10px',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'#4ade80',margin:'0 0 8px',fontFamily:"'JetBrains Mono',monospace"}}>Target</p>
+                <p style={{fontSize:'10px',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--green)',margin:'0 0 8px',fontFamily:"'JetBrains Mono',monospace"}}>Target</p>
                 <ul style={{padding:0,margin:0}}>
                   <Li>Handyman</Li>
                   <Li>Carpentry</Li>
@@ -179,7 +179,7 @@ const FoundationPanel = () => {
                 </ul>
               </div>
               <div>
-                <p style={{fontSize:'10px',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'#ff8080',margin:'0 0 8px',fontFamily:"'JetBrains Mono',monospace"}}>Skip</p>
+                <p style={{fontSize:'10px',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--red)',margin:'0 0 8px',fontFamily:"'JetBrains Mono',monospace"}}>Skip</p>
                 <ul style={{padding:0,margin:0}}>
                   <Li>Large GCs</Li>
                   <Li>Large commercial operations</Li>
@@ -202,12 +202,12 @@ const FoundationPanel = () => {
           <div style={{display:'flex',flexDirection:'column',gap:'10px',marginBottom:'20px'}}>
             {[
               {time:'8:00 AM',label:'PREP',dur:'15 min',color:'var(--accent-ink)',items:['Open portal, check callbacks due','Review yesterday\'s notes on warm leads','Set daily target: 50 calls minimum']},
-              {time:'8:15 AM',label:'CALL BLOCK 1',dur:'2 hours',color:'#4ade80',items:['Dial through your "To Call" list in order','Log every call immediately','Use the approved opener for each lead type']},
+              {time:'8:15 AM',label:'CALL BLOCK 1',dur:'2 hours',color:'var(--green)',items:['Dial through your "To Call" list in order','Log every call immediately','Use the approved opener for each lead type']},
               {time:'10:15 AM',label:'BREAK',dur:'15 min',color:'var(--text-muted)',items:[]},
-              {time:'10:30 AM',label:'CALL BLOCK 2',dur:'1.5 hours',color:'#4ade80',items:['Continue calling','Follow up on any callbacks from Block 1']},
+              {time:'10:30 AM',label:'CALL BLOCK 2',dur:'1.5 hours',color:'var(--green)',items:['Continue calling','Follow up on any callbacks from Block 1']},
               {time:'12:00 PM',label:'LUNCH',dur:'30 min',color:'var(--text-muted)',items:[]},
               {time:'12:30 PM',label:'OUTREACH BLOCK',dur:'1 hour',color:'#a78bfa',items:['Send 10 Instagram/LinkedIn DMs using Written Outreach scripts','Send 5 cold emails using the 3-Touch sequence','Follow up on any DM replies']},
-              {time:'1:30 PM',label:'CALL BLOCK 3',dur:'1.5 hours',color:'#4ade80',items:['Afternoon calling — different time zone prospects','Callbacks scheduled for afternoon']},
+              {time:'1:30 PM',label:'CALL BLOCK 3',dur:'1.5 hours',color:'var(--green)',items:['Afternoon calling — different time zone prospects','Callbacks scheduled for afternoon']},
               {time:'3:00 PM',label:'ADMIN + DEBRIEF',dur:'30 min',color:'#ff9933',items:['Review today\'s stats in My Stats tab','Listen to 1-2 call recordings in Playback tab','Write notes on what worked / what to improve','Update any lead notes','Submit handoffs for booked calls']},
               {time:'3:30 PM',label:'DONE',dur:'',color:'var(--accent-ink)',items:['Or keep going if you\'re on fire']},
             ].map((block,i)=>(
@@ -248,17 +248,17 @@ const FoundationPanel = () => {
 
           <SecH>Weekly Benchmarks</SecH>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(160px, 1fr))',gap:'10px'}}>
-            <div className="card" style={{padding:'16px 18px',textAlign:'center',borderLeft:'3px solid #4ade80'}}>
+            <div className="card" style={{padding:'16px 18px',textAlign:'center',borderLeft:'3px solid var(--green)'}}>
               <p style={{fontSize:'28px',fontWeight:900,color:'var(--text-primary)',margin:'0 0 4px'}}>250+</p>
-              <p style={{fontSize:'11px',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'#4ade80',margin:0,fontFamily:"'JetBrains Mono',monospace"}}>Dials</p>
+              <p style={{fontSize:'11px',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'var(--green)',margin:0,fontFamily:"'JetBrains Mono',monospace"}}>Dials</p>
             </div>
-            <div className="card" style={{padding:'16px 18px',textAlign:'center',borderLeft:'3px solid #4ade80'}}>
+            <div className="card" style={{padding:'16px 18px',textAlign:'center',borderLeft:'3px solid var(--green)'}}>
               <p style={{fontSize:'28px',fontWeight:900,color:'var(--text-primary)',margin:'0 0 4px'}}>5+</p>
-              <p style={{fontSize:'11px',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'#4ade80',margin:0,fontFamily:"'JetBrains Mono',monospace"}}>Bookings</p>
+              <p style={{fontSize:'11px',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'var(--green)',margin:0,fontFamily:"'JetBrains Mono',monospace"}}>Bookings</p>
             </div>
-            <div className="card" style={{padding:'16px 18px',textAlign:'center',borderLeft:'3px solid #4ade80'}}>
+            <div className="card" style={{padding:'16px 18px',textAlign:'center',borderLeft:'3px solid var(--green)'}}>
               <p style={{fontSize:'28px',fontWeight:900,color:'var(--text-primary)',margin:'0 0 4px'}}>1+</p>
-              <p style={{fontSize:'11px',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'#4ade80',margin:0,fontFamily:"'JetBrains Mono',monospace"}}>Close</p>
+              <p style={{fontSize:'11px',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'var(--green)',margin:0,fontFamily:"'JetBrains Mono',monospace"}}>Close</p>
             </div>
           </div>
         </div>
@@ -280,7 +280,7 @@ const FoundationPanel = () => {
             </div>
             <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
               <div style={{padding:'8px 14px',background:'rgba(255,68,68,.06)',border:'1px solid rgba(255,68,68,.2)',borderRadius:'6px'}}>
-                <p style={{color:'#ff8080',fontSize:'13px',margin:0,lineHeight:1.5}}><strong>Under 20 = HOT.</strong> Lead with <em>"I noticed you don't have much online presence"</em></p>
+                <p style={{color:'var(--red)',fontSize:'13px',margin:0,lineHeight:1.5}}><strong>Under 20 = HOT.</strong> Lead with <em>"I noticed you don't have much online presence"</em></p>
               </div>
               <div style={{padding:'8px 14px',background:'rgba(255,153,51,.06)',border:'1px solid rgba(255,153,51,.2)',borderRadius:'6px'}}>
                 <p style={{color:'#ff9933',fontSize:'13px',margin:0,lineHeight:1.5}}><strong>20-59 = HIGH.</strong> Lead with <em>"I see you're building momentum"</em></p>
@@ -353,7 +353,7 @@ const FoundationPanel = () => {
             </div>
             <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
               <div style={{display:'flex',alignItems:'flex-start',gap:'10px',padding:'10px 14px',background:'rgba(255,255,255,.02)',border:'1px solid var(--border-soft)',borderRadius:'8px'}}>
-                <span style={{color:'#ff8080',fontWeight:800,fontSize:'12px',flexShrink:0,marginTop:'2px',fontFamily:"'JetBrains Mono',monospace"}}>NO SITE</span>
+                <span style={{color:'var(--red)',fontWeight:800,fontSize:'12px',flexShrink:0,marginTop:'2px',fontFamily:"'JetBrains Mono',monospace"}}>NO SITE</span>
                 <p style={{color:'var(--text-secondary)',fontSize:'13px',margin:0,lineHeight:1.5}}>Opener 3 (0.5 Base) or Opener 4 (Pre-Built Preview)</p>
               </div>
               <div style={{display:'flex',alignItems:'flex-start',gap:'10px',padding:'10px 14px',background:'rgba(255,255,255,.02)',border:'1px solid var(--border-soft)',borderRadius:'8px'}}>
@@ -361,7 +361,7 @@ const FoundationPanel = () => {
                 <p style={{color:'var(--text-secondary)',fontSize:'13px',margin:0,lineHeight:1.5}}>Opener 1 (Gap/Improvement)</p>
               </div>
               <div style={{display:'flex',alignItems:'flex-start',gap:'10px',padding:'10px 14px',background:'rgba(255,255,255,.02)',border:'1px solid var(--border-soft)',borderRadius:'8px'}}>
-                <span style={{color:'#4ade80',fontWeight:800,fontSize:'12px',flexShrink:0,marginTop:'2px',fontFamily:"'JetBrains Mono',monospace"}}>HAS ADS</span>
+                <span style={{color:'var(--green)',fontWeight:800,fontSize:'12px',flexShrink:0,marginTop:'2px',fontFamily:"'JetBrains Mono',monospace"}}>HAS ADS</span>
                 <p style={{color:'var(--text-secondary)',fontSize:'13px',margin:0,lineHeight:1.5}}>Opener 2 (Meta/GSA)</p>
               </div>
             </div>
@@ -419,7 +419,7 @@ const FoundationPanel = () => {
 
           <div className="card-glow" style={{padding:'20px 22px',marginBottom:'16px'}}>
             <p style={{fontSize:'10px',fontWeight:700,letterSpacing:'.15em',textTransform:'uppercase',color:'var(--accent-ink)',margin:'0 0 10px',fontFamily:"'JetBrains Mono',monospace"}}>The Speed Advantage</p>
-            <p style={{color:'var(--text-secondary)',fontSize:'15px',lineHeight:1.7,margin:0,fontStyle:'italic'}}>"When a lead comes in, our AI responds in <strong style={{color:'var(--accent-ink)'}}>under 30 seconds</strong>. Your competitor takes <strong style={{color:'#ff8080'}}>42 hours on average</strong>. By the time they check their voicemail, the job is already booked."</p>
+            <p style={{color:'var(--text-secondary)',fontSize:'15px',lineHeight:1.7,margin:0,fontStyle:'italic'}}>"When a lead comes in, our AI responds in <strong style={{color:'var(--accent-ink)'}}>under 30 seconds</strong>. Your competitor takes <strong style={{color:'var(--red)'}}>42 hours on average</strong>. By the time they check their voicemail, the job is already booked."</p>
           </div>
 
           <SecH>What Makes Us Different</SecH>
@@ -445,13 +445,13 @@ const FoundationPanel = () => {
           <SecH>Competitive Advantages — Quick Reference</SecH>
           <Body>Know the landscape. When a prospect names a competitor, you have the answer.</Body>
 
-          <div className="card" style={{padding:'20px 22px',marginBottom:'12px',borderLeft:'3px solid #ff8080'}}>
-            <p style={{fontSize:'10px',fontWeight:800,letterSpacing:'.15em',textTransform:'uppercase',color:'#ff8080',margin:'0 0 12px',fontFamily:"'JetBrains Mono',monospace"}}>VS Scorpion / Hook Agency / Service Scalers</p>
+          <div className="card" style={{padding:'20px 22px',marginBottom:'12px',borderLeft:'3px solid var(--red)'}}>
+            <p style={{fontSize:'10px',fontWeight:800,letterSpacing:'.15em',textTransform:'uppercase',color:'var(--red)',margin:'0 0 12px',fontFamily:"'JetBrains Mono',monospace"}}>VS Scorpion / Hook Agency / Service Scalers</p>
             <ul style={{padding:0,margin:0}}>
-              <Li>They charge <strong style={{color:'#ff8080'}}>$3,500-$7,000/mo</strong>. We start at <strong style={{color:'#4ade80'}}>$1,599</strong>.</Li>
-              <Li>They lock you in — leave and lose your website. <strong style={{color:'#4ade80'}}>We build it, you own it.</strong></Li>
-              <Li>They use templates. <strong style={{color:'#4ade80'}}>We custom-code in React.</strong></Li>
-              <Li>They don't have AI. <strong style={{color:'#4ade80'}}>We have voice AI, chatbots, and automation.</strong></Li>
+              <Li>They charge <strong style={{color:'var(--red)'}}>$3,500-$7,000/mo</strong>. We start at <strong style={{color:'var(--green)'}}>$1,599</strong>.</Li>
+              <Li>They lock you in — leave and lose your website. <strong style={{color:'var(--green)'}}>We build it, you own it.</strong></Li>
+              <Li>They use templates. <strong style={{color:'var(--green)'}}>We custom-code in React.</strong></Li>
+              <Li>They don't have AI. <strong style={{color:'var(--green)'}}>We have voice AI, chatbots, and automation.</strong></Li>
             </ul>
           </div>
 
@@ -461,16 +461,16 @@ const FoundationPanel = () => {
               <Li>Template sites rank terribly on Google</Li>
               <Li>No lead capture, no follow-up system, no analytics</Li>
               <Li>Looks the same as every other trades site</Li>
-              <Li><strong style={{color:'#4ade80'}}>Our site generates leads. Theirs is a digital business card.</strong></Li>
+              <Li><strong style={{color:'var(--green)'}}>Our site generates leads. Theirs is a digital business card.</strong></Li>
             </ul>
           </div>
 
           <div className="card" style={{padding:'20px 22px',marginBottom:'16px',borderLeft:'3px solid #ffcc00'}}>
             <p style={{fontSize:'10px',fontWeight:800,letterSpacing:'.15em',textTransform:'uppercase',color:'#ffcc00',margin:'0 0 12px',fontFamily:"'JetBrains Mono',monospace"}}>VS Freelancers (Fiverr / Upwork)</p>
             <ul style={{padding:0,margin:0}}>
-              <Li>They build and disappear. <strong style={{color:'#4ade80'}}>We manage ongoing.</strong></Li>
+              <Li>They build and disappear. <strong style={{color:'var(--green)'}}>We manage ongoing.</strong></Li>
               <Li>No strategy, no ads, no AI, no CRM.</Li>
-              <Li><strong style={{color:'#4ade80'}}>You get a website. We give you a system.</strong></Li>
+              <Li><strong style={{color:'var(--green)'}}>You get a website. We give you a system.</strong></Li>
             </ul>
           </div>
 

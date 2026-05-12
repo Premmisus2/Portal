@@ -66,8 +66,8 @@ export default function ScriptsView({ scriptTab, setScriptTab, userName, userEma
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-app)', paddingTop: shadowMode ? '40px' : 0 }}>
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
-      <aside className={`sidebar no-print${sidebarOpen ? ' sidebar-open' : ''}`} style={{ display: 'flex', flexDirection: 'column', width: '228px', flexShrink: 0, borderRight: '1px solid #111', overflowY: 'auto', background: 'var(--bg-nav)' }}>
-        <div style={{ padding: '16px', borderBottom: '1px solid #111' }}>
+      <aside className={`sidebar no-print${sidebarOpen ? ' sidebar-open' : ''}`} style={{ display: 'flex', flexDirection: 'column', width: '228px', flexShrink: 0, borderRight: '1px solid var(--bg-sidebar-line)', overflowY: 'auto', background: 'var(--bg-nav)' }}>
+        <div style={{ padding: '16px', borderBottom: '1px solid var(--bg-sidebar-line)' }}>
           <Logo height={26} />
           <p style={{ color: 'var(--text-faint)', fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', margin: '6px 0 0', fontWeight: 600 }}>Scripts</p>
         </div>
@@ -86,14 +86,14 @@ export default function ScriptsView({ scriptTab, setScriptTab, userName, userEma
             </button>
           ))}
         </nav>
-        <div style={{ padding: '12px 8px', borderTop: '1px solid #111' }}>
+        <div style={{ padding: '12px 8px', borderTop: '1px solid var(--bg-sidebar-line)' }}>
           <ProfileDropdown userName={userName} userEmail={userEmail} totalCloses={totalCloses} totalPoints={totalPoints} onLogout={onLogout} actuallyDirector={actuallyDirector} viewAsRep={viewAsRep} onToggleView={onToggleView} shadowMode={shadowMode} shadowRepName={shadowRepName} allReps={allReps} enterShadow={enterShadow} exitShadow={exitShadow} />
         </div>
       </aside>
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Mobile tab bar */}
-        <div className="no-print mobile-tab-bar" style={{ display: 'none', padding: '8px 12px', borderBottom: '1px solid #111', background: 'var(--bg-nav)', overflowX: 'auto', gap: '4px', flexShrink: 0 }}>
+        <div className="no-print mobile-tab-bar" style={{ display: 'none', padding: '8px 12px', borderBottom: '1px solid var(--bg-sidebar-line)', background: 'var(--bg-nav)', overflowX: 'auto', gap: '4px', flexShrink: 0 }}>
           <button className="hamburger-btn" aria-label="Open navigation" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(true)} style={{ marginRight: '8px' }}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="2" y1="4" x2="14" y2="4" /><line x1="2" y1="8" x2="14" y2="8" /><line x1="2" y1="12" x2="14" y2="12" /></svg>
           </button>

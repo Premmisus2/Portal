@@ -209,7 +209,7 @@ export default function LeadImportTool() {
     loadBatches();
   };
 
-  const inputStyle = { width: '100%', background: 'var(--border-soft)', border: '1px solid #333', borderRadius: '4px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'Inter,sans-serif', outline: 'none' as const };
+  const inputStyle = { width: '100%', background: 'var(--border-soft)', border: '1px solid var(--text-faint)', borderRadius: '4px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'Inter,sans-serif', outline: 'none' as const };
   const labelStyle = { display: 'block' as const, fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 700, marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '.06em' };
 
   return (
@@ -268,7 +268,7 @@ export default function LeadImportTool() {
               </thead>
               <tbody>
                 {preview.map((row, i) => (
-                  <tr key={i}>{Object.values(row).map((v, j) => <td key={j} style={{ padding: '6px 10px', color: 'var(--text-tertiary)', borderBottom: '1px solid #111', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v}</td>)}</tr>
+                  <tr key={i}>{Object.values(row).map((v, j) => <td key={j} style={{ padding: '6px 10px', color: 'var(--text-tertiary)', borderBottom: '1px solid var(--bg-sidebar-line)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v}</td>)}</tr>
                 ))}
               </tbody>
             </table>
@@ -282,7 +282,7 @@ export default function LeadImportTool() {
             <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-tertiary)' }}>Checking for cross-niche duplicates...</p>
           ) : (
             <>
-              <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 700, color: dupeCheck.dncCount > 0 ? '#ff6060' : '#F59E0B' }}>
+              <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 700, color: dupeCheck.dncCount > 0 ? 'var(--red)' : 'var(--amber)' }}>
                 ⚠ {dupeCheck.dupes.length} duplicate phone{dupeCheck.dupes.length === 1 ? '' : 's'} already in DB
                 {dupeCheck.dncCount > 0 && ` — ${dupeCheck.dncCount} marked DEAD`}
               </p>
@@ -316,7 +316,7 @@ export default function LeadImportTool() {
 
       {done && (
         <div className="card-glow fadein" style={{ marginTop: '16px', padding: '16px 20px' }}>
-          <p style={{ color: '#22c55e', fontSize: '14px', fontWeight: 700, margin: '0 0 4px' }}>Import Complete -- Batch: {batchLabel}</p>
+          <p style={{ color: 'var(--green)', fontSize: '14px', fontWeight: 700, margin: '0 0 4px' }}>Import Complete -- Batch: {batchLabel}</p>
           <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', margin: 0 }}>{progress.done} imported -- {progress.errors} errors -- {progress.total} total -- Tagged: {sourceTag || batchLabel}</p>
         </div>
       )}
@@ -330,7 +330,7 @@ export default function LeadImportTool() {
               <thead>
                 <tr>
                   {['Batch', 'Source', 'File', 'Leads', 'Date', 'Actions'].map(h => (
-                    <th key={h} style={{ padding: '8px 12px', background: 'var(--bg-sidebar-line)', color: 'var(--text-tertiary)', fontWeight: 700, textAlign: h === 'Leads' || h === 'Actions' ? 'center' : 'left', borderBottom: '2px solid #333', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '.04em' }}>{h}</th>
+                    <th key={h} style={{ padding: '8px 12px', background: 'var(--bg-sidebar-line)', color: 'var(--text-tertiary)', fontWeight: 700, textAlign: h === 'Leads' || h === 'Actions' ? 'center' : 'left', borderBottom: '2px solid var(--text-faint)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '.04em' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -343,7 +343,7 @@ export default function LeadImportTool() {
                     <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--text-primary)', fontFamily: 'monospace', fontWeight: 700 }}>{b.lead_count}</td>
                     <td style={{ padding: '8px 12px', color: 'var(--text-muted)', fontSize: '11px' }}>{new Date(b.created_at).toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}</td>
                     <td style={{ padding: '8px 12px', textAlign: 'center' }}>
-                      <button onClick={() => deleteBatch(b)} style={{ background: 'none', border: 'none', color: '#ff4444', cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}>Delete Batch</button>
+                      <button onClick={() => deleteBatch(b)} style={{ background: 'none', border: 'none', color: 'var(--red-strong)', cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}>Delete Batch</button>
                     </td>
                   </tr>
                 ))}

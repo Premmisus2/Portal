@@ -39,7 +39,7 @@ export default function SignOutAllCard() {
           style={{
             padding: '9px 18px', borderRadius: '6px',
             border: '1px solid rgba(255,96,96,.35)', background: 'rgba(255,96,96,.08)',
-            color: '#ff6060', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+            color: 'var(--red)', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
             fontFamily: 'Inter, sans-serif', opacity: busy ? 0.5 : 1,
           }}>
           Sign out everywhere
@@ -52,7 +52,7 @@ export default function SignOutAllCard() {
           display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px',
         }}>
           <div style={{
-            background: '#0e0e0e', border: '1px solid #2a2a2a', borderRadius: '12px',
+            background: 'var(--bg-elev-1)', border: '1px solid var(--text-faint)', borderRadius: '12px',
             padding: '22px 24px', maxWidth: '420px', width: '100%',
           }}>
             <p style={{ margin: '0 0 8px', fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Inter, sans-serif' }}>
@@ -65,7 +65,7 @@ export default function SignOutAllCard() {
               <button onClick={() => setConfirming(false)} disabled={busy}
                 style={{
                   padding: '8px 16px', borderRadius: '6px',
-                  border: '1px solid #2a2a2a', background: 'transparent',
+                  border: '1px solid var(--text-faint)', background: 'transparent',
                   color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
                   fontFamily: 'Inter, sans-serif',
                 }}>
@@ -75,7 +75,7 @@ export default function SignOutAllCard() {
                 style={{
                   padding: '8px 16px', borderRadius: '6px',
                   border: '1px solid rgba(255,96,96,.55)', background: 'rgba(255,96,96,.18)',
-                  color: '#ff8080', fontSize: '11px', fontWeight: 800, cursor: busy ? 'wait' : 'pointer',
+                  color: 'var(--red)', fontSize: '11px', fontWeight: 800, cursor: busy ? 'wait' : 'pointer',
                   fontFamily: 'Inter, sans-serif', opacity: busy ? 0.6 : 1,
                 }}>
                 {busy ? 'Signing out…' : 'Sign out everywhere'}

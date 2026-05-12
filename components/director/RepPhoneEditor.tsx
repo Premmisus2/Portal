@@ -34,7 +34,7 @@ export default function RepPhoneEditor({ repId, currentPhone }: RepPhoneEditorPr
             value={phone}
             onChange={e => setPhone(e.target.value)}
             placeholder="+1234567890"
-            style={{ flex: 1, maxWidth: '180px', padding: '5px 10px', background: 'var(--bg-sidebar-line)', border: '1px solid #333', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12px', fontFamily: 'JetBrains Mono,monospace', outline: 'none' }}
+            style={{ flex: 1, maxWidth: '180px', padding: '5px 10px', background: 'var(--bg-sidebar-line)', border: '1px solid var(--text-faint)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12px', fontFamily: 'JetBrains Mono,monospace', outline: 'none' }}
             onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent-glow-40)')}
             onBlur={e => (e.currentTarget.style.borderColor = 'var(--text-faint)')}
           />
@@ -47,7 +47,7 @@ export default function RepPhoneEditor({ repId, currentPhone }: RepPhoneEditorPr
           </button>
           <button
             onClick={() => { setEditing(false); setPhone(currentPhone); }}
-            style={{ padding: '4px 8px', borderRadius: '5px', cursor: 'pointer', border: '1px solid #333', background: 'transparent', color: 'var(--text-muted)', fontSize: '10px', fontWeight: 700, fontFamily: 'Inter,sans-serif' }}
+            style={{ padding: '4px 8px', borderRadius: '5px', cursor: 'pointer', border: '1px solid var(--text-faint)', background: 'transparent', color: 'var(--text-muted)', fontSize: '10px', fontWeight: 700, fontFamily: 'Inter,sans-serif' }}
           >
             &times;
           </button>
@@ -65,7 +65,7 @@ export default function RepPhoneEditor({ repId, currentPhone }: RepPhoneEditorPr
           >
             Edit
           </button>
-          {saved && <span style={{ fontSize: '9px', color: '#22c55e', fontWeight: 700 }}>Saved</span>}
+          {saved && <span style={{ fontSize: '9px', color: 'var(--green)', fontWeight: 700 }}>Saved</span>}
         </>
       )}
     </div>

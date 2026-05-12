@@ -60,12 +60,12 @@ export default function InviteRepModal({ existingNames, onClose }: Props) {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: 'var(--bg-elev-1)', border: '1px solid #2a2a2a', borderRadius: '12px',
+    background: 'var(--bg-elev-1)', border: '1px solid var(--text-faint)', borderRadius: '12px',
     padding: '24px 26px', maxWidth: '480px', width: '100%',
   };
 
   const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '8px 10px', background: 'var(--bg-sidebar-line)', border: '1px solid #333',
+    width: '100%', padding: '8px 10px', background: 'var(--bg-sidebar-line)', border: '1px solid var(--text-faint)',
     borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box',
   };
 
@@ -96,7 +96,7 @@ export default function InviteRepModal({ existingNames, onClose }: Props) {
                 <button key={r} type="button" onClick={() => setRole(r)}
                   style={{
                     flex: 1, padding: '8px', borderRadius: '6px', cursor: 'pointer',
-                    border: `1px solid ${role === r ? (r === 'director' ? 'var(--accent-glow-40)' : '#2a2a2a') : 'var(--border)'}`,
+                    border: `1px solid ${role === r ? (r === 'director' ? 'var(--accent-glow-40)' : 'var(--text-faint)') : 'var(--border)'}`,
                     background: role === r ? (r === 'director' ? 'var(--accent-glow-08)' : 'var(--border-soft)') : 'transparent',
                     color: role === r ? (r === 'director' ? 'var(--accent-ink)' : 'var(--text-primary)') : 'var(--text-muted)',
                     fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em',
@@ -106,7 +106,7 @@ export default function InviteRepModal({ existingNames, onClose }: Props) {
               ))}
             </div>
             {role === 'director' && (
-              <p style={{ margin: '6px 0 0', fontSize: '10px', color: '#F59E0B' }}>
+              <p style={{ margin: '6px 0 0', fontSize: '10px', color: 'var(--amber)' }}>
                 Heads up: directors get full dashboard access including pending close approvals.
               </p>
             )}
@@ -141,7 +141,7 @@ export default function InviteRepModal({ existingNames, onClose }: Props) {
             <button onClick={copyInvite} disabled={!code || !email}
               style={{
                 flex: 1, padding: '10px', borderRadius: '6px', cursor: (code && email) ? 'pointer' : 'not-allowed',
-                border: '1px solid rgba(34,197,94,.3)', background: 'rgba(34,197,94,.08)', color: '#22c55e',
+                border: '1px solid rgba(34,197,94,.3)', background: 'rgba(34,197,94,.08)', color: 'var(--green)',
                 fontSize: '12px', fontWeight: 700, opacity: (code && email) ? 1 : 0.4,
               }}>
               Copy full invite
@@ -151,7 +151,7 @@ export default function InviteRepModal({ existingNames, onClose }: Props) {
           {/* Footer */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
             <button onClick={onClose}
-              style={{ padding: '8px 18px', borderRadius: '6px', border: '1px solid #2a2a2a', background: 'transparent', color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>
+              style={{ padding: '8px 18px', borderRadius: '6px', border: '1px solid var(--text-faint)', background: 'transparent', color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>
               Done
             </button>
           </div>

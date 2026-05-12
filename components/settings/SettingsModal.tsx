@@ -25,7 +25,7 @@ export default function SettingsModal({ userName, userEmail, repId, isDirector, 
       overflowY: 'auto',
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        background: '#060606', border: '1px solid var(--border)', borderRadius: '14px',
+        background: 'var(--bg-nav)', border: '1px solid var(--border)', borderRadius: '14px',
         padding: '28px 32px', maxWidth: '760px', width: '100%',
         boxShadow: '0 0 60px var(--accent-glow-06)',
       }}>

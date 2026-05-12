@@ -32,7 +32,7 @@ const Brackets = ({ color = 'var(--accent-glow-40)', size = 10 }: { color?: stri
 };
 
 // ── Pulse dot (no emoji) ────────────────────────────────────────────────────
-const PulseDot = ({ color = '#F59E0B' }: { color?: string }) => (
+const PulseDot = ({ color = 'var(--amber)' }: { color?: string }) => (
   <span style={{ position: 'relative', display: 'inline-block', width: 7, height: 7, flexShrink: 0 }}>
     <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: color, opacity: .35, animation: 'pmss-pulse 2s ease infinite' }} />
     <span style={{ position: 'absolute', inset: '2px', borderRadius: '50%', background: color }} />
@@ -93,7 +93,7 @@ const ClosePickerModal = ({ onSelect, onClose }: { onSelect: (pts: number, id: s
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
         {prod.commission && (
-          <span style={{ fontSize: '10px', color: '#22c55e', fontFamily: 'JetBrains Mono, monospace', fontWeight: 700 }}>{prod.commission}</span>
+          <span style={{ fontSize: '10px', color: 'var(--green)', fontFamily: 'JetBrains Mono, monospace', fontWeight: 700 }}>{prod.commission}</span>
         )}
         <span style={{ fontSize: '10px', fontWeight: 800, padding: '3px 9px', borderRadius: '20px', background: 'var(--accent-glow-08)', border: '1px solid var(--accent-glow-22)', color: 'var(--accent-ink)', fontFamily: 'JetBrains Mono, monospace', whiteSpace: 'nowrap' }}>
           +{prod.pts}pt{prod.pts > 1 ? 's' : ''}
@@ -108,12 +108,12 @@ const ClosePickerModal = ({ onSelect, onClose }: { onSelect: (pts: number, id: s
       <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.75)', zIndex: 400, backdropFilter: 'blur(4px)' }} />
 
       {/* Modal */}
-      <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 401, width: '90%', maxWidth: '460px', background: '#060606', border: '1px solid var(--accent-glow-22)', borderRadius: '16px', boxShadow: '0 24px 64px rgba(0,0,0,.9), 0 0 40px var(--accent-glow-08)', overflow: 'hidden' }}>
+      <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', zIndex: 401, width: '90%', maxWidth: '460px', background: 'var(--bg-nav)', border: '1px solid var(--accent-glow-22)', borderRadius: '16px', boxShadow: '0 24px 64px rgba(0,0,0,.9), 0 0 40px var(--accent-glow-08)', overflow: 'hidden' }}>
         {/* Corner brackets */}
         <Brackets color="var(--accent-glow-50)" size={12} />
 
         {/* Header */}
-        <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid #111' }}>
+        <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid var(--bg-sidebar-line)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <div style={{ fontSize: '11px', fontWeight: 800, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--accent-ink)', fontFamily: 'JetBrains Mono, monospace', marginBottom: '2px' }}>Log a Close</div>
@@ -240,7 +240,7 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
         {/* ═══════════════════════════════════════════════════════════════ */}
         {/* LEFT PANEL — controls                                          */}
         {/* ═══════════════════════════════════════════════════════════════ */}
-        <div style={{ overflowY: 'auto', borderRight: '1px solid #111', padding: '24px 24px 64px' }}>
+        <div style={{ overflowY: 'auto', borderRight: '1px solid var(--bg-sidebar-line)', padding: '24px 24px 64px' }}>
 
           <div style={{ marginBottom: '6px' }}><span className="tag">08</span></div>
           <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', margin: '8px 0 4px' }}>Commission Calculator</h2>
@@ -348,17 +348,17 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
                           <div style={{ position: 'absolute', inset: 0, borderRadius: '9px', background: s.enabled ? 'var(--accent-glow-22)' : 'var(--border-soft)', border: `1px solid ${s.enabled ? 'var(--accent-glow-40)' : 'var(--border-strong)'}`, transition: 'background .2s, border-color .2s' }} />
                           <div style={{ position: 'absolute', top: '3px', left: s.enabled ? '17px' : '3px', width: '12px', height: '12px', borderRadius: '50%', background: s.enabled ? 'var(--accent-ink)' : 'var(--text-faint)', boxShadow: s.enabled ? '0 0 6px var(--accent-glow-50)' : 'none', transition: 'left .2s, background .2s' }} />
                         </div>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: s.enabled ? '#e0e0e0' : 'var(--text-muted)', transition: 'color .15s' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: s.enabled ? 'var(--text-primary)' : 'var(--text-muted)', transition: 'color .15s' }}>
                           {svc.name}
                         </div>
                       </div>
-                      <span style={{ ...mono, fontSize: '10px', color: s.enabled ? 'var(--text-muted)' : '#2a2a2a' }}>
+                      <span style={{ ...mono, fontSize: '10px', color: s.enabled ? 'var(--text-muted)' : 'var(--text-faint)' }}>
                         ${svc.setupRate} setup · ${svc.mrrRate}/mo
                       </span>
                     </div>
 
                     {s.enabled && (
-                      <div style={{ padding: '14px', background: 'var(--bg-nav)', borderTop: '1px solid #111' }}>
+                      <div style={{ padding: '14px', background: 'var(--bg-nav)', borderTop: '1px solid var(--bg-sidebar-line)' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                           <div>
                             <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '8px' }}>New clients / mo</div>
@@ -370,7 +370,7 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
                           <div>
                             <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '8px' }}>Retained clients</div>
                             <SliderInput label="" value={s.retained} min={0} max={10} onChange={(v: number) => setAiField(svc.key, 'retained', v)} />
-                            <div style={{ ...mono, fontSize: '10px', fontWeight: 700, color: '#0d9488', marginTop: '6px' }}>
+                            <div style={{ ...mono, fontSize: '10px', fontWeight: 700, color: 'var(--accent-deep)', marginTop: '6px' }}>
                               {s.retained} × ${svc.mrrRate} = {fmtCAD(s.retained * svc.mrrRate)}/mo
                             </div>
                           </div>
@@ -383,8 +383,8 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
 
               {/* Bundle banner — no emoji */}
               {enabledCount >= 3 && (
-                <div style={{ marginTop: '12px', padding: '10px 14px', background: 'rgba(245,158,11,.06)', border: '1px solid rgba(245,158,11,.2)', borderRadius: '8px', fontSize: '12px', color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ width: '6px', height: '6px', borderRadius: '1px', background: '#F59E0B', flexShrink: 0 }} />
+                <div style={{ marginTop: '12px', padding: '10px 14px', background: 'rgba(245,158,11,.06)', border: '1px solid rgba(245,158,11,.2)', borderRadius: '8px', fontSize: '12px', color: 'var(--amber)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ width: '6px', height: '6px', borderRadius: '1px', background: 'var(--amber)', flexShrink: 0 }} />
                   <span><strong>Bundle discount applied</strong> — $250/mo off client MRR for 3+ services</span>
                 </div>
               )}
@@ -402,7 +402,7 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
                   { lbl: 'Marketing Closes', val: approvedCloses.length, sub: `${approvedCloses.filter((c: any) => c.pts === 1).length} flat · ${approvedCloses.filter((c: any) => c.pts >= 2).length} recurring`, clr: 'var(--text-primary)' },
                   { lbl: 'One-time Earned',  val: fmtCAD(flatApproved + flatRecApproved), sub: 'Flat commissions', clr: 'var(--accent-ink)' },
                   { lbl: 'AI Closes',        val: '—', sub: 'Coming soon', clr: 'var(--text-faint)' },
-                  { lbl: 'Active MRR',       val: recurApproved > 0 ? fmtCAD(recurApproved) + '/mo' : '$0/mo', sub: 'Recurring / month', clr: '#22c55e' },
+                  { lbl: 'Active MRR',       val: recurApproved > 0 ? fmtCAD(recurApproved) + '/mo' : '$0/mo', sub: 'Recurring / month', clr: 'var(--green)' },
                 ].map((item, i) => (
                   <div key={i} style={{ background: 'var(--bg-elev-pill)', border: '1px solid var(--border-soft)', borderRadius: '8px', padding: '12px 14px' }}>
                     <div style={{ ...mono, fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: '4px' }}>{item.lbl}</div>
@@ -414,7 +414,7 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
 
               <SectionHeader label="Pending" />
               {pendingCloses.length > 0 ? (
-                <div style={{ background: 'rgba(245,158,11,.06)', border: '1px solid rgba(245,158,11,.2)', borderRadius: '8px', padding: '12px 16px', fontSize: '12px', color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ background: 'rgba(245,158,11,.06)', border: '1px solid rgba(245,158,11,.2)', borderRadius: '8px', padding: '12px 16px', fontSize: '12px', color: 'var(--amber)', display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <PulseDot />
                   <span>{pendingCloses.length} close{pendingCloses.length > 1 ? 's' : ''} pending director approval — {pendingCloses.map((c: any) => c.product_label || `${c.pts}pt`).join(', ')}. Points added once approved.</span>
                 </div>
@@ -431,7 +431,7 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
         <div style={{ overflowY: 'auto', display: 'flex', flexDirection: 'column', background: 'var(--bg-app)' }}>
 
           {/* Sticky output header — cyan top border as panel edge */}
-          <div style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(0,0,0,.98)', backdropFilter: 'blur(10px)', borderTop: '1px solid var(--accent-glow-25)', borderBottom: '1px solid #111', padding: '14px 28px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px' }}>
+          <div style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(0,0,0,.98)', backdropFilter: 'blur(10px)', borderTop: '1px solid var(--accent-glow-25)', borderBottom: '1px solid var(--bg-sidebar-line)', padding: '14px 28px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '16px' }}>
             <div>
               <div style={{ ...mono, fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '3px' }}>Monthly Income</div>
               <div style={{ ...mono, fontSize: '32px', fontWeight: 800, color: 'var(--accent-ink)', lineHeight: 1 }}>{fmtCAD(totalMonthly)}</div>
@@ -492,7 +492,7 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
 
             {/* Pending alert — pulse dot, no emoji */}
             {pendingCloses.length > 0 && (
-              <div style={{ padding: '10px 14px', background: 'rgba(245,158,11,.06)', border: '1px solid rgba(245,158,11,.2)', borderRadius: '8px', fontSize: '12px', color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ padding: '10px 14px', background: 'rgba(245,158,11,.06)', border: '1px solid rgba(245,158,11,.2)', borderRadius: '8px', fontSize: '12px', color: 'var(--amber)', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <PulseDot />
                 <span><strong>{pendingCloses.length} close{pendingCloses.length > 1 ? 's' : ''} pending approval</strong> — {pendingCloses.map((c: any) => c.product_label || `${c.pts}pt`).join(', ')}. Points added once director approves.</span>
               </div>
@@ -502,7 +502,7 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                 <div style={{ ...mono, fontSize: '10px', fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Income Breakdown</div>
-                <span style={{ ...mono, fontSize: '9px', fontWeight: 600, padding: '2px 8px', borderRadius: '100px', background: 'rgba(107,114,128,.1)', color: '#9ca3af', border: '1px solid rgba(107,114,128,.2)' }}>
+                <span style={{ ...mono, fontSize: '9px', fontWeight: 600, padding: '2px 8px', borderRadius: '100px', background: 'rgba(107,114,128,.1)', color: 'var(--text-tertiary)', border: '1px solid rgba(107,114,128,.2)' }}>
                   {mode === 'predict' ? 'Forecast' : 'Confirmed'}
                 </span>
               </div>
@@ -512,15 +512,15 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
                 ) : (
                   <>
                     <div title="Flat Closes"  style={{ width: `${pct(flatTotal)}%`,      height: '100%', background: 'var(--accent-ink)', transition: 'width .45s cubic-bezier(.4,0,.2,1)' }} />
-                    <div title="Recurring"    style={{ width: `${pct(recurringIncome)}%`, height: '100%', background: '#22c55e', transition: 'width .45s cubic-bezier(.4,0,.2,1)' }} />
+                    <div title="Recurring"    style={{ width: `${pct(recurringIncome)}%`, height: '100%', background: 'var(--green)', transition: 'width .45s cubic-bezier(.4,0,.2,1)' }} />
                     <div title="AI Setup"     style={{ width: `${pct(aiSetupIncome)}%`,   height: '100%', background: '#a855f7', transition: 'width .45s cubic-bezier(.4,0,.2,1)' }} />
-                    <div title="AI MRR"       style={{ width: `${pct(aiMrrIncome)}%`,     height: '100%', background: '#f59e0b', transition: 'width .45s cubic-bezier(.4,0,.2,1)' }} />
+                    <div title="AI MRR"       style={{ width: `${pct(aiMrrIncome)}%`,     height: '100%', background: 'var(--amber)', transition: 'width .45s cubic-bezier(.4,0,.2,1)' }} />
                     <div title="Override"     style={{ width: `${pct(overrideIncome)}%`,  height: '100%', background: '#60a5fa', transition: 'width .45s cubic-bezier(.4,0,.2,1)' }} />
                   </>
                 )}
               </div>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '8px' }}>
-                {[['var(--accent-ink)','Closes'],['#22c55e','Recurring'],['#a855f7','AI Setup'],['#f59e0b','AI MRR'],['#60a5fa','Override']].map(([color, label]) => (
+                {[['var(--accent-ink)','Closes'],['var(--green)','Recurring'],['#a855f7','AI Setup'],['var(--amber)','AI MRR'],['#60a5fa','Override']].map(([color, label]) => (
                   <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '10px', color: 'var(--text-muted)' }}>
                     <div style={{ width: '6px', height: '6px', borderRadius: '2px', background: color, flexShrink: 0 }} />
                     {label}
@@ -533,11 +533,11 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
             <div className="card" style={{ position: 'relative', padding: '16px 20px' }}>
               <Brackets color="var(--accent-glow-22)" size={8} />
               <StreamRow color="var(--accent-ink)" name="Flat Closes"   sub={`${websitePerWeek}/wk websites + ${newRecCloses} tier closes`}                                                             amt={flatTotal} />
-              <StreamRow color="#22c55e" name="Recurring 7%" sub={`${foundationClients} Foundation + ${authorityClients} Authority`}                                                          amt={recurringIncome} locked={!tier.hasRecurring} />
+              <StreamRow color="var(--green)" name="Recurring 7%" sub={`${foundationClients} Foundation + ${authorityClients} Authority`}                                                          amt={recurringIncome} locked={!tier.hasRecurring} />
               <StreamRow color="#60a5fa" name="Override 3%"  sub={tier.hasOverride ? `${managedReps} reps × ${repsPerWeek}/wk × $15 × 4` : 'Unlocks at Manager (25 pts)'}                  amt={overrideIncome}  locked={!tier.hasOverride} />
               <StreamRow color="#a855f7" name="AI Setup"     sub={enabledCount > 0 ? `${enabledCount} service${enabledCount > 1 ? 's' : ''} — new client commissions` : 'No AI services active'} amt={aiSetupIncome} />
-              <StreamRow color="#f59e0b" name="AI Recurring" sub={enabledCount > 0 ? `${enabledCount} service${enabledCount > 1 ? 's' : ''} MRR${bundleDiscount > 0 ? ' (bundle discount)' : ''}` : 'No retained AI clients'} amt={aiMrrIncome} last />
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: '12px', borderTop: '1px solid #111', marginTop: '4px' }}>
+              <StreamRow color="var(--amber)" name="AI Recurring" sub={enabledCount > 0 ? `${enabledCount} service${enabledCount > 1 ? 's' : ''} MRR${bundleDiscount > 0 ? ' (bundle discount)' : ''}` : 'No retained AI clients'} amt={aiMrrIncome} last />
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: '12px', borderTop: '1px solid var(--bg-sidebar-line)', marginTop: '4px' }}>
                 <div>
                   <div style={{ ...mono, fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.12em' }}>Monthly Total</div>
                   <div style={{ ...mono, fontSize: '10px', color: 'var(--border-strong)', marginTop: '2px' }}>{fmtCAD(annualRunRate)} / year</div>
@@ -553,7 +553,7 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
                 <span style={{ ...mono, fontSize: '10px', fontWeight: 800, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--accent-ink)' }}>Goal Targets</span>
               </div>
               <div style={{ border: '1px solid var(--border-soft)', borderRadius: '10px', overflow: 'hidden' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 68px 68px', padding: '8px 16px', background: 'var(--bg-elev-2)', gap: '10px', borderBottom: '1px solid #111' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr 68px 68px', padding: '8px 16px', background: 'var(--bg-elev-2)', gap: '10px', borderBottom: '1px solid var(--bg-sidebar-line)' }}>
                   {['Goal', '', 'Closes/wk', 'Calls/day'].map((h, i) => (
                     <span key={i} style={{ ...mono, fontSize: '9px', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--text-faint)', textAlign: i > 1 ? 'right' : 'left' }}>{h}</span>
                   ))}
@@ -562,12 +562,12 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
                   const progress = Math.min((websitePerWeek / row.closes) * 100, 100);
                   const achieved = websitePerWeek >= row.closes;
                   const active   = !achieved && progress > 0;
-                  const goalColor = achieved ? '#22c55e' : active ? 'var(--accent-ink)' : '#2a2a2a';
+                  const goalColor = achieved ? 'var(--green)' : active ? 'var(--accent-ink)' : 'var(--text-faint)';
                   return (
                     <div key={i} style={{ display: 'grid', gridTemplateColumns: '80px 1fr 68px 68px', alignItems: 'center', padding: '10px 16px', borderBottom: i < 3 ? '1px solid var(--bg-elev-1)' : 'none', background: achieved ? 'rgba(34,197,94,.03)' : active ? 'rgba(0,240,255,.03)' : 'transparent', gap: '10px', transition: 'background .2s' }}>
                       <span style={{ ...mono, fontSize: '12px', fontWeight: 800, color: goalColor }}>{row.goal}</span>
                       <div style={{ height: '4px', background: 'var(--bg-sidebar-line)', borderRadius: '2px', overflow: 'hidden' }}>
-                        <div style={{ height: '100%', borderRadius: '2px', background: achieved ? '#22c55e' : 'var(--accent-ink)', width: `${progress}%`, transition: 'width .45s cubic-bezier(.4,0,.2,1)' }} />
+                        <div style={{ height: '100%', borderRadius: '2px', background: achieved ? 'var(--green)' : 'var(--accent-ink)', width: `${progress}%`, transition: 'width .45s cubic-bezier(.4,0,.2,1)' }} />
                       </div>
                       <span style={{ ...mono, fontSize: '11px', textAlign: 'right', color: goalColor }}>{row.closes}</span>
                       <span style={{ ...mono, fontSize: '11px', textAlign: 'right', color: 'var(--text-muted)' }}>{row.calls}+</span>
@@ -575,7 +575,7 @@ const LadderPanel = ({ totalCloses, totalPoints, addClose, undoClose, closeHisto
                   );
                 })}
               </div>
-              <p style={{ fontSize: '10px', color: '#2a2a2a', marginTop: '8px' }}>Recurring and AI income not included. Field Commander+ stacks significantly exceed these figures.</p>
+              <p style={{ fontSize: '10px', color: 'var(--text-faint)', marginTop: '8px' }}>Recurring and AI income not included. Field Commander+ stacks significantly exceed these figures.</p>
             </div>
 
             {/* 10K Blueprint */}

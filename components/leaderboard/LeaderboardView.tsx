@@ -267,11 +267,11 @@ export default function LeaderboardView(props: any) {
           {[
             { label: 'Calls', value: totals.calls, color: 'var(--text-primary)' },
             { label: 'Connects', value: totals.connects, color: 'var(--text-secondary)' },
-            { label: 'Booked', value: totals.booked, color: '#22c55e' },
+            { label: 'Booked', value: totals.booked, color: 'var(--green)' },
             { label: 'Discovery', value: totals.discovery, color: 'var(--accent-ink)' },
-            { label: 'Callbacks', value: totals.callbacks, color: '#F59E0B' },
+            { label: 'Callbacks', value: totals.callbacks, color: 'var(--amber)' },
           ].map(stat => (
-            <div key={stat.label} style={{ background: '#070707', border: '1px solid var(--border-soft)', borderRadius: '8px', padding: '14px 16px' }}>
+            <div key={stat.label} style={{ background: 'var(--bg-nav)', border: '1px solid var(--border-soft)', borderRadius: '8px', padding: '14px 16px' }}>
               <p style={{ margin: 0, fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', color: 'var(--text-faint)', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>{stat.label}</p>
               <p style={{ margin: '4px 0 0', fontSize: '24px', fontWeight: 900, color: stat.color, fontFamily: 'JetBrains Mono, monospace' }}>{stat.value}</p>
             </div>
@@ -280,7 +280,7 @@ export default function LeaderboardView(props: any) {
 
         {/* Director: test broadcast controls */}
         {actuallyDirector && isToday && (
-          <div style={{ background: '#070707', border: '1px solid rgba(0,240,255,.18)', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>
+          <div style={{ background: 'var(--bg-nav)', border: '1px solid rgba(0,240,255,.18)', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: broadcastResult ? '12px' : 0 }}>
               <div style={{ minWidth: 0 }}>
                 <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, letterSpacing: '.15em', color: 'var(--accent-ink)', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>Director Console</p>
@@ -306,7 +306,7 @@ export default function LeaderboardView(props: any) {
                 <button
                   onClick={() => setConfirmOpen(true)}
                   disabled={broadcasting}
-                  style={{ background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.4)', color: '#F59E0B', padding: '8px 14px', borderRadius: '6px', cursor: broadcasting ? 'wait' : 'pointer', fontSize: '11px', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}
+                  style={{ background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.4)', color: 'var(--amber)', padding: '8px 14px', borderRadius: '6px', cursor: broadcasting ? 'wait' : 'pointer', fontSize: '11px', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}
                 >
                   Send to Team
                 </button>
@@ -318,7 +318,7 @@ export default function LeaderboardView(props: any) {
             )}
 
             {broadcastResult && (
-              <div style={{ marginTop: '4px', borderTop: '1px solid #111', paddingTop: '12px' }}>
+              <div style={{ marginTop: '4px', borderTop: '1px solid var(--bg-sidebar-line)', paddingTop: '12px' }}>
                 {!broadcastResult.ok ? (
                   <p style={{ margin: 0, color: '#ff8888', fontSize: '13px' }}>Error: {broadcastResult.error}</p>
                 ) : (
@@ -335,7 +335,7 @@ export default function LeaderboardView(props: any) {
                       <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         {broadcastResult.results.map(r => (
                           <div key={`${r.name}-${r.phone}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace' }}>
-                            <span style={{ color: r.ok ? '#22c55e' : '#ff5555', fontWeight: 800, minWidth: '14px' }}>{r.ok ? '✓' : '✗'}</span>
+                            <span style={{ color: r.ok ? 'var(--green)' : '#ff5555', fontWeight: 800, minWidth: '14px' }}>{r.ok ? '✓' : '✗'}</span>
                             <span style={{ color: 'var(--text-primary)' }}>{r.name}</span>
                             <span style={{ color: 'var(--text-muted)' }}>{r.phone}</span>
                             {!r.ok && <span style={{ color: '#ff8888' }}>— {r.error}</span>}
@@ -349,7 +349,7 @@ export default function LeaderboardView(props: any) {
                           <span key={`${r.name}-${r.phone}`} style={{ fontSize: '11px', color: 'var(--text-secondary)', background: 'var(--bg-elev-pill)', border: '1px solid var(--border)', borderRadius: '4px', padding: '3px 8px', fontFamily: 'JetBrains Mono, monospace' }}>{r.name} {r.phone}</span>
                         ))}
                         {broadcastResult.recipients.length === 0 && (
-                          <span style={{ fontSize: '12px', color: '#F59E0B' }}>⚠ No reps have phone numbers set yet — set them in Director Dashboard → Reps.</span>
+                          <span style={{ fontSize: '12px', color: 'var(--amber)' }}>⚠ No reps have phone numbers set yet — set them in Director Dashboard → Reps.</span>
                         )}
                       </div>
                     )}
@@ -364,7 +364,7 @@ export default function LeaderboardView(props: any) {
         {confirmOpen && (
           <div role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 600, padding: '20px' }}>
             <div style={{ background: 'var(--bg-elev-pill)', border: '1px solid rgba(245,158,11,.4)', borderRadius: '10px', padding: '24px', maxWidth: '440px', width: '100%' }}>
-              <p style={{ margin: 0, fontSize: '11px', fontWeight: 800, letterSpacing: '.15em', color: '#F59E0B', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>Confirm Broadcast</p>
+              <p style={{ margin: 0, fontSize: '11px', fontWeight: 800, letterSpacing: '.15em', color: 'var(--amber)', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>Confirm Broadcast</p>
               <h3 style={{ margin: '8px 0 12px', fontSize: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>Send the standup SMS to every rep right now?</h3>
               <p style={{ margin: 0, color: 'var(--text-tertiary)', fontSize: '13px', lineHeight: 1.5 }}>
                 Every active rep with a phone number on file will receive the SMS immediately, including yourself.
@@ -381,7 +381,7 @@ export default function LeaderboardView(props: any) {
                 <button
                   onClick={() => callBroadcast('all')}
                   disabled={broadcasting}
-                  style={{ background: '#F59E0B', border: '1px solid #F59E0B', color: 'var(--bg-app)', padding: '8px 16px', borderRadius: '6px', cursor: broadcasting ? 'wait' : 'pointer', fontSize: '12px', fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}
+                  style={{ background: 'var(--amber)', border: '1px solid var(--amber)', color: 'var(--bg-app)', padding: '8px 16px', borderRadius: '6px', cursor: broadcasting ? 'wait' : 'pointer', fontSize: '12px', fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}
                 >
                   {broadcasting ? 'Sending…' : 'Send Now'}
                 </button>
@@ -401,7 +401,7 @@ export default function LeaderboardView(props: any) {
         ) : stats.length === 0 ? (
           <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-faint)', fontSize: '13px' }}>No active reps found.</div>
         ) : (
-          <div style={{ background: '#070707', border: '1px solid var(--border-soft)', borderRadius: '10px', overflow: 'hidden' }}>
+          <div style={{ background: 'var(--bg-nav)', border: '1px solid var(--border-soft)', borderRadius: '10px', overflow: 'hidden' }}>
             <div className="leaderboard-grid" style={{ display: 'grid', gridTemplateColumns: '60px 1.4fr repeat(5, 1fr) 0.9fr', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--border-soft)', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '.15em', textTransform: 'uppercase' }}>
               <div>#</div>
               <div>Rep</div>
@@ -426,7 +426,7 @@ export default function LeaderboardView(props: any) {
                     gridTemplateColumns: '60px 1.4fr repeat(5, 1fr) 0.9fr',
                     alignItems: 'center',
                     padding: '14px 16px',
-                    borderBottom: '1px solid #111',
+                    borderBottom: '1px solid var(--bg-sidebar-line)',
                     fontFamily: 'JetBrains Mono, monospace',
                     fontSize: '14px',
                     color: inactive ? 'var(--text-faint)' : 'var(--text-primary)',
@@ -444,9 +444,9 @@ export default function LeaderboardView(props: any) {
                   </div>
                   <div style={{ textAlign: 'right' }}>{s.calls}</div>
                   <div style={{ textAlign: 'right', color: inactive ? 'var(--text-faint)' : 'var(--text-secondary)' }}>{s.connects}</div>
-                  <div style={{ textAlign: 'right', color: s.booked > 0 ? '#22c55e' : inactive ? 'var(--text-faint)' : 'var(--text-muted)', fontWeight: s.booked > 0 ? 800 : 400 }}>{s.booked}</div>
+                  <div style={{ textAlign: 'right', color: s.booked > 0 ? 'var(--green)' : inactive ? 'var(--text-faint)' : 'var(--text-muted)', fontWeight: s.booked > 0 ? 800 : 400 }}>{s.booked}</div>
                   <div style={{ textAlign: 'right', color: s.discovery > 0 ? 'var(--accent-ink)' : inactive ? 'var(--text-faint)' : 'var(--text-muted)', fontWeight: s.discovery > 0 ? 800 : 400 }}>{s.discovery}</div>
-                  <div style={{ textAlign: 'right', color: s.callbacks > 0 ? '#F59E0B' : inactive ? 'var(--text-faint)' : 'var(--text-muted)', fontWeight: s.callbacks > 0 ? 800 : 400 }}>{s.callbacks}</div>
+                  <div style={{ textAlign: 'right', color: s.callbacks > 0 ? 'var(--amber)' : inactive ? 'var(--text-faint)' : 'var(--text-muted)', fontWeight: s.callbacks > 0 ? 800 : 400 }}>{s.callbacks}</div>
                   <div style={{ textAlign: 'right', color: inactive ? 'var(--text-faint)' : 'var(--text-secondary)' }}>{s.calls > 0 ? `${s.conversion}%` : '—'}</div>
                 </div>
               );

@@ -125,7 +125,7 @@ Next Step: ${form.nextStep}${form.notes ? `\nNotes: ${form.notes}` : ''}`;
               style={{resize:'vertical'}}
               value={form.notes} onChange={(e: any)=>setForm((p: any)=>({...p,notes:e.target.value}))}/>
           </div>
-          {sendError && <p style={{color:'#ff6060', fontSize:'12px', margin:0}}>{sendError}</p>}
+          {sendError && <p style={{color:'var(--red)', fontSize:'12px', margin:0}}>{sendError}</p>}
           <div style={{paddingTop:'4px'}}>
             <button type="submit" className="btn-primary" disabled={sending} style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'8px', opacity: sending ? .6 : 1}}>
               <Icon name="send" size={14}/> {sending ? 'Logging...' : 'Generate Ping'}
@@ -136,8 +136,8 @@ Next Step: ${form.nextStep}${form.notes ? `\nNotes: ${form.notes}` : ''}`;
         <div style={{maxWidth:'620px', display:'flex', flexDirection:'column', gap:'12px'}} className="fadein">
           <div className="card-glow" style={{padding:'20px'}}>
             <div style={{display:'flex', alignItems:'center', gap:'8px', marginBottom:'14px'}}>
-              <div style={{width:'8px', height:'8px', borderRadius:'50%', background:'#22c55e', boxShadow:'0 0 8px rgba(34,197,94,.5)'}}/>
-              <span style={{fontSize:'12px', fontWeight:700, color:'#22c55e', letterSpacing:'.1em', textTransform:'uppercase'}}>Handoff Ready</span>
+              <div style={{width:'8px', height:'8px', borderRadius:'50%', background:'var(--green)', boxShadow:'0 0 8px rgba(34,197,94,.5)'}}/>
+              <span style={{fontSize:'12px', fontWeight:700, color:'var(--green)', letterSpacing:'.1em', textTransform:'uppercase'}}>Handoff Ready</span>
             </div>
             <pre style={{
               margin:0, fontFamily:'monospace', fontSize:'13px', lineHeight:1.7,

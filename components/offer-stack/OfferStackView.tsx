@@ -129,7 +129,7 @@ export default function OfferStackView(props: any) {
   const [mainTab, setMainTab] = useState<'marketing' | 'ai'>('marketing');
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000', paddingTop: shadowMode ? '40px' : 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg-app)', paddingTop: shadowMode ? '40px' : 0 }}>
       <TopBar title="Offer Stack" subtitle="Section 13 — Pricing & AI Services"
         userName={userName} userEmail={userEmail} onHome={onHome} onLogout={onLogout} onPrint={() => {}}
         totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}
@@ -147,14 +147,14 @@ export default function OfferStackView(props: any) {
 
         {mainTab === 'marketing' && <div className="fadein">
         <div style={{ marginBottom: '6px' }}><span className="tag">13</span></div>
-        <h2 style={{ fontSize: '26px', fontWeight: 900, margin: '8px 0 4px', background: 'linear-gradient(135deg, #fff 40%, #00F0FF 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Offer Stack — Pricing Packages</h2>
+        <h2 style={{ fontSize: '26px', fontWeight: 900, margin: '8px 0 4px', background: 'linear-gradient(135deg, var(--text-primary) 40%, var(--accent-ink) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Offer Stack — Pricing Packages</h2>
         <Body>The complete Premmisus product ladder. Tap any tier to expand full details.</Body>
         <div className="divider" style={{ margin: '16px 0' }} />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {PRICING_TIERS.map((tier, i) => {
             const isOpen = expanded === i;
-            const borderColor = tier.locked ? '#222' : tier.highlight ? 'rgba(0,240,255,.5)' : tier.infant ? 'rgba(0,240,255,.12)' : '#1e1e1e';
+            const borderColor = tier.locked ? 'var(--border)' : tier.highlight ? 'rgba(0,240,255,.5)' : tier.infant ? 'rgba(0,240,255,.12)' : 'var(--border)';
             const glowStyle = tier.highlight
               ? { boxShadow: '0 0 32px rgba(0,240,255,.1), 0 0 0 1px rgba(0,240,255,.15)' }
               : tier.infant
@@ -164,7 +164,7 @@ export default function OfferStackView(props: any) {
               <div key={tier.id}
                 onClick={() => setExpanded(isOpen ? null : i)}
                 style={{
-                  background: tier.locked ? '#080808' : tier.infant ? '#0a0a0a' : '#0d0d0d',
+                  background: tier.locked ? 'var(--bg-elev-2)' : tier.infant ? 'var(--bg-elev-pill)' : 'var(--bg-elev-1)',
                   border: `1px solid ${borderColor}`,
                   borderRadius: '12px',
                   padding: '20px 24px',
@@ -175,46 +175,46 @@ export default function OfferStackView(props: any) {
                   ...glowStyle,
                 }}>
                 {tier.highlight && (
-                  <div style={{ position: 'absolute', top: '-10px', right: '20px', background: '#00F0FF', color: '#000', fontSize: '9px', fontWeight: 800, letterSpacing: '.15em', textTransform: 'uppercase', padding: '3px 10px', borderRadius: '4px', fontFamily: 'JetBrains Mono, monospace' }}>Most Popular</div>
+                  <div style={{ position: 'absolute', top: '-10px', right: '20px', background: 'var(--accent-ink)', color: 'var(--bg-app)', fontSize: '9px', fontWeight: 800, letterSpacing: '.15em', textTransform: 'uppercase', padding: '3px 10px', borderRadius: '4px', fontFamily: 'JetBrains Mono, monospace' }}>Most Popular</div>
                 )}
                 {tier.locked && (
-                  <div style={{ position: 'absolute', top: '-10px', right: '20px', background: '#333', color: '#888', fontSize: '9px', fontWeight: 800, letterSpacing: '.15em', textTransform: 'uppercase', padding: '3px 10px', borderRadius: '4px', fontFamily: 'JetBrains Mono, monospace' }}>Directors Only</div>
+                  <div style={{ position: 'absolute', top: '-10px', right: '20px', background: 'var(--text-faint)', color: 'var(--text-tertiary)', fontSize: '9px', fontWeight: 800, letterSpacing: '.15em', textTransform: 'uppercase', padding: '3px 10px', borderRadius: '4px', fontFamily: 'JetBrains Mono, monospace' }}>Directors Only</div>
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                     <span className="dot">{tier.id}</span>
                     <div>
-                      <p style={{ margin: 0, fontWeight: 800, color: '#fff', fontSize: '16px', fontFamily: 'Inter, sans-serif' }}>{tier.name}</p>
-                      <p style={{ margin: '2px 0 0', color: '#666', fontSize: '12px' }}>{tier.tagline}</p>
+                      <p style={{ margin: 0, fontWeight: 800, color: 'var(--text-primary)', fontSize: '16px', fontFamily: 'Inter, sans-serif' }}>{tier.name}</p>
+                      <p style={{ margin: '2px 0 0', color: 'var(--text-muted)', fontSize: '12px' }}>{tier.tagline}</p>
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
-                    <p style={{ margin: 0, fontWeight: 900, color: tier.highlight ? '#00F0FF' : '#fff', fontSize: '22px', fontFamily: 'JetBrains Mono, monospace' }}>{tier.price}</p>
-                    <p style={{ margin: 0, color: '#555', fontSize: '11px' }}>{tier.priceSuffix}</p>
+                    <p style={{ margin: 0, fontWeight: 900, color: tier.highlight ? 'var(--accent-ink)' : 'var(--text-primary)', fontSize: '22px', fontFamily: 'JetBrains Mono, monospace' }}>{tier.price}</p>
+                    <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '11px' }}>{tier.priceSuffix}</p>
                   </div>
                 </div>
 
                 {isOpen && (
-                  <div style={{ marginTop: '16px', borderTop: '1px solid #1a1a1a', paddingTop: '16px' }} className="fadein">
+                  <div style={{ marginTop: '16px', borderTop: '1px solid var(--border-soft)', paddingTop: '16px' }} className="fadein">
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                       <div>
-                        <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#00F0FF', margin: '0 0 10px', fontFamily: 'JetBrains Mono, monospace' }}>Includes</p>
+                        <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--accent-ink)', margin: '0 0 10px', fontFamily: 'JetBrains Mono, monospace' }}>Includes</p>
                         {tier.features.map((f, j) => (
                           <div key={j} style={{ display: 'flex', gap: '8px', marginBottom: '6px', alignItems: 'flex-start' }}>
-                            <span style={{ color: '#00F0FF', fontSize: '12px', marginTop: '2px', flexShrink: 0 }}>✓</span>
-                            <p style={{ margin: 0, color: '#ccc', fontSize: '13px', lineHeight: '1.5' }}>{f}</p>
+                            <span style={{ color: 'var(--accent-ink)', fontSize: '12px', marginTop: '2px', flexShrink: 0 }}>✓</span>
+                            <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13px', lineHeight: '1.5' }}>{f}</p>
                           </div>
                         ))}
                       </div>
                       <div>
-                        <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#00F0FF', margin: '0 0 10px', fontFamily: 'JetBrains Mono, monospace' }}>Rep Info</p>
+                        <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--accent-ink)', margin: '0 0 10px', fontFamily: 'JetBrains Mono, monospace' }}>Rep Info</p>
                         <div style={{ background: 'rgba(0,240,255,.05)', border: '1px solid rgba(0,240,255,.15)', borderRadius: '8px', padding: '12px', marginBottom: '12px' }}>
-                          <p style={{ margin: 0, color: '#e0e0e0', fontSize: '13px', lineHeight: '1.5' }}>{tier.repInfo}</p>
+                          <p style={{ margin: 0, color: 'var(--text-primary)', fontSize: '13px', lineHeight: '1.5' }}>{tier.repInfo}</p>
                         </div>
-                        <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#555', margin: '0 0 4px', fontFamily: 'JetBrains Mono, monospace' }}>Unlock Requirement</p>
-                        <p style={{ margin: '0 0 12px', color: '#888', fontSize: '13px' }}>{tier.unlockTier}</p>
-                        <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#555', margin: '0 0 4px', fontFamily: 'JetBrains Mono, monospace' }}>Pitch Angle</p>
-                        <p style={{ margin: 0, color: '#aaa', fontSize: '13px', fontStyle: 'italic', lineHeight: '1.5' }}>{tier.pitch}</p>
+                        <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 0 4px', fontFamily: 'JetBrains Mono, monospace' }}>Unlock Requirement</p>
+                        <p style={{ margin: '0 0 12px', color: 'var(--text-tertiary)', fontSize: '13px' }}>{tier.unlockTier}</p>
+                        <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 0 4px', fontFamily: 'JetBrains Mono, monospace' }}>Pitch Angle</p>
+                        <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13px', fontStyle: 'italic', lineHeight: '1.5' }}>{tier.pitch}</p>
                       </div>
                     </div>
                   </div>

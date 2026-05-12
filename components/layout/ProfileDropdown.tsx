@@ -34,7 +34,7 @@ export default function ProfileDropdown({ userName, userEmail, totalCloses, tota
       </button>
       {open && (
         <div style={{ position: 'absolute', top: 'calc(100% + 8px)', right: 0, width: '230px', background: 'var(--bg-elev-pill)', border: '1px solid var(--border)', borderRadius: '12px', boxShadow: '0 16px 48px rgba(0,0,0,.85)', zIndex: 500, overflow: 'hidden' }} className="fadein">
-          <div style={{ padding: '14px', borderBottom: '1px solid #111' }}>
+          <div style={{ padding: '14px', borderBottom: '1px solid var(--bg-sidebar-line)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
               <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'var(--accent-glow-10)', border: '1px solid var(--accent-glow-25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 800, color: 'var(--accent-ink)', fontFamily: 'Inter,sans-serif', flexShrink: 0 }}>{initials}</div>
               <div style={{ minWidth: 0 }}>
@@ -93,7 +93,7 @@ export default function ProfileDropdown({ userName, userEmail, totalCloses, tota
             </button>
             {actuallyDirector && !shadowMode && (
               <button onClick={() => { onToggleView(); }}
-                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', borderRadius: '7px', background: viewAsRep ? 'rgba(245,158,11,.07)' : 'none', border: 'none', cursor: 'pointer', color: viewAsRep ? '#F59E0B' : 'var(--text-muted)', fontSize: '12px', fontFamily: 'Inter,sans-serif', textAlign: 'left', transition: 'all .15s' }}
+                style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', borderRadius: '7px', background: viewAsRep ? 'rgba(245,158,11,.07)' : 'none', border: 'none', cursor: 'pointer', color: viewAsRep ? 'var(--amber)' : 'var(--text-muted)', fontSize: '12px', fontFamily: 'Inter,sans-serif', textAlign: 'left', transition: 'all .15s' }}
                 onMouseEnter={e => { if (!viewAsRep) { e.currentTarget.style.background = 'var(--bg-sidebar-line)'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
                 onMouseLeave={e => { if (!viewAsRep) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--text-muted)'; } }}>
                 <Icon name={viewAsRep ? 'eye' : 'eyeOff'} size={13} /> {viewAsRep ? 'Rep View Active' : 'Switch to Rep View'}
@@ -103,13 +103,13 @@ export default function ProfileDropdown({ userName, userEmail, totalCloses, tota
               <div>
                 {shadowMode ? (
                   <button onClick={() => { setOpen(false); exitShadow(); }}
-                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', borderRadius: '7px', background: 'rgba(245,158,11,.1)', border: 'none', cursor: 'pointer', color: '#F59E0B', fontSize: '12px', fontFamily: 'Inter,sans-serif', textAlign: 'left', transition: 'all .15s' }}>
+                    style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', borderRadius: '7px', background: 'rgba(245,158,11,.1)', border: 'none', cursor: 'pointer', color: 'var(--amber)', fontSize: '12px', fontFamily: 'Inter,sans-serif', textAlign: 'left', transition: 'all .15s' }}>
                     <Icon name="eye" size={13} /> Exit Shadow: {shadowRepName}
                   </button>
                 ) : (
                   <div>
                     <button onClick={() => setShadowListOpen(s => !s)}
-                      style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '9px 10px', borderRadius: '7px', background: shadowListOpen ? 'rgba(245,158,11,.05)' : 'none', border: 'none', cursor: 'pointer', color: shadowListOpen ? '#F59E0B' : 'var(--text-muted)', fontSize: '12px', fontFamily: 'Inter,sans-serif', textAlign: 'left', transition: 'all .15s' }}
+                      style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '9px 10px', borderRadius: '7px', background: shadowListOpen ? 'rgba(245,158,11,.05)' : 'none', border: 'none', cursor: 'pointer', color: shadowListOpen ? 'var(--amber)' : 'var(--text-muted)', fontSize: '12px', fontFamily: 'Inter,sans-serif', textAlign: 'left', transition: 'all .15s' }}
                       onMouseEnter={e => { if (!shadowListOpen) { e.currentTarget.style.background = 'var(--bg-sidebar-line)'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
                       onMouseLeave={e => { if (!shadowListOpen) { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--text-muted)'; } }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -123,9 +123,9 @@ export default function ProfileDropdown({ userName, userEmail, totalCloses, tota
                         {allReps.map((rep: any) => (
                           <button key={rep.id} onClick={() => { setOpen(false); setShadowListOpen(false); enterShadow(rep.id, rep.name); }}
                             style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', borderRadius: '6px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: '11px', fontFamily: 'Inter,sans-serif', textAlign: 'left', transition: 'all .15s' }}
-                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(245,158,11,.06)'; e.currentTarget.style.color = '#F59E0B'; }}
+                            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(245,158,11,.06)'; e.currentTarget.style.color = 'var(--amber)'; }}
                             onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--text-tertiary)'; }}>
-                            <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 800, color: '#F59E0B', flexShrink: 0 }}>{rep.name.trim().split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)}</div>
+                            <div style={{ width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 800, color: 'var(--amber)', flexShrink: 0 }}>{rep.name.trim().split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)}</div>
                             {rep.name}
                           </button>
                         ))}
@@ -136,7 +136,7 @@ export default function ProfileDropdown({ userName, userEmail, totalCloses, tota
               </div>
             )}
             <div style={{ height: '1px', background: 'var(--bg-sidebar-line)', margin: '4px 2px' }} />
-            <button onClick={() => { setOpen(false); onLogout(); }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', borderRadius: '7px', background: 'none', border: 'none', cursor: 'pointer', color: '#ff6060', fontSize: '12px', fontFamily: 'Inter,sans-serif', textAlign: 'left', transition: 'background .15s' }}
+            <button onClick={() => { setOpen(false); onLogout(); }} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', borderRadius: '7px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--red)', fontSize: '12px', fontFamily: 'Inter,sans-serif', textAlign: 'left', transition: 'background .15s' }}
               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,68,68,.07)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'none')}>
               <Icon name="logout" size={13} /> Sign Out

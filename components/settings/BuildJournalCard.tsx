@@ -27,16 +27,16 @@ type Payload = {
 const PAGE_SIZE = 5;
 
 const STATUS_BADGE: Record<JournalStatus, { label: string; color: string }> = {
-  shipped: { label: '✅ SHIPPED', color: '#22c55e' },
-  stub:    { label: '🟡 STUB',    color: '#F59E0B' },
+  shipped: { label: '✅ SHIPPED', color: 'var(--green)' },
+  stub:    { label: '🟡 STUB',    color: 'var(--amber)' },
   pending: { label: '⏸ PENDING',  color: 'var(--text-tertiary)'    },
   unknown: { label: '·',           color: 'var(--text-muted)'    },
 };
 
 const tagPillStyle = (active: boolean): CSSProperties => ({
   padding: '4px 10px', borderRadius: '12px',
-  border: active ? '1px solid rgba(0,240,255,.55)' : '1px solid #1f1f1f',
-  background: active ? 'var(--accent-glow-12)' : '#0e0e0e',
+  border: active ? '1px solid rgba(0,240,255,.55)' : '1px solid var(--border)',
+  background: active ? 'var(--accent-glow-12)' : 'var(--bg-elev-1)',
   color: active ? 'var(--accent-ink)' : 'var(--text-tertiary)',
   fontSize: '10px', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace',
   letterSpacing: '.04em', cursor: 'pointer', whiteSpace: 'nowrap',
@@ -73,7 +73,7 @@ function renderMarkdown(md: string): ReactNode {
       if (p.startsWith('`') && p.endsWith('`')) {
         return <code key={i} style={{
           background: '#101010', border: '1px solid var(--border-soft)', borderRadius: '3px',
-          padding: '0 4px', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: '#9be7ff',
+          padding: '0 4px', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: 'var(--accent-ink)',
         }}>{p.slice(1, -1)}</code>;
       }
       return <span key={i}>{p}</span>;
@@ -111,7 +111,7 @@ function renderMarkdown(md: string): ReactNode {
 function EntryCard({ entry, expanded, onToggle }: { entry: Entry; expanded: boolean; onToggle: () => void }) {
   const badge = STATUS_BADGE[entry.status];
   return (
-    <div style={{ background: '#0e0e0e', border: '1px solid var(--border-soft)', borderRadius: '8px', overflow: 'hidden' }}>
+    <div style={{ background: 'var(--bg-elev-1)', border: '1px solid var(--border-soft)', borderRadius: '8px', overflow: 'hidden' }}>
       <button onClick={onToggle} style={{
         width: '100%', textAlign: 'left', background: 'transparent', border: 'none',
         padding: '12px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px',
@@ -139,7 +139,7 @@ function EntryCard({ entry, expanded, onToggle }: { entry: Entry; expanded: bool
         <span style={{ color: 'var(--text-muted)', fontSize: '11px', flexShrink: 0 }}>{expanded ? '▾' : '▸'}</span>
       </button>
       {expanded && (
-        <div style={{ padding: '4px 16px 16px', borderTop: '1px solid #141414' }}>
+        <div style={{ padding: '4px 16px 16px', borderTop: '1px solid var(--border-soft)' }}>
           {renderMarkdown(entry.body)}
         </div>
       )}
@@ -205,7 +205,7 @@ export default function BuildJournalCard() {
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {errMsg && (
-          <p style={{ margin: 0, fontSize: '11px', color: '#ff6060', fontFamily: 'Roboto, sans-serif' }}>
+          <p style={{ margin: 0, fontSize: '11px', color: 'var(--red)', fontFamily: 'Roboto, sans-serif' }}>
             {errMsg}
           </p>
         )}
@@ -253,8 +253,8 @@ export default function BuildJournalCard() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
             <button onClick={() => setPage(Math.max(0, safePage - 1))} disabled={safePage === 0}
               style={{
-                padding: '5px 12px', borderRadius: '5px', border: '1px solid #1f1f1f',
-                background: '#0e0e0e', color: safePage === 0 ? 'var(--text-faint)' : 'var(--text-secondary)',
+                padding: '5px 12px', borderRadius: '5px', border: '1px solid var(--border)',
+                background: 'var(--bg-elev-1)', color: safePage === 0 ? 'var(--text-faint)' : 'var(--text-secondary)',
                 fontSize: '10px', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace',
                 cursor: safePage === 0 ? 'not-allowed' : 'pointer',
               }}>
@@ -265,8 +265,8 @@ export default function BuildJournalCard() {
             </span>
             <button onClick={() => setPage(Math.min(totalPages - 1, safePage + 1))} disabled={safePage >= totalPages - 1}
               style={{
-                padding: '5px 12px', borderRadius: '5px', border: '1px solid #1f1f1f',
-                background: '#0e0e0e', color: safePage >= totalPages - 1 ? 'var(--text-faint)' : 'var(--text-secondary)',
+                padding: '5px 12px', borderRadius: '5px', border: '1px solid var(--border)',
+                background: 'var(--bg-elev-1)', color: safePage >= totalPages - 1 ? 'var(--text-faint)' : 'var(--text-secondary)',
                 fontSize: '10px', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace',
                 cursor: safePage >= totalPages - 1 ? 'not-allowed' : 'pointer',
               }}>

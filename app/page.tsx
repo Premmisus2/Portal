@@ -412,10 +412,10 @@ function AppShell() {
 
   // Shadow Banner
   const shadowBanner = shadowMode ? (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 500, background: '#F59E0B', color: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '8px 16px', fontFamily: 'Inter,sans-serif', fontSize: '13px', fontWeight: 700, letterSpacing: '.03em', boxShadow: '0 2px 12px rgba(245,158,11,.4)' }}>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 500, background: 'var(--amber)', color: 'var(--bg-app)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '8px 16px', fontFamily: 'Inter,sans-serif', fontSize: '13px', fontWeight: 700, letterSpacing: '.03em', boxShadow: '0 2px 12px rgba(245,158,11,.4)' }}>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" /></svg>
       <span>SHADOWING: {shadowRepName} — Read Only</span>
-      <button onClick={exitShadow} style={{ background: 'var(--bg-app)', color: '#F59E0B', border: 'none', borderRadius: '5px', padding: '4px 14px', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '.08em', textTransform: 'uppercase', fontFamily: 'Inter,sans-serif', transition: 'opacity .15s' }}
+      <button onClick={exitShadow} style={{ background: 'var(--bg-app)', color: 'var(--amber)', border: 'none', borderRadius: '5px', padding: '4px 14px', fontSize: '11px', fontWeight: 800, cursor: 'pointer', letterSpacing: '.08em', textTransform: 'uppercase', fontFamily: 'Inter,sans-serif', transition: 'opacity .15s' }}
         onMouseEnter={e => (e.currentTarget.style.opacity = '.8')}
         onMouseLeave={e => (e.currentTarget.style.opacity = '1')}>
         Exit

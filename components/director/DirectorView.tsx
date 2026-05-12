@@ -46,22 +46,22 @@ function PendingClosesTab({ closes, onApprove, onReject }: { closes: any[]; onAp
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
                   <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'Inter, sans-serif' }}>{c.reps?.name || 'Unknown Rep'}</span>
-                  <span style={{ fontSize: '9px', fontWeight: 800, padding: '2px 8px', borderRadius: '20px', background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.3)', color: '#F59E0B', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '.1em', textTransform: 'uppercase' }}>PENDING</span>
+                  <span style={{ fontSize: '9px', fontWeight: 800, padding: '2px 8px', borderRadius: '20px', background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.3)', color: 'var(--amber)', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '.1em', textTransform: 'uppercase' }}>PENDING</span>
                 </div>
                 <p style={{ margin: '0 0 2px', fontSize: '13px', color: 'var(--text-secondary)' }}>{c.product_label || `${c.pts} pt close`}</p>
                 <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-faint)' }}>{date} · +{c.pts} pt{c.pts > 1 ? 's' : ''}</p>
               </div>
               <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                 <button onClick={() => onReject(c.id)}
-                  style={{ padding: '7px 14px', borderRadius: '7px', background: 'transparent', border: '1px solid #ff6060', color: '#ff6060', cursor: 'pointer', fontSize: '11px', fontWeight: 700, fontFamily: 'Inter, sans-serif', transition: 'all .15s' }}
+                  style={{ padding: '7px 14px', borderRadius: '7px', background: 'transparent', border: '1px solid var(--red)', color: 'var(--red)', cursor: 'pointer', fontSize: '11px', fontWeight: 700, fontFamily: 'Inter, sans-serif', transition: 'all .15s' }}
                   onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,96,96,.1)'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}>
                   Reject
                 </button>
                 <button onClick={() => onApprove(c.id)}
-                  style={{ padding: '7px 14px', borderRadius: '7px', background: 'rgba(34,197,94,.1)', border: '1px solid rgba(34,197,94,.35)', color: '#22c55e', cursor: 'pointer', fontSize: '11px', fontWeight: 700, fontFamily: 'Inter, sans-serif', transition: 'all .15s' }}
+                  style={{ padding: '7px 14px', borderRadius: '7px', background: 'var(--green-soft)', border: '1px solid rgba(34,197,94,.35)', color: 'var(--green)', cursor: 'pointer', fontSize: '11px', fontWeight: 700, fontFamily: 'Inter, sans-serif', transition: 'all .15s' }}
                   onMouseEnter={e => { e.currentTarget.style.background = 'rgba(34,197,94,.2)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(34,197,94,.1)'; }}>
+                  onMouseLeave={e => { e.currentTarget.style.background = 'var(--green-soft)'; }}>
                   Approve
                 </button>
               </div>
@@ -112,14 +112,14 @@ export default function DirectorView(props: any) {
         shadowMode={shadowMode} shadowRepName={shadowRepName} allReps={allReps} enterShadow={enterShadow} exitShadow={exitShadow} />
 
       {/* Tab bar */}
-      <div className="no-print" style={{ display: 'flex', gap: '4px', padding: '8px 24px', borderBottom: '1px solid #111', background: 'var(--bg-nav)', overflowX: 'auto', flexShrink: 0 }}>
+      <div className="no-print" style={{ display: 'flex', gap: '4px', padding: '8px 24px', borderBottom: '1px solid var(--bg-sidebar-line)', background: 'var(--bg-nav)', overflowX: 'auto', flexShrink: 0 }}>
         {DIRECTOR_TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`call-tab${tab === t.id ? ' active' : ''}`}
             style={{ fontSize: '11px', padding: '7px 16px', whiteSpace: 'nowrap', position: 'relative' }}>
             {t.label}
             {t.id === 'closes' && pendingCount > 0 && (
-              <span style={{ marginLeft: '6px', background: '#F59E0B', color: 'var(--bg-app)', fontSize: '9px', fontWeight: 800, borderRadius: '10px', padding: '1px 6px', fontFamily: 'JetBrains Mono, monospace' }}>{pendingCount}</span>
+              <span style={{ marginLeft: '6px', background: 'var(--amber)', color: 'var(--bg-app)', fontSize: '9px', fontWeight: 800, borderRadius: '10px', padding: '1px 6px', fontFamily: 'JetBrains Mono, monospace' }}>{pendingCount}</span>
             )}
           </button>
         ))}

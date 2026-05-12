@@ -38,7 +38,7 @@ export default function NotificationPopup({ events, lastVisit, onDismiss }: Noti
               <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-ink)', boxShadow: '0 0 10px var(--accent-glow-80)' }} />
               <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '.02em' }}>What You Missed</span>
             </div>
-            <button onClick={onDismiss} style={{ background: 'transparent', border: '1px solid #222', borderRadius: '6px', padding: '4px 10px', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '11px', fontWeight: 700, fontFamily: 'Inter,sans-serif', transition: 'all .15s' }}>
+            <button onClick={onDismiss} style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: '6px', padding: '4px 10px', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '11px', fontWeight: 700, fontFamily: 'Inter,sans-serif', transition: 'all .15s' }}>
               Dismiss
             </button>
           </div>
@@ -53,8 +53,8 @@ export default function NotificationPopup({ events, lastVisit, onDismiss }: Noti
           {/* Summary badges */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
             {[
-              { label: 'Bookings', count: events.bookings.length, color: '#22c55e', bg: 'rgba(34,197,94,.08)', border: 'rgba(34,197,94,.25)' },
-              { label: 'Callbacks', count: events.callbacks.length, color: '#F59E0B', bg: 'rgba(245,158,11,.08)', border: 'rgba(245,158,11,.25)' },
+              { label: 'Bookings', count: events.bookings.length, color: 'var(--green)', bg: 'rgba(34,197,94,.08)', border: 'rgba(34,197,94,.25)' },
+              { label: 'Callbacks', count: events.callbacks.length, color: 'var(--amber)', bg: 'rgba(245,158,11,.08)', border: 'rgba(245,158,11,.25)' },
               { label: 'Handoffs', count: events.handoffs.length, color: 'var(--accent-ink)', bg: 'var(--accent-glow-08)', border: 'var(--accent-glow-25)' },
               { label: 'Calls', count: events.totalCalls, color: 'var(--text-tertiary)', bg: 'rgba(255,255,255,.03)', border: 'var(--border)' },
             ].map((b, i) => (
@@ -68,11 +68,11 @@ export default function NotificationPopup({ events, lastVisit, onDismiss }: Noti
           {/* Bookings */}
           {events.bookings.length > 0 && (
             <div>
-              <p style={{ margin: '0 0 6px', fontSize: '10px', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: '#22c55e', fontFamily: 'JetBrains Mono, monospace' }}>New Bookings</p>
+              <p style={{ margin: '0 0 6px', fontSize: '10px', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--green)', fontFamily: 'JetBrains Mono, monospace' }}>New Bookings</p>
               {events.bookings.map((b: any, i: number) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'rgba(34,197,94,.04)', border: '1px solid rgba(34,197,94,.12)', borderRadius: '6px', marginBottom: '4px' }}>
                   <div>
-                    <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#e0e0e0' }}>{b.business_name || b.leads?.business_name || b.company || 'Unknown'}</p>
+                    <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{b.business_name || b.leads?.business_name || b.company || 'Unknown'}</p>
                     <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-muted)' }}>{b.reps?.name || b.rep_name || 'Unknown rep'}</p>
                   </div>
                   {b.created_at && <span style={{ fontSize: '10px', color: 'var(--text-faint)', fontFamily: 'JetBrains Mono, monospace' }}>{fmtTime(b.created_at)}</span>}
@@ -84,11 +84,11 @@ export default function NotificationPopup({ events, lastVisit, onDismiss }: Noti
           {/* Callbacks */}
           {events.callbacks.length > 0 && (
             <div>
-              <p style={{ margin: '0 0 6px', fontSize: '10px', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: '#F59E0B', fontFamily: 'JetBrains Mono, monospace' }}>Callback Requests</p>
+              <p style={{ margin: '0 0 6px', fontSize: '10px', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--amber)', fontFamily: 'JetBrains Mono, monospace' }}>Callback Requests</p>
               {events.callbacks.map((c: any, i: number) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'rgba(245,158,11,.04)', border: '1px solid rgba(245,158,11,.12)', borderRadius: '6px', marginBottom: '4px' }}>
                   <div>
-                    <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#e0e0e0' }}>{c.business_name || c.leads?.business_name || c.company || 'Unknown'}</p>
+                    <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{c.business_name || c.leads?.business_name || c.company || 'Unknown'}</p>
                     <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-muted)' }}>{c.reps?.name || c.rep_name || 'Unknown rep'}</p>
                   </div>
                   {c.created_at && <span style={{ fontSize: '10px', color: 'var(--text-faint)', fontFamily: 'JetBrains Mono, monospace' }}>{fmtTime(c.created_at)}</span>}
@@ -104,7 +104,7 @@ export default function NotificationPopup({ events, lastVisit, onDismiss }: Noti
               {events.handoffs.map((h: any, i: number) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--accent-glow-04)', border: '1px solid var(--accent-glow-12)', borderRadius: '6px', marginBottom: '4px' }}>
                   <div>
-                    <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#e0e0e0' }}>{h.business_name || h.company || 'Unknown'}</p>
+                    <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>{h.business_name || h.company || 'Unknown'}</p>
                     <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-muted)' }}>{h.reps?.name || h.rep_name || 'Unknown rep'}</p>
                   </div>
                   {h.created_at && <span style={{ fontSize: '10px', color: 'var(--text-faint)', fontFamily: 'JetBrains Mono, monospace' }}>{fmtTime(h.created_at)}</span>}

@@ -132,7 +132,7 @@ const QuickLogForm = ({ repId, onLogged }: any) => {
 
         <button onClick={handleSubmit} disabled={saving || !form.outcome || !form.businessName}
           style={{padding:'12px 28px', borderRadius:'8px', cursor:'pointer', fontSize:'13px', fontWeight:800, fontFamily:'Inter,sans-serif', border:'none', transition:'all .15s',
-            background: saved ? '#22c55e' : 'var(--accent-glow-15)', color: saved ? 'var(--bg-app)' : 'var(--accent-ink)',
+            background: saved ? 'var(--green)' : 'var(--accent-glow-15)', color: saved ? 'var(--bg-app)' : 'var(--accent-ink)',
             opacity: (saving || !form.outcome || !form.businessName) ? 0.4 : 1,
           }}>
           {saving ? 'Saving...' : saved ? 'Logged!' : 'Log Call'}

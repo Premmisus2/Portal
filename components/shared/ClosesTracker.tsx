@@ -39,7 +39,7 @@ const ClosesTracker = ({ totalCloses, totalPoints, addClose, undoClose }: Closes
           <span style={{fontSize:'13px', fontWeight:800, color:'var(--text-primary)', fontFamily:'monospace', lineHeight:1.2}}>{totalCloses}</span>
           <span style={{fontSize:'7px', color:'var(--text-faint)', fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase'}}>closes</span>
         </div>
-        <span style={{fontSize:'10px', color:'#222', fontWeight:700}}>·</span>
+        <span style={{fontSize:'10px', color:'var(--border)', fontWeight:700}}>·</span>
         <div style={{display:'flex', flexDirection:'column', alignItems:'center', background:'var(--bg-elev-1)', border:`1px solid ${tier.badge.border}`, borderRadius:'7px', padding:'3px 9px', minWidth:'46px'}}>
           <span style={{fontSize:'13px', fontWeight:800, color:tier.badge.color, fontFamily:'monospace', lineHeight:1.2}}>{totalPoints}</span>
           <span style={{fontSize:'7px', color:'var(--text-faint)', fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase'}}>pts</span>

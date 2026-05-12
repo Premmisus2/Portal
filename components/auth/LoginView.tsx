@@ -162,7 +162,7 @@ export default function LoginView({ onLogin }: { onLogin: any }) {
             {([['signin','Sign In'],['register','Register']] as const).map(([key, label]) => (
               <button key={key} type="button" onClick={() => { setTab(key); setError(''); }}
                 style={{flex:1, padding:'8px 0', borderRadius:'6px', border:'none', cursor:'pointer', fontFamily:'Inter, sans-serif', fontSize:'13px', fontWeight:700, transition:'all .2s',
-                  background: tab===key ? '#141414' : 'transparent',
+                  background: tab===key ? 'var(--border-soft)' : 'transparent',
                   color: tab===key ? 'var(--text-primary)' : 'var(--text-faint)',
                   boxShadow: tab===key ? '0 0 0 1px var(--border-strong)' : 'none',
                 }}>{label}</button>
@@ -172,7 +172,7 @@ export default function LoginView({ onLogin }: { onLogin: any }) {
           {/* Error */}
           {error && (
             <div style={{background:'rgba(255,68,68,.08)', border:'1px solid rgba(255,68,68,.25)', borderRadius:'8px', padding:'10px 14px', marginBottom:'16px'}}>
-              <p style={{margin:0, fontSize:'12px', color:'#ff6060', fontFamily:'Roboto, sans-serif'}}>{error}</p>
+              <p style={{margin:0, fontSize:'12px', color:'var(--red)', fontFamily:'Roboto, sans-serif'}}>{error}</p>
             </div>
           )}
 
@@ -219,7 +219,7 @@ export default function LoginView({ onLogin }: { onLogin: any }) {
           )}
 
         </div>
-        <p style={{textAlign:'center', color:'#2a2a2a', fontSize:'11px', marginTop:'20px', letterSpacing:'.15em', textTransform:'uppercase', fontFamily:'JetBrains Mono, monospace'}}>Premmisus · Internal Access Only</p>
+        <p style={{textAlign:'center', color:'var(--text-faint)', fontSize:'11px', marginTop:'20px', letterSpacing:'.15em', textTransform:'uppercase', fontFamily:'JetBrains Mono, monospace'}}>Premmisus · Internal Access Only</p>
       </div>
     </div>
   );

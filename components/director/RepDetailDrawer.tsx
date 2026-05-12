@@ -24,7 +24,7 @@ const overlayStyle: React.CSSProperties = {
 };
 
 const sectionStyle: React.CSSProperties = {
-  padding: '18px 24px', borderBottom: '1px solid #141414',
+  padding: '18px 24px', borderBottom: '1px solid var(--border-soft)',
 };
 
 const labelStyle: React.CSSProperties = {
@@ -33,7 +33,7 @@ const labelStyle: React.CSSProperties = {
 };
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '8px 10px', background: 'var(--bg-sidebar-line)', border: '1px solid #333',
+  width: '100%', padding: '8px 10px', background: 'var(--bg-sidebar-line)', border: '1px solid var(--text-faint)',
   borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'JetBrains Mono, monospace', outline: 'none',
 };
 
@@ -158,7 +158,7 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
                 {rep.name || rep.email}
               </h2>
               {isInactive && (
-                <span style={{ fontSize: '8px', padding: '1px 6px', borderRadius: '10px', background: 'rgba(255,96,96,.1)', border: '1px solid rgba(255,96,96,.25)', color: '#ff6060', fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase' }}>
+                <span style={{ fontSize: '8px', padding: '1px 6px', borderRadius: '10px', background: 'rgba(255,96,96,.1)', border: '1px solid rgba(255,96,96,.25)', color: 'var(--red)', fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase' }}>
                   Inactive
                 </span>
               )}
@@ -188,14 +188,14 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
                 { v: stats.total_calls_manual, l: 'Manual log', c: stats.total_calls_manual > 0 ? 'var(--text-tertiary)' : 'var(--text-faint)', sub: 'Hand-logged' },
                 // Row 2: close stack
                 { v: stats.total_closes, l: 'Closes', c: 'var(--text-primary)' },
-                { v: stats.pending_closes, l: 'Pending', c: stats.pending_closes > 0 ? '#F59E0B' : 'var(--text-faint)' },
-                { v: stats.approved_points, l: 'Approved Pts', c: stats.approved_points > 0 ? '#22c55e' : 'var(--text-faint)' },
+                { v: stats.pending_closes, l: 'Pending', c: stats.pending_closes > 0 ? 'var(--amber)' : 'var(--text-faint)' },
+                { v: stats.approved_points, l: 'Approved Pts', c: stats.approved_points > 0 ? 'var(--green)' : 'var(--text-faint)' },
                 // Row 3: warm-lead funnel
                 { v: stats.assigned_leads, l: 'Leads', c: 'var(--text-primary)' },
-                { v: stats.warm_leads_contacted, l: 'Warm Cont.', c: stats.warm_leads_contacted > 0 ? '#F59E0B' : 'var(--text-faint)', sub: 'HOT/HIGH touched' },
-                { v: stats.warm_leads_closed, l: 'Warm Closed', c: stats.warm_leads_closed > 0 ? '#22c55e' : 'var(--text-faint)', sub: 'HOT/HIGH booked' },
+                { v: stats.warm_leads_contacted, l: 'Warm Cont.', c: stats.warm_leads_contacted > 0 ? 'var(--amber)' : 'var(--text-faint)', sub: 'HOT/HIGH touched' },
+                { v: stats.warm_leads_closed, l: 'Warm Closed', c: stats.warm_leads_closed > 0 ? 'var(--green)' : 'var(--text-faint)', sub: 'HOT/HIGH booked' },
               ].map(s => (
-                <div key={s.l} style={{ padding: '10px', background: '#0e0e0e', border: '1px solid var(--border-soft)', borderRadius: '6px', textAlign: 'center' }}>
+                <div key={s.l} style={{ padding: '10px', background: 'var(--bg-elev-1)', border: '1px solid var(--border-soft)', borderRadius: '6px', textAlign: 'center' }}>
                   <p style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: s.c, fontFamily: 'monospace' }}>{s.v}</p>
                   <p style={{ margin: '2px 0 0', fontSize: '8px', color: 'var(--text-faint)', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase' }}>{s.l}</p>
                   {s.sub && <p style={{ margin: '1px 0 0', fontSize: '7px', color: 'var(--text-faint)', fontFamily: 'JetBrains Mono, monospace' }}>{s.sub}</p>}
@@ -243,7 +243,7 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
                 {savingPhone ? '...' : 'Save'}
               </button>
             </div>
-            {phoneSaved && <p style={{ margin: '6px 0 0', fontSize: '10px', color: '#22c55e' }}>Saved</p>}
+            {phoneSaved && <p style={{ margin: '6px 0 0', fontSize: '10px', color: 'var(--green)' }}>Saved</p>}
           </div>
 
           {/* Role */}
@@ -259,7 +259,7 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
                 </p>
               </div>
               <button onClick={() => setShowRoleConfirm(true)} disabled={busy}
-                style={{ padding: '7px 14px', borderRadius: '6px', border: '1px solid #2a2a2a', background: 'transparent', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                style={{ padding: '7px 14px', borderRadius: '6px', border: '1px solid var(--text-faint)', background: 'transparent', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 Change role
               </button>
             </div>
@@ -280,7 +280,7 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
               ) : filteredUnassigned.length === 0 ? (
                 <p style={{ margin: 0, padding: '20px', textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)' }}>No unassigned leads match.</p>
               ) : filteredUnassigned.map(lead => (
-                <div key={lead.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid #131313', gap: '8px' }}>
+                <div key={lead.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid var(--border-soft)', gap: '8px' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-primary)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{lead.business_name}</p>
                     <p style={{ margin: '2px 0 0', fontSize: '10px', color: 'var(--text-muted)' }}>
@@ -288,7 +288,7 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
                     </p>
                   </div>
                   <button onClick={() => assignLead(lead.id)} disabled={assigning === lead.id}
-                    style={{ padding: '4px 12px', borderRadius: '4px', border: '1px solid rgba(34,197,94,.35)', background: 'rgba(34,197,94,.1)', color: '#22c55e', fontSize: '10px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', opacity: assigning === lead.id ? 0.5 : 1 }}>
+                    style={{ padding: '4px 12px', borderRadius: '4px', border: '1px solid rgba(34,197,94,.35)', background: 'var(--green-soft)', color: 'var(--green)', fontSize: '10px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', opacity: assigning === lead.id ? 0.5 : 1 }}>
                     {assigning === lead.id ? '...' : 'Assign'}
                   </button>
                 </div>
@@ -309,7 +309,7 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
                 padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 700,
                 border: `1px solid ${isInactive ? 'rgba(34,197,94,.35)' : 'rgba(255,96,96,.35)'}`,
                 background: isInactive ? 'rgba(34,197,94,.08)' : 'rgba(255,96,96,.08)',
-                color: isInactive ? '#22c55e' : '#ff6060',
+                color: isInactive ? 'var(--green)' : 'var(--red)',
               }}>
               {isInactive ? 'Reactivate rep' : 'Deactivate rep'}
             </button>
@@ -338,7 +338,7 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
               ? 'They will be able to sign in again and appear in assignment dropdowns.'
               : 'They will be unable to sign in. Their assigned leads stay assigned to them but no new leads can be assigned. All history is preserved.'}
             confirmLabel={isInactive ? 'Reactivate' : 'Deactivate'}
-            confirmColor={isInactive ? '#22c55e' : '#ff6060'}
+            confirmColor={isInactive ? 'var(--green)' : 'var(--red)'}
             busy={busy}
             onCancel={() => setShowDeactivateConfirm(false)}
             onConfirm={toggleActive}
@@ -365,11 +365,11 @@ function ConfirmOverlay({ title, body, confirmLabel, confirmColor, busy, onCance
 }) {
   return (
     <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.85)', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <div style={{ background: '#0e0e0e', border: '1px solid #2a2a2a', borderRadius: '10px', padding: '20px 22px', maxWidth: '400px' }}>
+      <div style={{ background: 'var(--bg-elev-1)', border: '1px solid var(--text-faint)', borderRadius: '10px', padding: '20px 22px', maxWidth: '400px' }}>
         <p style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>{title}</p>
         <p style={{ margin: '0 0 16px', fontSize: '12px', color: 'var(--text-tertiary)', lineHeight: 1.6 }}>{body}</p>
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-          <button onClick={onCancel} disabled={busy} style={{ padding: '7px 16px', borderRadius: '6px', border: '1px solid #2a2a2a', background: 'transparent', color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>
+          <button onClick={onCancel} disabled={busy} style={{ padding: '7px 16px', borderRadius: '6px', border: '1px solid var(--text-faint)', background: 'transparent', color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>
             Cancel
           </button>
           <button onClick={onConfirm} disabled={busy} style={{

@@ -32,7 +32,7 @@ export default function TrainingView(props: any) {
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: 'var(--bg-elev-pill)', border: '1px solid var(--border-soft)', borderRadius: '8px' }}>
                 <span style={{ color: 'var(--text-tertiary)', fontSize: '13px', fontWeight: 600 }}>{item.label}</span>
-                <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: item.status === 'Building' ? '#F59E0B' : 'var(--text-faint)', fontFamily: 'JetBrains Mono, monospace' }}>{item.status}</span>
+                <span style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: item.status === 'Building' ? 'var(--amber)' : 'var(--text-faint)', fontFamily: 'JetBrains Mono, monospace' }}>{item.status}</span>
               </div>
             ))}
           </div>

@@ -88,7 +88,7 @@ export default function BulkAssignBar({ selectedIds, reps, onAssigned, onClear, 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '.1em', textTransform: 'uppercase' }}>Assign to:</span>
         <select value={targetRepId} onChange={e => setTargetRepId(e.target.value)}
-          style={{ padding: '6px 10px', background: 'var(--bg-sidebar-line)', border: '1px solid #2a2a2a', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12px', fontFamily: 'Inter, sans-serif', outline: 'none' }}>
+          style={{ padding: '6px 10px', background: 'var(--bg-sidebar-line)', border: '1px solid var(--text-faint)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '12px', fontFamily: 'Inter, sans-serif', outline: 'none' }}>
           <option value="">— pick rep —</option>
           {activeReps.map(r => (
             <option key={r.id} value={r.id}>{r.name}{r.role === 'director' ? ' (Director)' : ''}</option>
@@ -105,7 +105,7 @@ export default function BulkAssignBar({ selectedIds, reps, onAssigned, onClear, 
         <button onClick={unassign} disabled={busy || selectedIds.length === 0}
           style={{
             padding: '6px 14px', borderRadius: '6px', cursor: (busy || selectedIds.length === 0) ? 'not-allowed' : 'pointer',
-            border: '1px solid rgba(255,96,96,.3)', background: 'rgba(255,96,96,.08)', color: '#ff6060',
+            border: '1px solid rgba(255,96,96,.3)', background: 'rgba(255,96,96,.08)', color: 'var(--red)',
             fontSize: '11px', fontWeight: 700, opacity: (busy || selectedIds.length === 0) ? 0.4 : 1,
           }}>
           Unassign
@@ -114,7 +114,7 @@ export default function BulkAssignBar({ selectedIds, reps, onAssigned, onClear, 
 
       {confirming && target && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }} onClick={() => !busy && setConfirming(false)}>
-          <div style={{ background: 'var(--bg-elev-1)', border: '1px solid #2a2a2a', borderRadius: '10px', padding: '20px 22px', maxWidth: '420px' }} onClick={e => e.stopPropagation()}>
+          <div style={{ background: 'var(--bg-elev-1)', border: '1px solid var(--text-faint)', borderRadius: '10px', padding: '20px 22px', maxWidth: '420px' }} onClick={e => e.stopPropagation()}>
             <p style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>
               Assign {selectedIds.length} {selectedIds.length === 1 ? 'lead' : 'leads'} to {target.name}?
             </p>
@@ -123,7 +123,7 @@ export default function BulkAssignBar({ selectedIds, reps, onAssigned, onClear, 
             </p>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
               <button onClick={() => setConfirming(false)} disabled={busy}
-                style={{ padding: '7px 16px', borderRadius: '6px', border: '1px solid #2a2a2a', background: 'transparent', color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>
+                style={{ padding: '7px 16px', borderRadius: '6px', border: '1px solid var(--text-faint)', background: 'transparent', color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>
                 Cancel
               </button>
               <button onClick={assign} disabled={busy}

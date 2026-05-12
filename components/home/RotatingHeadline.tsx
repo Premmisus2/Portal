@@ -28,7 +28,7 @@ export default function RotatingHeadline() {
   return (
     <h1 style={{fontSize:'clamp(28px, 5vw, 52px)', fontWeight:900, color:'var(--text-primary)', margin:'0 0 16px', lineHeight:1.05, letterSpacing:'-.04em', textTransform:'uppercase', fontFamily:'Inter, sans-serif', minHeight:'2.2em', transition:'opacity .4s ease', opacity: fade ? 1 : 0}}>
       {HEADLINES[idx][0]}<br/>
-      <span style={{background:'linear-gradient(135deg, #fff 40%, var(--accent-ink) 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>{HEADLINES[idx][1]}</span>
+      <span style={{background:'linear-gradient(135deg, var(--text-primary) 40%, var(--accent-ink) 100%)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>{HEADLINES[idx][1]}</span>
     </h1>
   );
 }

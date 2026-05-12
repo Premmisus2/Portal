@@ -86,8 +86,8 @@ const AI_SERVICES = [
     repMonthly: '~$28-35/mo',
     highlight: false,
     badge: 'Easiest Stack',
-    badgeBg: 'rgba(34,197,94,.15)',
-    badgeColor: '#22c55e',
+    badgeBg: 'var(--green-border)',
+    badgeColor: 'var(--green)',
     ourCost: '~$5/mo',
     margin: '95%+',
     clientComparison: 'vs hiring a VA to manually follow up — and hoping they do it right',
@@ -223,7 +223,7 @@ function AIServiceCard({ service, index, isDirector }: { service: typeof AI_SERV
             ]).map((s, i) => (
               <div key={i} style={{ background: 'var(--bg-elev-2)', border: '1px solid var(--border-soft)', borderRadius: '8px', padding: '10px 12px' }}>
                 <p style={{ margin: '0 0 3px', fontSize: '9px', fontWeight: 700, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-faint)', fontFamily: 'JetBrains Mono, monospace' }}>{s.label}</p>
-                <p style={{ margin: 0, fontSize: '12px', fontWeight: 700, color: (s as any).green ? '#22c55e' : (s as any).amber ? '#F59E0B' : 'var(--text-primary)', lineHeight: 1.3 }}>{s.val}</p>
+                <p style={{ margin: 0, fontSize: '12px', fontWeight: 700, color: (s as any).green ? 'var(--green)' : (s as any).amber ? 'var(--amber)' : 'var(--text-primary)', lineHeight: 1.3 }}>{s.val}</p>
               </div>
             ))}
           </div>
@@ -250,7 +250,7 @@ function AIServiceCard({ service, index, isDirector }: { service: typeof AI_SERV
               <div style={{ background: 'var(--accent-glow-05)', border: '1px solid var(--accent-glow-15)', borderRadius: '8px', padding: '12px', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                   <span style={{ fontSize: '11px', color: 'var(--text-tertiary)' }}>Setup (upfront)</span>
-                  <span style={{ fontSize: '14px', fontWeight: 800, color: '#22c55e', fontFamily: 'JetBrains Mono, monospace' }}>{service.repSetup}</span>
+                  <span style={{ fontSize: '14px', fontWeight: 800, color: 'var(--green)', fontFamily: 'JetBrains Mono, monospace' }}>{service.repSetup}</span>
                 </div>
                 <div style={{ height: '1px', background: 'rgba(255,255,255,.06)', margin: '6px 0' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -259,7 +259,7 @@ function AIServiceCard({ service, index, isDirector }: { service: typeof AI_SERV
                 </div>
               </div>
               <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 0 4px', fontFamily: 'JetBrains Mono, monospace' }}>Pitch Angle</p>
-              <p style={{ margin: '0 0 16px', color: 'var(--text-secondary)', fontSize: '13px', fontStyle: 'italic', lineHeight: '1.55', background: 'rgba(255,255,255,.02)', border: '1px solid #111', borderRadius: '8px', padding: '10px 12px' }}>{service.pitchAngle}</p>
+              <p style={{ margin: '0 0 16px', color: 'var(--text-secondary)', fontSize: '13px', fontStyle: 'italic', lineHeight: '1.55', background: 'rgba(255,255,255,.02)', border: '1px solid var(--bg-sidebar-line)', borderRadius: '8px', padding: '10px 12px' }}>{service.pitchAngle}</p>
               <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 0 6px', fontFamily: 'JetBrains Mono, monospace' }}>Opening Hook</p>
               <div className="rep-block" style={{ marginTop: 0 }}>
                 <p className="rep-text">{service.pitchHook}</p>
@@ -274,13 +274,13 @@ function AIServiceCard({ service, index, isDirector }: { service: typeof AI_SERV
                 {service.objections.map((obj, j) => (
                   <div key={j} style={{ background: 'var(--bg-elev-2)', border: `1px solid ${objOpen === j ? 'var(--accent-glow-22)' : 'var(--border-soft)'}`, borderRadius: '8px', overflow: 'hidden', transition: 'border-color .2s' }}>
                     <div onClick={() => setObjOpen(objOpen === j ? null : j)} style={{ padding: '12px 16px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
-                      <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#ff8080', lineHeight: 1.4, fontStyle: 'italic' }}>"{obj.q}"</p>
+                      <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: 'var(--red)', lineHeight: 1.4, fontStyle: 'italic' }}>"{obj.q}"</p>
                       <span style={{ color: 'var(--text-faint)', flexShrink: 0, marginTop: '2px', transition: 'transform .2s', display: 'inline-block', transform: objOpen === j ? 'rotate(180deg)' : 'rotate(0deg)' }}><Icon name="chevron" size={14} /></span>
                     </div>
                     {objOpen === j && (
                       <div className="fadein" style={{ padding: '0 16px 14px' }}>
-                        <div style={{ background: 'rgba(34,197,94,.05)', border: '1px solid rgba(34,197,94,.15)', borderRadius: '8px', padding: '10px 14px' }}>
-                          <span style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '.2em', textTransform: 'uppercase', color: '#22c55e', display: 'block', marginBottom: '4px', fontFamily: 'JetBrains Mono, monospace' }}>REBUTTAL</span>
+                        <div style={{ background: 'var(--green-soft)', border: '1px solid var(--green-border)', borderRadius: '8px', padding: '10px 14px' }}>
+                          <span style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--green)', display: 'block', marginBottom: '4px', fontFamily: 'JetBrains Mono, monospace' }}>REBUTTAL</span>
                           <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '13px', lineHeight: 1.55 }}>{obj.a}</p>
                         </div>
                       </div>
@@ -343,7 +343,7 @@ function AIStackCalculator({ isDirector }: { isDirector: boolean }) {
                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: on && svc.id === 'vapi' ? '8px 8px 0 0' : '8px', border: `1px solid ${on ? 'var(--accent-glow-25)' : 'var(--bg-sidebar-line)'}`, borderBottom: on && svc.id === 'vapi' ? 'none' : undefined, background: on ? 'var(--accent-glow-04)' : 'transparent', cursor: 'pointer', transition: 'all .15s' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <div style={{ width: '18px', height: '18px', borderRadius: '4px', border: `2px solid ${on ? 'var(--accent-ink)' : 'var(--text-faint)'}`, background: on ? 'var(--accent-ink)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all .15s' }}>
-                    {on && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 13 4 10" /></svg>}
+                    {on && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--bg-app)" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 13 4 10" /></svg>}
                   </div>
                   <span style={{ fontSize: '13px', fontWeight: 600, color: on ? 'var(--text-primary)' : 'var(--text-muted)', fontFamily: 'Inter, sans-serif' }}>{svc.name}</span>
                 </div>
@@ -357,7 +357,7 @@ function AIStackCalculator({ isDirector }: { isDirector: boolean }) {
                   <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace', marginRight: '4px' }}>TIER</span>
                   {VAPI_TIERS.map(t => (
                     <button key={t.mrr} onClick={e => { e.stopPropagation(); setVapiTier(t.mrr); }}
-                      style={{ padding: '4px 12px', borderRadius: '5px', border: `1px solid ${vapiTier === t.mrr ? 'var(--accent-ink)' : '#222'}`, background: vapiTier === t.mrr ? 'var(--accent-glow-15)' : 'transparent', color: vapiTier === t.mrr ? 'var(--accent-ink)' : 'var(--text-muted)', fontSize: '11px', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace', cursor: 'pointer', transition: 'all .15s' }}>
+                      style={{ padding: '4px 12px', borderRadius: '5px', border: `1px solid ${vapiTier === t.mrr ? 'var(--accent-ink)' : 'var(--border)'}`, background: vapiTier === t.mrr ? 'var(--accent-glow-15)' : 'transparent', color: vapiTier === t.mrr ? 'var(--accent-ink)' : 'var(--text-muted)', fontSize: '11px', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace', cursor: 'pointer', transition: 'all .15s' }}>
                       {t.label}
                     </button>
                   ))}
@@ -381,8 +381,8 @@ function AIStackCalculator({ isDirector }: { isDirector: boolean }) {
             </div>
             {discount > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '12px', color: '#22c55e' }}>Bundle discount (3+ services)</span>
-                <span style={{ fontSize: '13px', fontFamily: 'JetBrains Mono, monospace', color: '#22c55e' }}>-${discount}</span>
+                <span style={{ fontSize: '12px', color: 'var(--green)' }}>Bundle discount (3+ services)</span>
+                <span style={{ fontSize: '13px', fontFamily: 'JetBrains Mono, monospace', color: 'var(--green)' }}>-${discount}</span>
               </div>
             )}
             <div style={{ height: '1px', background: 'var(--border-soft)', margin: '4px 0' }} />
@@ -391,9 +391,9 @@ function AIStackCalculator({ isDirector }: { isDirector: boolean }) {
               <span style={{ fontSize: '22px', fontWeight: 900, color: 'var(--accent-ink)', fontFamily: 'JetBrains Mono, monospace' }}>${mrrTotal.toLocaleString()}/mo</span>
             </div>
             <div style={{ height: '1px', background: 'var(--border-soft)', margin: '4px 0' }} />
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(34,197,94,.05)', borderRadius: '6px', border: '1px solid rgba(34,197,94,.15)' }}>
-              <span style={{ fontSize: '11px', color: '#22c55e', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '.1em', textTransform: 'uppercase' }}>You Earn — Upfront</span>
-              <span style={{ fontSize: '16px', fontWeight: 800, color: '#22c55e', fontFamily: 'JetBrains Mono, monospace' }}>${repSetup.toLocaleString()}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--green-soft)', borderRadius: '6px', border: '1px solid var(--green-border)' }}>
+              <span style={{ fontSize: '11px', color: 'var(--green)', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '.1em', textTransform: 'uppercase' }}>You Earn — Upfront</span>
+              <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--green)', fontFamily: 'JetBrains Mono, monospace' }}>${repSetup.toLocaleString()}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'var(--accent-glow-05)', borderRadius: '6px', border: '1px solid var(--accent-glow-10)' }}>
               <span style={{ fontSize: '11px', color: 'var(--accent-ink)', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '.1em', textTransform: 'uppercase' }}>You Earn — Monthly (7%)</span>
@@ -526,7 +526,7 @@ export default function AIServicesContent({ isDirector }: { isDirector: boolean 
   return (
     <div>
       <div style={{ marginBottom: '6px' }}><span className="tag">AI Menu</span></div>
-      <h2 style={{ fontSize: '26px', fontWeight: 900, margin: '8px 0 4px', background: 'linear-gradient(135deg, #fff 40%, var(--accent-ink) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AI Offer Stack</h2>
+      <h2 style={{ fontSize: '26px', fontWeight: 900, margin: '8px 0 4px', background: 'linear-gradient(135deg, var(--text-primary) 40%, var(--accent-ink) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>AI Offer Stack</h2>
       <Body>5 AI services. Sold separately or stacked. Setup fee + 7% monthly recurring. Handoff to director at $2,500+/mo.</Body>
       <div className="divider" style={{ margin: '16px 0' }} />
 
@@ -554,10 +554,10 @@ export default function AIServicesContent({ isDirector }: { isDirector: boolean 
           </div>
           <div style={{ margin: '24px 0 0', background: 'var(--bg-elev-pill)', border: '1px solid rgba(34,197,94,.2)', borderRadius: '12px', padding: '16px 20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-              <span className="tag" style={{ borderColor: 'rgba(34,197,94,.35)', color: '#22c55e', background: 'rgba(34,197,94,.06)' }}>Bundle Discount</span>
+              <span className="tag" style={{ borderColor: 'rgba(34,197,94,.35)', color: 'var(--green)', background: 'var(--green-soft)' }}>Bundle Discount</span>
               <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-primary)' }}>$250 off MRR when bundling any 3+ AI services</span>
             </div>
-            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5 }}>Example: Vapi ($1,350) + SMS ($625) + Email ($450) = $2,425 → <strong style={{ color: '#22c55e' }}>$2,175/mo after discount</strong>.{isDirector ? ' Setup fees are separate and paid in full.' : ' Handoff to director for custom scoping at $2,500+/mo.'}</p>
+            <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.5 }}>Example: Vapi ($1,350) + SMS ($625) + Email ($450) = $2,425 → <strong style={{ color: 'var(--green)' }}>$2,175/mo after discount</strong>.{isDirector ? ' Setup fees are separate and paid in full.' : ' Handoff to director for custom scoping at $2,500+/mo.'}</p>
           </div>
           <NotesPad storageKey="notes_aitools" />
         </div>
@@ -567,7 +567,7 @@ export default function AIServicesContent({ isDirector }: { isDirector: boolean 
       {subTab === 'calculator' && (
         <div className="fadein">
           <div style={{ marginBottom: '6px' }}><span className="tag">Calculator</span></div>
-          <h2 style={{ fontSize: '24px', fontWeight: 900, margin: '8px 0 4px', background: 'linear-gradient(135deg, #fff 40%, var(--accent-ink) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Stack Builder</h2>
+          <h2 style={{ fontSize: '24px', fontWeight: 900, margin: '8px 0 4px', background: 'linear-gradient(135deg, var(--text-primary) 40%, var(--accent-ink) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Stack Builder</h2>
           <Body>Select AI services to build a client package. Shows client total, your upfront commission, and monthly recurring.</Body>
           <div style={{ padding: '20px', marginTop: '20px', background: 'var(--bg-elev-1)', border: '1px solid var(--border)', borderRadius: '12px' }}>
             <AIStackCalculator isDirector={isDirector} />
@@ -579,7 +579,7 @@ export default function AIServicesContent({ isDirector }: { isDirector: boolean 
       {subTab === 'strategy' && (
         <div className="fadein">
           <div style={{ marginBottom: '6px' }}><span className="tag">Strategy</span></div>
-          <h2 style={{ fontSize: '24px', fontWeight: 900, margin: '8px 0 4px', background: 'linear-gradient(135deg, #fff 40%, var(--accent-ink) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Pitch Strategy</h2>
+          <h2 style={{ fontSize: '24px', fontWeight: 900, margin: '8px 0 4px', background: 'linear-gradient(135deg, var(--text-primary) 40%, var(--accent-ink) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Pitch Strategy</h2>
           <Body>How to position, open, and close AI services. From cold call to stacked client.</Body>
           <div className="divider" style={{ margin: '16px 0' }} />
           <AIPitchStrategyPanel />

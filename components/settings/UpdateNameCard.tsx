@@ -12,7 +12,7 @@ interface Props {
 }
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '9px 12px', background: '#0e0e0e', border: '1px solid #1f1f1f',
+  width: '100%', padding: '9px 12px', background: 'var(--bg-elev-1)', border: '1px solid var(--border)',
   borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'Inter, sans-serif',
   outline: 'none',
 };
@@ -61,12 +61,12 @@ export default function UpdateNameCard({ repId, currentName }: Props) {
           onKeyDown={e => { if (e.key === 'Enter') submit(); }} />
 
         {errMsg && (
-          <p style={{ margin: 0, fontSize: '11px', color: '#ff6060', fontFamily: 'Roboto, sans-serif' }}>
+          <p style={{ margin: 0, fontSize: '11px', color: 'var(--red)', fontFamily: 'Roboto, sans-serif' }}>
             {errMsg}
           </p>
         )}
         {success && (
-          <p style={{ margin: 0, fontSize: '11px', color: '#22c55e', fontFamily: 'Roboto, sans-serif' }}>
+          <p style={{ margin: 0, fontSize: '11px', color: 'var(--green)', fontFamily: 'Roboto, sans-serif' }}>
             Saved. Refresh recommended to update the avatar.
           </p>
         )}

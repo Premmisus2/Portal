@@ -35,7 +35,7 @@ const NicheTracksPanel = () => {
                 borderRadius: active === niche.id ? '10px 10px 0 0' : '10px',
                 cursor:'pointer', transition:'all .2s', outline:'none',
               }}
-              onMouseEnter={e => { if (active !== niche.id) e.currentTarget.style.borderColor = '#2a2a2a'; }}
+              onMouseEnter={e => { if (active !== niche.id) e.currentTarget.style.borderColor = 'var(--text-faint)'; }}
               onMouseLeave={e => { if (active !== niche.id) e.currentTarget.style.borderColor = 'var(--border-soft)'; }}
             >
               <div style={{display:'flex', alignItems:'center', gap:'12px'}}>

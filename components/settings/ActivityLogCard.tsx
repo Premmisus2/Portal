@@ -36,7 +36,7 @@ type Range = '24h' | '7d' | '30d' | 'all';
 const PAGE_SIZE = 25;
 
 const inputStyle: CSSProperties = {
-  padding: '6px 10px', background: 'var(--bg-elev-pill)', border: '1px solid #1f1f1f',
+  padding: '6px 10px', background: 'var(--bg-elev-pill)', border: '1px solid var(--border)',
   borderRadius: '5px', color: 'var(--text-primary)', fontSize: '11px',
   fontFamily: 'JetBrains Mono, monospace', outline: 'none',
 };
@@ -50,7 +50,7 @@ const cellHeader: CSSProperties = {
 const cell: CSSProperties = {
   padding: '8px', fontSize: '11px', color: 'var(--text-secondary)',
   fontFamily: 'JetBrains Mono, monospace',
-  borderTop: '1px solid #141414', verticalAlign: 'top',
+  borderTop: '1px solid var(--border-soft)', verticalAlign: 'top',
 };
 
 function rangeToFrom(range: Range): string | null {
@@ -68,13 +68,13 @@ function relTime(iso: string): string {
 }
 
 function actionColor(actionType: string): string {
-  if (actionType.startsWith('close.approved')) return '#22c55e';
-  if (actionType.startsWith('close.rejected')) return '#ff8080';
-  if (actionType.startsWith('rep.deactivated')) return '#ff8080';
-  if (actionType.startsWith('rep.activated')) return '#22c55e';
-  if (actionType.startsWith('auth.signed_out_all')) return '#F59E0B';
-  if (actionType.startsWith('auth.')) return '#9be7ff';
-  if (actionType.startsWith('settings.')) return '#9be7ff';
+  if (actionType.startsWith('close.approved')) return 'var(--green)';
+  if (actionType.startsWith('close.rejected')) return 'var(--red)';
+  if (actionType.startsWith('rep.deactivated')) return 'var(--red)';
+  if (actionType.startsWith('rep.activated')) return 'var(--green)';
+  if (actionType.startsWith('auth.signed_out_all')) return 'var(--amber)';
+  if (actionType.startsWith('auth.')) return 'var(--accent-ink)';
+  if (actionType.startsWith('settings.')) return 'var(--accent-ink)';
   if (actionType.startsWith('lead.')) return 'var(--accent-ink)';
   if (actionType.startsWith('leads.imported')) return 'var(--accent-ink)';
   return 'var(--text-secondary)';
@@ -174,12 +174,12 @@ export default function ActivityLogCard() {
       title="Activity log"
       description="Audit trail of every consequential rep + director action. Filter by actor, action, and date range. Click a row to inspect metadata."
       badge={data
-        ? (data.table_missing ? { label: 'MIGRATION', color: '#F59E0B' } : { label: `${data.total} EVENTS`, color: 'var(--accent-ink)' })
+        ? (data.table_missing ? { label: 'MIGRATION', color: 'var(--amber)' } : { label: `${data.total} EVENTS`, color: 'var(--accent-ink)' })
         : (loading ? { label: 'LOADING', color: 'var(--text-muted)' } : { label: '—', color: 'var(--text-muted)' })}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {errMsg && (
-          <p style={{ margin: 0, fontSize: '11px', color: '#ff6060', fontFamily: 'Roboto, sans-serif' }}>
+          <p style={{ margin: 0, fontSize: '11px', color: 'var(--red)', fontFamily: 'Roboto, sans-serif' }}>
             {errMsg}
           </p>
         )}
@@ -188,11 +188,11 @@ export default function ActivityLogCard() {
           <div style={{
             padding: '10px 12px', background: 'rgba(245,158,11,.06)',
             border: '1px solid rgba(245,158,11,.25)', borderRadius: '6px',
-            fontSize: '11px', color: '#F59E0B', lineHeight: 1.55, fontFamily: 'Roboto, sans-serif',
+            fontSize: '11px', color: 'var(--amber)', lineHeight: 1.55, fontFamily: 'Roboto, sans-serif',
           }}>
             {data.hint ?? 'audit_log table not found.'}
             <div style={{ marginTop: '4px', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: 'var(--text-secondary)' }}>
-              Apply: <code style={{ color: '#F59E0B' }}>supabase/migrations/20260504_audit_log.sql</code>
+              Apply: <code style={{ color: 'var(--amber)' }}>supabase/migrations/20260504_audit_log.sql</code>
             </div>
           </div>
         )}
@@ -222,7 +222,7 @@ export default function ActivityLogCard() {
             {showActionsPicker && (
               <div style={{
                 position: 'absolute', top: '100%', left: 0, marginTop: '4px',
-                background: 'var(--bg-elev-pill)', border: '1px solid #1f1f1f', borderRadius: '6px',
+                background: 'var(--bg-elev-pill)', border: '1px solid var(--border)', borderRadius: '6px',
                 padding: '8px', minWidth: '240px', maxHeight: '300px', overflow: 'auto',
                 zIndex: 50, display: 'flex', flexDirection: 'column', gap: '4px',
                 boxShadow: '0 8px 24px rgba(0,0,0,.5)',
@@ -253,7 +253,7 @@ export default function ActivityLogCard() {
                 {actions.size > 0 && (
                   <button onClick={() => setActions(new Set())} style={{
                     marginTop: '4px', padding: '4px 8px', borderRadius: '3px',
-                    background: 'transparent', border: '1px solid #2a2a2a',
+                    background: 'transparent', border: '1px solid var(--text-faint)',
                     color: 'var(--text-tertiary)', fontSize: '10px', cursor: 'pointer',
                   }}>
                     Clear
@@ -276,7 +276,7 @@ export default function ActivityLogCard() {
           <button onClick={exportCsv} disabled={loading || (data?.rows.length ?? 0) === 0}
             style={{
               padding: '6px 12px', borderRadius: '5px',
-              border: '1px solid #2a2a2a', background: 'transparent',
+              border: '1px solid var(--text-faint)', background: 'transparent',
               color: 'var(--text-tertiary)', fontSize: '10px', fontWeight: 700,
               cursor: loading ? 'wait' : 'pointer',
               fontFamily: 'JetBrains Mono, monospace', letterSpacing: '.04em',
@@ -301,7 +301,7 @@ export default function ActivityLogCard() {
         )}
 
         {data && data.rows.length > 0 && (
-          <div style={{ overflow: 'auto', border: '1px solid #141414', borderRadius: '6px' }}>
+          <div style={{ overflow: 'auto', border: '1px solid var(--border-soft)', borderRadius: '6px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '720px' }}>
               <thead style={{ background: 'var(--bg-elev-pill)' }}>
                 <tr>
@@ -345,10 +345,10 @@ export default function ActivityLogCard() {
                       </tr>
                       {expanded && (
                         <tr key={`${r.id}-x`}>
-                          <td colSpan={5} style={{ padding: '10px 14px', borderTop: '1px solid #141414', background: '#070707' }}>
+                          <td colSpan={5} style={{ padding: '10px 14px', borderTop: '1px solid var(--border-soft)', background: 'var(--bg-nav)' }}>
                             <pre style={{
                               margin: 0, fontFamily: 'JetBrains Mono, monospace', fontSize: '10px',
-                              color: '#9be7ff', whiteSpace: 'pre-wrap', wordBreak: 'break-all',
+                              color: 'var(--accent-ink)', whiteSpace: 'pre-wrap', wordBreak: 'break-all',
                             }}>
 {JSON.stringify({
   id: r.id,
@@ -380,8 +380,8 @@ export default function ActivityLogCard() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '4px' }}>
             <button onClick={() => setPage(Math.max(0, safePage - 1))} disabled={safePage === 0}
               style={{
-                padding: '5px 12px', borderRadius: '5px', border: '1px solid #1f1f1f',
-                background: '#0e0e0e', color: safePage === 0 ? 'var(--text-faint)' : 'var(--text-secondary)',
+                padding: '5px 12px', borderRadius: '5px', border: '1px solid var(--border)',
+                background: 'var(--bg-elev-1)', color: safePage === 0 ? 'var(--text-faint)' : 'var(--text-secondary)',
                 fontSize: '10px', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace',
                 cursor: safePage === 0 ? 'not-allowed' : 'pointer',
               }}>
@@ -392,8 +392,8 @@ export default function ActivityLogCard() {
             </span>
             <button onClick={() => setPage(Math.min(totalPages - 1, safePage + 1))} disabled={safePage >= totalPages - 1}
               style={{
-                padding: '5px 12px', borderRadius: '5px', border: '1px solid #1f1f1f',
-                background: '#0e0e0e', color: safePage >= totalPages - 1 ? 'var(--text-faint)' : 'var(--text-secondary)',
+                padding: '5px 12px', borderRadius: '5px', border: '1px solid var(--border)',
+                background: 'var(--bg-elev-1)', color: safePage >= totalPages - 1 ? 'var(--text-faint)' : 'var(--text-secondary)',
                 fontSize: '10px', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace',
                 cursor: safePage >= totalPages - 1 ? 'not-allowed' : 'pointer',
               }}>

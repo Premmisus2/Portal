@@ -27,7 +27,7 @@ const groupHeaderStyle: CSSProperties = {
 };
 
 const dividerStyle: CSSProperties = {
-  flex: 1, height: '1px', background: '#141414',
+  flex: 1, height: '1px', background: 'var(--border-soft)',
 };
 
 export default function SettingsView({ userName, userEmail, repId, isDirector, embedded = true }: Props) {

@@ -12,8 +12,8 @@ interface AllLeadsTableProps {
 }
 
 const statusLabels: Record<string, string> = { new: 'New', contacted: 'Contacted', callback: 'Callback', not_interested: 'Not Interested', booked: 'Booked', discovery_completed: 'Discovery Booked', no_show: 'No Show', wrong_number: 'Wrong Number', voicemail: 'Voicemail' };
-const statusColors: Record<string, string> = { new: 'var(--accent-ink)', contacted: '#F59E0B', callback: '#F59E0B', not_interested: '#ff6060', booked: '#22c55e', discovery_completed: 'var(--accent-ink)', no_show: '#ff8800', wrong_number: '#ff6060', voicemail: 'var(--text-tertiary)' };
-const groupColorMap: Record<string, string> = { HOT: '#ff6060', HIGH: '#F59E0B', MEDIUM: 'var(--text-tertiary)' };
+const statusColors: Record<string, string> = { new: 'var(--accent-ink)', contacted: 'var(--amber)', callback: 'var(--amber)', not_interested: 'var(--red)', booked: 'var(--green)', discovery_completed: 'var(--accent-ink)', no_show: '#ff8800', wrong_number: 'var(--red)', voicemail: 'var(--text-tertiary)' };
+const groupColorMap: Record<string, string> = { HOT: 'var(--red)', HIGH: 'var(--amber)', MEDIUM: 'var(--text-tertiary)' };
 
 const EDITABLE_FIELDS = (reps: Rep[]) => [
   { key: 'business_name', label: 'Business Name', required: true },
@@ -46,11 +46,11 @@ interface LeadModalProps {
 function LeadModal({ lead, onSave, onClose, saving, reps }: LeadModalProps) {
   const [form, setForm] = useState<Record<string, unknown>>(lead || { business_name: '', niche: '', priority: 'HOT', status: 'new', source: 'manual' });
   const set = (k: string, v: unknown) => setForm(prev => ({ ...prev, [k]: v }));
-  const inputStyle = { width: '100%', background: 'var(--border-soft)', border: '1px solid #333', borderRadius: '4px', padding: '8px 10px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'Inter,sans-serif', outline: 'none' as const };
+  const inputStyle = { width: '100%', background: 'var(--border-soft)', border: '1px solid var(--text-faint)', borderRadius: '4px', padding: '8px 10px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'Inter,sans-serif', outline: 'none' as const };
   const fields = EDITABLE_FIELDS(reps);
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.7)', zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={onClose}>
-      <div style={{ background: 'var(--bg-sidebar-line)', border: '1px solid #333', borderRadius: '8px', padding: '24px', width: '600px', maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
+      <div style={{ background: 'var(--bg-sidebar-line)', border: '1px solid var(--text-faint)', borderRadius: '8px', padding: '24px', width: '600px', maxHeight: '80vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
         <h3 style={{ margin: '0 0 16px', fontSize: '16px', color: 'var(--text-primary)', fontFamily: 'Inter,sans-serif' }}>{(lead as Record<string, unknown>)?.id ? 'Edit Lead' : 'Add Lead'}</h3>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
           {fields.map(f => (
@@ -73,7 +73,7 @@ function LeadModal({ lead, onSave, onClose, saving, reps }: LeadModalProps) {
           ))}
         </div>
         <div style={{ display: 'flex', gap: '8px', marginTop: '16px', justifyContent: 'flex-end' }}>
-          <button onClick={onClose} style={{ padding: '8px 20px', borderRadius: '4px', border: '1px solid #333', background: 'transparent', color: 'var(--text-tertiary)', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Cancel</button>
+          <button onClick={onClose} style={{ padding: '8px 20px', borderRadius: '4px', border: '1px solid var(--text-faint)', background: 'transparent', color: 'var(--text-tertiary)', cursor: 'pointer', fontSize: '12px', fontWeight: 600 }}>Cancel</button>
           <button onClick={() => onSave(form)} disabled={saving || !form.business_name || !form.niche} style={{ padding: '8px 20px', borderRadius: '4px', border: 'none', background: 'var(--accent-ink)', color: 'var(--bg-app)', cursor: saving ? 'wait' : 'pointer', fontSize: '12px', fontWeight: 700, opacity: saving ? .6 : 1 }}>{saving ? 'Saving...' : ((lead as Record<string, unknown>)?.id ? 'Save Changes' : 'Add Lead')}</button>
         </div>
       </div>
@@ -219,11 +219,11 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
   const thStyle = (col: string): React.CSSProperties => ({
     padding: '6px 12px', textAlign: 'left', fontSize: '11px', fontWeight: 700, letterSpacing: '.02em',
     color: sortCol === col ? 'var(--accent-ink)' : '#c0c0c0', cursor: 'pointer', whiteSpace: 'nowrap',
-    borderBottom: '2px solid #333', borderRight: '1px solid var(--border-soft)',
+    borderBottom: '2px solid var(--text-faint)', borderRight: '1px solid var(--border-soft)',
     background: 'var(--bg-sidebar-line)', position: 'sticky', top: 0, zIndex: 1, userSelect: 'none',
   });
-  const tdStyle: React.CSSProperties = { padding: '5px 12px', borderBottom: '1px solid var(--border-soft)', borderRight: '1px solid #141414', fontSize: '12px', whiteSpace: 'nowrap', color: 'var(--text-secondary)' };
-  const rowNumStyle: React.CSSProperties = { ...tdStyle, color: 'var(--text-muted)', textAlign: 'center', fontFamily: 'monospace', fontSize: '11px', fontWeight: 600, width: '40px', minWidth: '40px', background: '#0c0c0c', borderRight: '2px solid #222' };
+  const tdStyle: React.CSSProperties = { padding: '5px 12px', borderBottom: '1px solid var(--border-soft)', borderRight: '1px solid var(--border-soft)', fontSize: '12px', whiteSpace: 'nowrap', color: 'var(--text-secondary)' };
+  const rowNumStyle: React.CSSProperties = { ...tdStyle, color: 'var(--text-muted)', textAlign: 'center', fontFamily: 'monospace', fontSize: '11px', fontWeight: 600, width: '40px', minWidth: '40px', background: '#0c0c0c', borderRight: '2px solid var(--border)' };
 
   if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 0' }}><svg style={{ animation: 'spin 1s linear infinite' }} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg></div>;
 
@@ -250,12 +250,12 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
     const isSelected = selectedIds.has(lead.id);
     return (
       <tr key={lead.id} style={{
-        background: isSelected ? 'var(--accent-glow-08)' : (isEven ? '#0e0e0e' : '#131313'),
+        background: isSelected ? 'var(--accent-glow-08)' : (isEven ? 'var(--bg-elev-1)' : '#131313'),
         transition: 'background .1s',
       }}
         onMouseEnter={e => (e.currentTarget.style.background = isSelected ? 'rgba(0,240,255,.14)' : 'var(--border-soft)')}
-        onMouseLeave={e => (e.currentTarget.style.background = isSelected ? 'var(--accent-glow-08)' : (isEven ? '#0e0e0e' : '#131313'))}>
-        <td style={{ ...tdStyle, textAlign: 'center', width: '36px', minWidth: '36px', padding: '4px 0', borderRight: '1px solid #141414' }}>
+        onMouseLeave={e => (e.currentTarget.style.background = isSelected ? 'var(--accent-glow-08)' : (isEven ? 'var(--bg-elev-1)' : '#131313'))}>
+        <td style={{ ...tdStyle, textAlign: 'center', width: '36px', minWidth: '36px', padding: '4px 0', borderRight: '1px solid var(--border-soft)' }}>
           <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(lead.id)} style={{ accentColor: 'var(--accent-ink)', cursor: 'pointer' }} />
         </td>
         <td style={rowNumStyle}>{globalIdx}</td>
@@ -271,10 +271,10 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
         <td style={{ ...tdStyle, textAlign: 'center' }}><span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, background: `${statusColors[lead.status] || 'var(--text-muted)'}20`, color: statusColors[lead.status] || 'var(--text-muted)' }}>{statusLabels[lead.status] || lead.status}</span></td>
         <td style={{ ...tdStyle, color: lead.reps?.name ? 'var(--accent-ink)' : 'var(--text-faint)', fontSize: '11px' }}>{lead.reps?.name || 'Unassigned'}</td>
         <td style={tdStyle}>{lastLog ? <span style={{ fontSize: '10px', color: OUTCOME_COLORS[lastLog.outcome] || 'var(--text-muted)', fontWeight: 600 }}>{OUTCOME_LABELS[lastLog.outcome]}</span> : <span style={{ color: 'var(--text-faint)' }}>&mdash;</span>}</td>
-        <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '11px', color: lastLog?.callback_date ? (lastLog.callback_date < todayInToronto() ? '#ff6060' : '#F59E0B') : 'var(--text-faint)' }}>{lastLog?.callback_date || '\u2014'}</td>
+        <td style={{ ...tdStyle, fontFamily: 'monospace', fontSize: '11px', color: lastLog?.callback_date ? (lastLog.callback_date < todayInToronto() ? 'var(--red)' : 'var(--amber)') : 'var(--text-faint)' }}>{lastLog?.callback_date || '\u2014'}</td>
         <td style={{ ...tdStyle, borderRight: 'none', textAlign: 'center', whiteSpace: 'nowrap' }}>
           <button onClick={() => setEditingLead(lead as unknown as Record<string, unknown>)} style={{ background: 'none', border: 'none', color: 'var(--accent-ink)', cursor: 'pointer', fontSize: '11px', fontWeight: 700, padding: '2px 6px', marginRight: '4px' }}>Edit</button>
-          <button onClick={() => { if (confirm(`Delete "${lead.business_name}"?`)) deleteLead(lead.id); }} disabled={deleting === lead.id} style={{ background: 'none', border: 'none', color: '#ff4444', cursor: deleting === lead.id ? 'wait' : 'pointer', fontSize: '11px', fontWeight: 700, padding: '2px 6px', opacity: deleting === lead.id ? .4 : 1 }}>Del</button>
+          <button onClick={() => { if (confirm(`Delete "${lead.business_name}"?`)) deleteLead(lead.id); }} disabled={deleting === lead.id} style={{ background: 'none', border: 'none', color: 'var(--red-strong)', cursor: deleting === lead.id ? 'wait' : 'pointer', fontSize: '11px', fontWeight: 700, padding: '2px 6px', opacity: deleting === lead.id ? .4 : 1 }}>Del</button>
         </td>
       </tr>
     );
@@ -288,12 +288,12 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', marginBottom: '16px' }}>
         {[
           { val: leads.length, label: 'Total Leads', color: 'var(--text-primary)' },
-          { val: leads.filter(l => l.status === 'booked').length, label: 'Booked', color: '#22c55e' },
-          { val: leads.filter(l => l.status === 'callback').length, label: 'Callbacks', color: '#F59E0B' },
-          { val: leads.filter(l => l.priority === 'HOT').length, label: 'HOT Leads', color: '#ff6060' },
+          { val: leads.filter(l => l.status === 'booked').length, label: 'Booked', color: 'var(--green)' },
+          { val: leads.filter(l => l.status === 'callback').length, label: 'Callbacks', color: 'var(--amber)' },
+          { val: leads.filter(l => l.priority === 'HOT').length, label: 'HOT Leads', color: 'var(--red)' },
           { val: leads.filter(l => l.status === 'no_show').length, label: 'No Shows', color: '#ff8800' },
           { val: leads.filter(l => l.status === 'discovery_completed').length, label: 'Discoveries', color: 'var(--accent-ink)' },
-          { val: leads.filter(l => !l.assigned_rep_id).length, label: 'Unassigned', color: '#F59E0B' },
+          { val: leads.filter(l => !l.assigned_rep_id).length, label: 'Unassigned', color: 'var(--amber)' },
         ].map(s => (
           <div key={s.label} className="card-glow" style={{ padding: '12px 14px', textAlign: 'center' }}>
             <p style={{ margin: 0, fontSize: '22px', fontWeight: 900, color: s.color, fontFamily: 'monospace' }}>{s.val}</p>
@@ -321,7 +321,7 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
           <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em' }}>Group:</span>
           {[['none', 'None'], ['niche', 'Niche'], ['source_tag', 'Source'], ['city', 'City'], ['priority', 'Priority']].map(([val, label]) => (
             <button key={val} onClick={() => { setGroupBy(val); setCollapsedGroups(new Set()); setPage(0); }}
-              style={{ padding: '4px 10px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, cursor: 'pointer', border: groupBy === val ? '1px solid var(--accent-ink)' : '1px solid #222', background: groupBy === val ? 'var(--accent-glow-10)' : 'transparent', color: groupBy === val ? 'var(--accent-ink)' : 'var(--text-muted)', transition: 'all .15s' }}>
+              style={{ padding: '4px 10px', borderRadius: '4px', fontSize: '10px', fontWeight: 700, cursor: 'pointer', border: groupBy === val ? '1px solid var(--accent-ink)' : '1px solid var(--border)', background: groupBy === val ? 'var(--accent-glow-10)' : 'transparent', color: groupBy === val ? 'var(--accent-ink)' : 'var(--text-muted)', transition: 'all .15s' }}>
               {label}
             </button>
           ))}
@@ -341,7 +341,7 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
       )}
 
       {/* Table */}
-      <div style={{ overflowX: 'auto', border: '1px solid #333', borderRadius: '4px', maxHeight: '70vh', overflowY: 'auto', background: '#0e0e0e' }}>
+      <div style={{ overflowX: 'auto', border: '1px solid var(--text-faint)', borderRadius: '4px', maxHeight: '70vh', overflowY: 'auto', background: 'var(--bg-elev-1)' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', minWidth: '1300px' }}>
           <thead>
             <tr>
@@ -351,7 +351,7 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
                   onChange={e => e.target.checked ? selectAllVisible() : clearSelection()}
                   style={{ accentColor: 'var(--accent-ink)', cursor: 'pointer' }} />
               </th>
-              <th style={{ ...thStyle('_'), cursor: 'default', width: '40px', minWidth: '40px', textAlign: 'center', borderRight: '2px solid #333' }}>#</th>
+              <th style={{ ...thStyle('_'), cursor: 'default', width: '40px', minWidth: '40px', textAlign: 'center', borderRight: '2px solid var(--text-faint)' }}>#</th>
               {[['business_name', 'Business'], ['contact_name', 'Contact'], ['niche', 'Niche'], ['city', 'City'], ['phone', 'Phone'], ['website', 'Website'], ['email', 'Email'], ['google_reviews', 'Reviews'], ['priority', 'Priority'], ['status', 'Status'], ['assigned_rep', 'Assigned'], ['last_outcome', 'Last Call'], ['callback_date', 'Callback']].map(([col, label]) => (
                 <th key={col} onClick={() => handleSort(col)} style={thStyle(col)}>{label} {sortCol === col ? (sortDir === 'asc' ? '\u2191' : '\u2193') : ''}</th>
               ))}
@@ -367,14 +367,14 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
                   const bookedCount = groupLeads.filter(l => l.status === 'booked').length;
                   const rows: React.ReactNode[] = [];
                   rows.push(
-                    <tr key={`group-${groupKey}`} onClick={() => toggleGroup(groupKey)} style={{ cursor: 'pointer', background: '#161616', borderBottom: '2px solid #333' }}>
+                    <tr key={`group-${groupKey}`} onClick={() => toggleGroup(groupKey)} style={{ cursor: 'pointer', background: 'var(--bg-elev-pill)', borderBottom: '2px solid var(--text-faint)' }}>
                       <td colSpan={17} style={{ padding: '10px 14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <span style={{ color: 'var(--text-muted)', fontSize: '12px', fontWeight: 700, width: '16px' }}>{isCollapsed ? '>' : 'v'}</span>
                           <span style={{ color: groupColorMap[groupKey] || 'var(--accent-ink)', fontSize: '13px', fontWeight: 800 }}>{groupKey}</span>
                           <span style={{ color: 'var(--text-primary)', fontSize: '12px', fontWeight: 700, fontFamily: 'monospace', background: 'rgba(255,255,255,.08)', padding: '2px 8px', borderRadius: '4px' }}>{groupLeads.length}</span>
-                          {hotCount > 0 && <span style={{ fontSize: '10px', color: '#ff6060', fontWeight: 700 }}>HOT: {hotCount}</span>}
-                          {bookedCount > 0 && <span style={{ fontSize: '10px', color: '#22c55e', fontWeight: 700 }}>BOOKED: {bookedCount}</span>}
+                          {hotCount > 0 && <span style={{ fontSize: '10px', color: 'var(--red)', fontWeight: 700 }}>HOT: {hotCount}</span>}
+                          {bookedCount > 0 && <span style={{ fontSize: '10px', color: 'var(--green)', fontWeight: 700 }}>BOOKED: {bookedCount}</span>}
                         </div>
                       </td>
                     </tr>
@@ -401,8 +401,8 @@ export default function AllLeadsTable({ reps }: AllLeadsTableProps) {
       {groupBy !== 'none' && groups && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginTop: '14px' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>{groups.length} groups -- {sorted.length} total leads</span>
-          <button onClick={() => setCollapsedGroups(new Set(groups.map(g => g[0])))} style={{ padding: '4px 12px', borderRadius: '4px', border: '1px solid #222', background: 'transparent', color: 'var(--text-muted)', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>Collapse All</button>
-          <button onClick={() => setCollapsedGroups(new Set())} style={{ padding: '4px 12px', borderRadius: '4px', border: '1px solid #222', background: 'transparent', color: 'var(--text-muted)', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>Expand All</button>
+          <button onClick={() => setCollapsedGroups(new Set(groups.map(g => g[0])))} style={{ padding: '4px 12px', borderRadius: '4px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>Collapse All</button>
+          <button onClick={() => setCollapsedGroups(new Set())} style={{ padding: '4px 12px', borderRadius: '4px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>Expand All</button>
         </div>
       )}
     </div>

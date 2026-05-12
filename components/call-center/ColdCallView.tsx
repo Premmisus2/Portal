@@ -270,7 +270,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
       {toast && (
         <div style={{
           position:'fixed', top: shadowMode ? '76px' : '36px', left:'50%', transform:'translateX(-50%)',
-          background: toast.type === 'error' ? '#ff4444' : '#22c55e', color:'var(--bg-app)', padding:'10px 24px', borderRadius:'8px',
+          background: toast.type === 'error' ? 'var(--red-strong)' : 'var(--green)', color:'var(--bg-app)', padding:'10px 24px', borderRadius:'8px',
           fontFamily:'Inter, sans-serif', fontWeight:600, fontSize:'13px',
           zIndex:450, boxShadow:'0 4px 12px rgba(0,0,0,.3)',
           animation:'fadein .3s'
@@ -287,8 +287,8 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
         {/* No-phone warning — Twilio calling disabled */}
         {!repPhone && !shadowMode && (
           <div style={{marginBottom:'16px', padding:'12px 16px', borderRadius:'8px', background:'rgba(245,158,11,.08)', border:'1px solid rgba(245,158,11,.3)', display:'flex', alignItems:'center', gap:'12px'}}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <span style={{fontSize:'12px', color:'#F59E0B', fontWeight:600}}>Twilio calling disabled — no phone number on your account. Director: set it in Dashboard → Settings.</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span style={{fontSize:'12px', color:'var(--amber)', fontWeight:600}}>Twilio calling disabled — no phone number on your account. Director: set it in Dashboard → Settings.</span>
           </div>
         )}
 
@@ -303,7 +303,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
               <button key={key} className={`call-tab${tab===key?' active':''}`} onClick={()=>setTab(key)}>
                 {label}
                 {badge > 0 && (
-                  <span style={{marginLeft:'6px', background: key === 'followup' ? '#ff6060' : key === 'booked' ? '#22c55e' : 'var(--accent-ink)', color: key === 'list' ? 'var(--bg-app)' : 'var(--text-primary)', borderRadius:'10px', padding:'1px 6px', fontSize:'10px', fontWeight:800}}>{badge}</span>
+                  <span style={{marginLeft:'6px', background: key === 'followup' ? 'var(--red)' : key === 'booked' ? 'var(--green)' : 'var(--accent-ink)', color: key === 'list' ? 'var(--bg-app)' : 'var(--text-primary)', borderRadius:'10px', padding:'1px 6px', fontSize:'10px', fontWeight:800}}>{badge}</span>
                 )}
               </button>
             );
@@ -331,7 +331,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                 <div style={{display:'flex', gap:'6px', marginBottom:'14px', flexWrap:'wrap'}}>
                   {[['all','All'],['HOT','HOT'],['HIGH','HIGH'],['MEDIUM','MEDIUM'],['callbacks','Callbacks']].map(([key, label]) => {
                     const isActive = quickFilter === key;
-                    const colors: Record<string, string> = { HOT:'#ff6060', HIGH:'#F59E0B', MEDIUM:'#3B82F6', callbacks:'#A855F7' };
+                    const colors: Record<string, string> = { HOT:'var(--red)', HIGH:'var(--amber)', MEDIUM:'#3B82F6', callbacks:'#A855F7' };
                     const accentColor = colors[key] || 'var(--accent-ink)';
                     const toCallBase = leads.filter(l => l.status === 'new');
                     const count = key === 'all' ? toCallBase.length
@@ -394,7 +394,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                           <span style={{fontSize:'10px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:`${OUTCOME_COLORS[log.outcome] || 'var(--text-muted)'}15`, color: OUTCOME_COLORS[log.outcome] || 'var(--text-muted)', letterSpacing:'.05em', textTransform:'uppercase'}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
                           {duration && <span style={{fontSize:'10px', color:'var(--text-muted)', fontFamily:'monospace'}}>{duration}</span>}
                           <span style={{fontSize:'11px', color:'var(--text-faint)', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString(undefined, { timeZone: 'America/Toronto' })} {new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', timeZone: 'America/Toronto'})}</span>
-                          {log.callback_date && <span style={{fontSize:'10px', color:'#F59E0B', fontWeight:600}}>CB: {log.callback_date}</span>}
+                          {log.callback_date && <span style={{fontSize:'10px', color:'var(--amber)', fontWeight:600}}>CB: {log.callback_date}</span>}
                           {!shadowMode && log.rep_id === repId && (
                             <button
                               onClick={() => setEditingLog(log)}
@@ -447,7 +447,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
             )}
             {tab === 'quicklog' && shadowMode && (
               <div className="card" style={{padding:'40px', textAlign:'center'}}>
-                <p style={{color:'#F59E0B', fontSize:'14px', margin:0, fontWeight:700}}>Read Only — Shadow Mode</p>
+                <p style={{color:'var(--amber)', fontSize:'14px', margin:0, fontWeight:700}}>Read Only — Shadow Mode</p>
                 <p style={{color:'var(--text-faint)', fontSize:'12px', margin:'6px 0 0'}}>Cannot log calls while shadowing a rep.</p>
               </div>
             )}
@@ -462,7 +462,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                 <div style={{display:'flex', gap:'6px', marginBottom:'14px', flexWrap:'wrap'}}>
                   {[['all','All'],['HOT','HOT'],['HIGH','HIGH'],['MEDIUM','MEDIUM'],['callbacks','Callbacks'],['new','Not Called']].map(([key, label]) => {
                     const isActive = quickFilter === key;
-                    const colors: Record<string, string> = { HOT:'#ff6060', HIGH:'#F59E0B', MEDIUM:'#3B82F6', callbacks:'#A855F7', new:'#22c55e' };
+                    const colors: Record<string, string> = { HOT:'var(--red)', HIGH:'var(--amber)', MEDIUM:'#3B82F6', callbacks:'#A855F7', new:'var(--green)' };
                     const accentColor = colors[key] || 'var(--accent-ink)';
                     const count = key === 'all' ? leads.length
                       : key === 'HOT' ? leads.filter(l=>l.priority==='HOT').length
@@ -494,7 +494,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                       {uncalled.length > 0 && (
                         <>
                           <div style={{padding:'8px 0', borderBottom:'1px solid var(--border-soft)', marginBottom:'4px'}}>
-                            <span style={{fontSize:'11px', fontWeight:800, color:'#22c55e', letterSpacing:'.1em', textTransform:'uppercase'}}>TO CALL — {uncalled.length} leads</span>
+                            <span style={{fontSize:'11px', fontWeight:800, color:'var(--green)', letterSpacing:'.1em', textTransform:'uppercase'}}>TO CALL — {uncalled.length} leads</span>
                           </div>
                           {uncalled.map((lead, idx) => (
                             <LeadRow key={lead.id} lead={lead} repId={repId}
@@ -558,13 +558,13 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                     </div>
                   );
                   const renderFollowUpCard = (lead: any) => {
-                    const borderColor = lead._cbDate && lead._cbDate < todayStr ? '#ff6060' : lead._cbDate === todayStr ? '#F59E0B' : 'var(--border-soft)';
+                    const borderColor = lead._cbDate && lead._cbDate < todayStr ? 'var(--red)' : lead._cbDate === todayStr ? 'var(--amber)' : 'var(--border-soft)';
                     return (
                       <div key={lead.id} style={{padding:'16px 18px', background:'var(--bg-elev-pill)', border:`1px solid ${borderColor}`, borderRadius:'10px', borderLeftWidth:'3px'}}>
                         <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', marginBottom:'8px'}}>
                           <span style={{fontSize:'14px', fontWeight:700, color:'var(--text-primary)'}}>{lead.business_name}</span>
-                          {lead._cbDate && <span style={{fontSize:'11px', color: lead._cbDate < todayStr ? '#ff6060' : lead._cbDate === todayStr ? '#F59E0B' : 'var(--text-muted)', fontWeight:600, fontFamily:'monospace'}}>{lead._cbDate}</span>}
-                          <span style={{fontSize:'9px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:'rgba(245,158,11,.08)', border:'1px solid rgba(245,158,11,.25)', color:'#F59E0B', letterSpacing:'.05em', textTransform:'uppercase'}}>
+                          {lead._cbDate && <span style={{fontSize:'11px', color: lead._cbDate < todayStr ? 'var(--red)' : lead._cbDate === todayStr ? 'var(--amber)' : 'var(--text-muted)', fontWeight:600, fontFamily:'monospace'}}>{lead._cbDate}</span>}
+                          <span style={{fontSize:'9px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:'rgba(245,158,11,.08)', border:'1px solid rgba(245,158,11,.25)', color:'var(--amber)', letterSpacing:'.05em', textTransform:'uppercase'}}>
                             {lead._cbReason ? (CALLBACK_REASON_LABELS[lead._cbReason] || lead._cbReason) : 'No reason given'}
                           </span>
                           {!shadowMode && (
@@ -572,17 +572,17 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                               {repPhone && lead.phone ? (
                                 <button onClick={()=>setCallModalLead(lead)}
                                   style={{display:'flex', alignItems:'center', gap:'5px', padding:'9px 14px', minHeight:'40px', borderRadius:'6px', cursor:'pointer', fontSize:'12px', fontWeight:700, fontFamily:'JetBrains Mono,monospace',
-                                    background:'rgba(34,197,94,.08)', border:'1px solid rgba(34,197,94,.4)', color:'#22c55e', transition:'all .15s'}}
+                                    background:'rgba(34,197,94,.08)', border:'1px solid var(--green-border)', color:'var(--green)', transition:'all .15s'}}
                                   onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(34,197,94,.18)';}}
                                   onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(34,197,94,.08)';}}>
-                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                                   Call Back
                                 </button>
                               ) : lead.phone ? (
                                 <a href={'tel:' + lead.phone}
                                   style={{display:'flex', alignItems:'center', gap:'5px', padding:'5px 12px', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'JetBrains Mono,monospace', textDecoration:'none',
-                                    background:'rgba(34,197,94,.08)', border:'1px solid rgba(34,197,94,.4)', color:'#22c55e'}}>
-                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                    background:'rgba(34,197,94,.08)', border:'1px solid var(--green-border)', color:'var(--green)'}}>
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                                   Call Back
                                 </a>
                               ) : null}
@@ -609,8 +609,8 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                   );
                   return (
                     <div>
-                      {overdue.length > 0 && <>{sectionHeader('Overdue', overdue.length, '#ff6060')}<div style={{display:'flex', flexDirection:'column', gap:'6px'}}>{overdue.map(renderFollowUpCard)}</div></>}
-                      {dueToday.length > 0 && <>{sectionHeader('Today', dueToday.length, '#F59E0B')}<div style={{display:'flex', flexDirection:'column', gap:'6px'}}>{dueToday.map(renderFollowUpCard)}</div></>}
+                      {overdue.length > 0 && <>{sectionHeader('Overdue', overdue.length, 'var(--red)')}<div style={{display:'flex', flexDirection:'column', gap:'6px'}}>{overdue.map(renderFollowUpCard)}</div></>}
+                      {dueToday.length > 0 && <>{sectionHeader('Today', dueToday.length, 'var(--amber)')}<div style={{display:'flex', flexDirection:'column', gap:'6px'}}>{dueToday.map(renderFollowUpCard)}</div></>}
                       {upcoming.length > 0 && <>{sectionHeader('Upcoming', upcoming.length, 'var(--accent-ink)')}<div style={{display:'flex', flexDirection:'column', gap:'6px'}}>{upcoming.map(renderFollowUpCard)}</div></>}
                     </div>
                   );
@@ -636,13 +636,13 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                   return (
                     <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
                       {bookedList.map(lead => (
-                        <div key={lead.id} style={{padding:'16px 18px', background:'var(--bg-elev-pill)', border:'1px solid rgba(34,197,94,.25)', borderRadius:'10px', borderLeftWidth:'3px', borderLeftColor:'#22c55e'}}>
+                        <div key={lead.id} style={{padding:'16px 18px', background:'var(--bg-elev-pill)', border:'1px solid rgba(34,197,94,.25)', borderRadius:'10px', borderLeftWidth:'3px', borderLeftColor:'var(--green)'}}>
                           <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', marginBottom: lead._bookingNotes ? '8px' : '0'}}>
                             <span style={{fontSize:'14px', fontWeight:700, color:'var(--text-primary)'}}>{lead.business_name}</span>
                             <span style={{fontSize:'9px', fontWeight:700, padding:'2px 8px', borderRadius:'4px',
                               background: lead.status === 'discovery_completed' ? 'var(--accent-glow-08)' : 'rgba(34,197,94,.08)',
                               border: `1px solid ${lead.status === 'discovery_completed' ? 'var(--accent-glow-25)' : 'rgba(34,197,94,.25)'}`,
-                              color: lead.status === 'discovery_completed' ? 'var(--accent-ink)' : '#22c55e',
+                              color: lead.status === 'discovery_completed' ? 'var(--accent-ink)' : 'var(--green)',
                               letterSpacing:'.05em', textTransform:'uppercase'}}>
                               {lead.status === 'discovery_completed' ? 'Discovery Booked' : 'Booked'}
                             </span>
@@ -660,17 +660,17 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                               repPhone ? (
                                 <button onClick={()=>setCallModalLead(lead)}
                                   style={{display:'flex', alignItems:'center', gap:'5px', padding:'9px 14px', minHeight:'40px', borderRadius:'6px', cursor:'pointer', fontSize:'12px', fontWeight:700, fontFamily:'JetBrains Mono,monospace',
-                                    background:'rgba(34,197,94,.08)', border:'1px solid rgba(34,197,94,.4)', color:'#22c55e', transition:'all .15s'}}
+                                    background:'rgba(34,197,94,.08)', border:'1px solid var(--green-border)', color:'var(--green)', transition:'all .15s'}}
                                   onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(34,197,94,.18)';}}
                                   onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(34,197,94,.08)';}}>
-                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                                   Call
                                 </button>
                               ) : (
                                 <a href={'tel:' + lead.phone}
                                   style={{display:'flex', alignItems:'center', gap:'5px', padding:'5px 12px', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'JetBrains Mono,monospace', textDecoration:'none',
-                                    background:'rgba(34,197,94,.08)', border:'1px solid rgba(34,197,94,.4)', color:'#22c55e'}}>
-                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                                    background:'rgba(34,197,94,.08)', border:'1px solid var(--green-border)', color:'var(--green)'}}>
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                                   Call
                                 </a>
                               )
@@ -704,8 +704,8 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                   const statCards = [
                     { key:'today', label:'Calls Today', value: stats.today, color:'var(--text-primary)', logs: todayLogs },
                     { key:'week', label:'Calls This Week', value: stats.week, color:'var(--text-primary)', logs: weekLogs },
-                    { key:'booked', label:'Total Bookings', value: stats.booked, color:'#22c55e', logs: allMyLogs.filter((l: any) => l.outcome === 'booked_call') },
-                    { key:'pending', label:'Callbacks Pending', value: stats.pending, color:'#F59E0B', logs: allMyLogs.filter((l: any) => l.outcome === 'callback_requested') },
+                    { key:'booked', label:'Total Bookings', value: stats.booked, color:'var(--green)', logs: allMyLogs.filter((l: any) => l.outcome === 'booked_call') },
+                    { key:'pending', label:'Callbacks Pending', value: stats.pending, color:'var(--amber)', logs: allMyLogs.filter((l: any) => l.outcome === 'callback_requested') },
                   ];
 
                   return (
@@ -732,7 +732,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                             {card.logs.slice(0, 50).map((log: any) => {
                               const logLead = leads.find(l => l.id === log.lead_id);
                               return (
-                                <div key={log.id} style={{display:'flex', alignItems:'center', gap:'8px', padding:'6px 0', borderBottom:'1px solid #111'}}>
+                                <div key={log.id} style={{display:'flex', alignItems:'center', gap:'8px', padding:'6px 0', borderBottom:'1px solid var(--bg-sidebar-line)'}}>
                                   <div style={{width:'6px', height:'6px', borderRadius:'50%', background: OUTCOME_COLORS[log.outcome] || 'var(--text-muted)'}}/>
                                   <span style={{fontSize:'12px', color:'var(--text-primary)', fontWeight:600}}>{log.business_name || logLead?.business_name || 'Unknown'}</span>
                                   <span style={{fontSize:'10px', color: OUTCOME_COLORS[log.outcome] || 'var(--text-muted)', fontWeight:600}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
@@ -746,10 +746,10 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                       <div className="card-glow" style={{padding:'20px', marginBottom:'20px'}}>
                         <p className="stat-label">Booking Rate</p>
                         <div style={{display:'flex', alignItems:'center', gap:'16px'}}>
-                          <p style={{fontSize:'36px', fontWeight:900, color:'#22c55e', margin:0, fontFamily:'monospace'}}>{bookingRate}%</p>
+                          <p style={{fontSize:'36px', fontWeight:900, color:'var(--green)', margin:0, fontFamily:'monospace'}}>{bookingRate}%</p>
                           <div style={{flex:1}}>
                             <div style={{height:'8px', background:'var(--border-soft)', borderRadius:'4px', overflow:'hidden'}}>
-                              <div style={{height:'100%', background:'#22c55e', width:`${Math.min(bookingRate, 100)}%`, borderRadius:'4px', transition:'width .5s ease'}}/>
+                              <div style={{height:'100%', background:'var(--green)', width:`${Math.min(bookingRate, 100)}%`, borderRadius:'4px', transition:'width .5s ease'}}/>
                             </div>
                             <p style={{margin:'6px 0 0', fontSize:'11px', color:'var(--text-faint)'}}>{stats.booked} bookings / {stats.week} calls this week</p>
                           </div>
@@ -782,7 +782,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                       {/* Coaching Tips */}
                       {(todayOutcomeCounts.not_interested || 0) >= 2 && (
                         <div style={{padding:'16px 18px', background:'rgba(245,158,11,.05)', border:'1px solid rgba(245,158,11,.2)', borderRadius:'10px', marginBottom:'16px'}}>
-                          <p style={{margin:'0 0 6px', fontSize:'10px', fontWeight:800, letterSpacing:'.15em', textTransform:'uppercase', color:'#F59E0B'}}>Coaching Tip</p>
+                          <p style={{margin:'0 0 6px', fontSize:'10px', fontWeight:800, letterSpacing:'.15em', textTransform:'uppercase', color:'var(--amber)'}}>Coaching Tip</p>
                           <p style={{margin:0, fontSize:'13px', color:'var(--text-secondary)', lineHeight:'1.5'}}>You've had {todayOutcomeCounts.not_interested} "Not Interested" outcomes today. Review the Objection Handling scripts in section 04 to sharpen your responses.</p>
                         </div>
                       )}
@@ -825,7 +825,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                         }
                         return (
                           <div className="card-glow" style={{padding:'24px', marginTop:'8px'}}>
-                            <p style={{margin:'0 0 4px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'#F59E0B'}}>Daily Debrief</p>
+                            <p style={{margin:'0 0 4px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'var(--amber)'}}>Daily Debrief</p>
                             <p style={{margin:'0 0 16px', fontSize:'12px', color:'var(--text-muted)'}}>Fill this out before you close for the day.</p>
                             <div style={{display:'flex', flexDirection:'column', gap:'16px'}}>
                               {debriefFields.map(f => (
@@ -922,7 +922,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                                       </div>
                                     </div>
                                   ) : log.transcript_status === 'pending' ? (
-                                    <p style={{margin:'8px 0 0', fontSize:'11px', color:'#F59E0B', fontStyle:'italic'}}>Transcribing...</p>
+                                    <p style={{margin:'8px 0 0', fontSize:'11px', color:'var(--amber)', fontStyle:'italic'}}>Transcribing...</p>
                                   ) : (
                                     <p style={{margin:'8px 0 0', fontSize:'11px', color:'var(--text-faint)', fontStyle:'italic'}}>No transcript</p>
                                   )}

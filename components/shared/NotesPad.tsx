@@ -28,7 +28,7 @@ const NotesPad = ({ storageKey }: NotesPadProps) => {
   const hoursLeft   = Math.floor((msLeft % 86400000) / 3600000);
   const isExpiring  = msLeft > 0 && msLeft < 86400000 * 2;
   const isExpired   = expiresAt > 0 && msLeft <= 0 && hasNotes;
-  const timerColor  = isExpired ? '#ff4444' : isExpiring ? '#F59E0B' : 'var(--border-strong)';
+  const timerColor  = isExpired ? 'var(--red-strong)' : isExpiring ? 'var(--amber)' : 'var(--border-strong)';
   const timerText   = isExpired
     ? '\u26A0 Expired \u2014 upload to save!'
     : expiresAt > 0 && hasNotes
@@ -83,7 +83,7 @@ const NotesPad = ({ storageKey }: NotesPadProps) => {
           <span style={{fontSize:'10px', fontWeight:800, letterSpacing:'.18em', textTransform:'uppercase', fontFamily:'JetBrains Mono, monospace', color:hasNotes?'var(--accent-ink)':'var(--text-faint)'}}>My Notes</span>
           {hasNotes && <div style={{width:'5px', height:'5px', borderRadius:'50%', background:'var(--accent-ink)', boxShadow:'0 0 6px var(--accent-glow-80)'}}/>}
           {timerText && <span style={{fontSize:'9px', color: timerColor, fontFamily:'JetBrains Mono, monospace', letterSpacing:'.06em'}}>{timerText}</span>}
-          {!hasNotes && <span style={{fontSize:'10px', color:'#2a2a2a'}}>&mdash; notes save for {NOTES_EXPIRY_DAYS} days then auto-clear</span>}
+          {!hasNotes && <span style={{fontSize:'10px', color:'var(--text-faint)'}}>&mdash; notes save for {NOTES_EXPIRY_DAYS} days then auto-clear</span>}
         </div>
         <span style={{fontSize:'12px', color:'var(--text-faint)', display:'inline-block', transform:open?'rotate(90deg)':'rotate(0deg)', transition:'transform .2s'}}>&rsaquo;</span>
       </button>
@@ -93,7 +93,7 @@ const NotesPad = ({ storageKey }: NotesPadProps) => {
             placeholder={`Jot anything down \u2014 tweaks, reminders, things to remember. Saves automatically. Clears in ${NOTES_EXPIRY_DAYS} days unless you upload to Google Drive.`}
             style={{width:'100%', minHeight:'140px', background:'var(--bg-elev-pill)', border:'none', borderTop:'1px solid var(--border-soft)', padding:'14px 16px', color:'var(--text-secondary)', fontSize:'13px', lineHeight:1.65, fontFamily:'Roboto, sans-serif', resize:'vertical', outline:'none', boxSizing:'border-box', display:'block'}}
           />
-          <div style={{padding:'10px 14px', background:'#060606', borderTop:'1px solid #111', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'10px', flexWrap:'wrap'}}>
+          <div style={{padding:'10px 14px', background:'var(--bg-nav)', borderTop:'1px solid var(--bg-sidebar-line)', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'10px', flexWrap:'wrap'}}>
             <span style={{fontSize:'9px', color: timerColor, fontFamily:'JetBrains Mono, monospace', letterSpacing:'.08em'}}>
               {isExpired ? '\u26A0 EXPIRED' : expiresAt > 0 && hasNotes ? `\u21BB Local copy clears in ${daysLeft}d ${hoursLeft}h` : hasNotes ? 'Not yet saved \u2014 type to start timer' : ''}
             </span>
@@ -103,12 +103,12 @@ const NotesPad = ({ storageKey }: NotesPadProps) => {
               </button>
             )}
             {uploadResult && uploadResult !== 'error' && (
-              <span style={{fontSize:'10px', color:'#22c55e', fontFamily:'JetBrains Mono, monospace'}}>
+              <span style={{fontSize:'10px', color:'var(--green)', fontFamily:'JetBrains Mono, monospace'}}>
                 &#10003; Saved &mdash; <a href={uploadResult.url} target="_blank" rel="noreferrer" style={{color:'var(--accent-ink)'}}>Open in Google Docs</a>
               </span>
             )}
             {uploadResult === 'error' && (
-              <span style={{fontSize:'10px', color:'#ff6060', fontFamily:'JetBrains Mono, monospace'}}>Upload failed. Try again.</span>
+              <span style={{fontSize:'10px', color:'var(--red)', fontFamily:'JetBrains Mono, monospace'}}>Upload failed. Try again.</span>
             )}
           </div>
         </>

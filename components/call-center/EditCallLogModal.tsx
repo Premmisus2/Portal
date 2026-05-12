@@ -311,7 +311,7 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
         </div>
 
         {error && (
-          <p style={{ margin: '0 0 12px', fontSize: '12px', color: '#ff6060' }}>{error}</p>
+          <p style={{ margin: '0 0 12px', fontSize: '12px', color: 'var(--red)' }}>{error}</p>
         )}
 
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -322,7 +322,7 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
               padding: '10px 18px', borderRadius: '8px', cursor: 'pointer',
               fontSize: '12px', fontWeight: 700, fontFamily: 'Inter,sans-serif',
               background: 'transparent', border: '1px solid rgba(255,96,96,.4)',
-              color: '#ff6060',
+              color: 'var(--red)',
               opacity: (saving || deleting) ? 0.4 : 1,
             }}
           >{deleting ? 'Deleting...' : 'Delete'}</button>

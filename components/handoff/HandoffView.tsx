@@ -11,7 +11,7 @@ const HandoffView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTo
     <main className="section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'700px', width:'100%', margin:'0 auto'}}>
       {shadowMode ? (
         <div className="card" style={{padding:'40px', textAlign:'center'}}>
-          <p style={{color:'#F59E0B', fontSize:'14px', margin:0, fontWeight:700}}>Read Only — Shadow Mode</p>
+          <p style={{color:'var(--amber)', fontSize:'14px', margin:0, fontWeight:700}}>Read Only — Shadow Mode</p>
           <p style={{color:'var(--text-faint)', fontSize:'12px', margin:'6px 0 0'}}>Cannot submit handoffs while shadowing a rep.</p>
         </div>
       ) : (

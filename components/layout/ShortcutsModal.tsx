@@ -4,8 +4,8 @@ const KbdKey = ({ children }: { children: React.ReactNode }) => (
   <span style={{
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     minWidth: '28px', height: '24px', padding: '0 6px',
-    background: '#0e0e0e', border: '1px solid #2a2a2a',
-    borderBottom: '2px solid #333', borderRadius: '5px',
+    background: 'var(--bg-elev-1)', border: '1px solid var(--text-faint)',
+    borderBottom: '2px solid var(--text-faint)', borderRadius: '5px',
     fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)',
     fontFamily: 'Inter, monospace', letterSpacing: '.05em',
     boxShadow: '0 1px 3px rgba(0,0,0,.5)',
@@ -13,7 +13,7 @@ const KbdKey = ({ children }: { children: React.ReactNode }) => (
 );
 
 const ShortcutRow = ({ keys, label, color }: { keys: string[]; label: string; color?: string }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0', borderBottom: '1px solid #0e0e0e' }}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '6px 0', borderBottom: '1px solid var(--bg-elev-1)' }}>
     <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0, minWidth: '80px' }}>
       {keys.map((k, i) => <KbdKey key={i}>{k}</KbdKey>)}
     </div>
@@ -28,7 +28,7 @@ export default function ShortcutsModal({ onClose }: { onClose: () => void }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        background: '#060606', border: '1px solid var(--border)', borderRadius: '18px',
+        background: 'var(--bg-nav)', border: '1px solid var(--border)', borderRadius: '18px',
         padding: '28px 32px', maxWidth: '560px', width: '100%', maxHeight: '85vh', overflowY: 'auto',
         boxShadow: '0 0 60px var(--accent-glow-06)',
       }}>
@@ -45,29 +45,29 @@ export default function ShortcutsModal({ onClose }: { onClose: () => void }) {
             <div style={{ width: '3px', height: '14px', background: 'var(--text-muted)', borderRadius: '2px' }} />
             <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Global — Works Anywhere</span>
           </div>
-          <ShortcutRow keys={['Esc']} label="Return to Home" color="#888" />
-          <ShortcutRow keys={['H']} label="Return to Home" color="#888" />
-          <ShortcutRow keys={['?']} label="Open / close this cheat sheet" color="#888" />
+          <ShortcutRow keys={['Esc']} label="Return to Home" color="var(--text-tertiary)" />
+          <ShortcutRow keys={['H']} label="Return to Home" color="var(--text-tertiary)" />
+          <ShortcutRow keys={['?']} label="Open / close this cheat sheet" color="var(--text-tertiary)" />
         </div>
         <div style={{ marginBottom: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
             <div style={{ width: '3px', height: '14px', background: 'var(--accent-ink)', borderRadius: '2px' }} />
             <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--accent-ink)' }}>From Home — Jump to Section</span>
           </div>
-          <ShortcutRow keys={['⇧', '1']} label="Call Center" color="#ccc" />
-          <ShortcutRow keys={['⇧', '2']} label="Scripts & Sequences" color="#ccc" />
-          <ShortcutRow keys={['⇧', '3']} label="Foundation & Blueprint" color="#ccc" />
-          <ShortcutRow keys={['⇧', '4']} label="Written Outreach (DMs)" color="#ccc" />
-          <ShortcutRow keys={['⇧', '5']} label="Post-Call Protocols" color="#ccc" />
-          <ShortcutRow keys={['⇧', '6']} label="The Ladder" color="#ccc" />
-          <ShortcutRow keys={['⇧', '7']} label="Director Handoff" color="#ccc" />
-          <ShortcutRow keys={['⇧', '8']} label="AI Tools" color="#ccc" />
-          <ShortcutRow keys={['⇧', '9']} label="Director Dashboard" color="#ccc" />
+          <ShortcutRow keys={['⇧', '1']} label="Call Center" color="var(--text-secondary)" />
+          <ShortcutRow keys={['⇧', '2']} label="Scripts & Sequences" color="var(--text-secondary)" />
+          <ShortcutRow keys={['⇧', '3']} label="Foundation & Blueprint" color="var(--text-secondary)" />
+          <ShortcutRow keys={['⇧', '4']} label="Written Outreach (DMs)" color="var(--text-secondary)" />
+          <ShortcutRow keys={['⇧', '5']} label="Post-Call Protocols" color="var(--text-secondary)" />
+          <ShortcutRow keys={['⇧', '6']} label="The Ladder" color="var(--text-secondary)" />
+          <ShortcutRow keys={['⇧', '7']} label="Director Handoff" color="var(--text-secondary)" />
+          <ShortcutRow keys={['⇧', '8']} label="AI Tools" color="var(--text-secondary)" />
+          <ShortcutRow keys={['⇧', '9']} label="Director Dashboard" color="var(--text-secondary)" />
         </div>
         <div style={{ marginBottom: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <div style={{ width: '3px', height: '14px', background: '#F59E0B', borderRadius: '2px' }} />
-            <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '.2em', textTransform: 'uppercase', color: '#F59E0B' }}>Inside Scripts — Switch Tab</span>
+            <div style={{ width: '3px', height: '14px', background: 'var(--amber)', borderRadius: '2px' }} />
+            <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--amber)' }}>Inside Scripts — Switch Tab</span>
           </div>
           <ShortcutRow keys={['⇧', '1']} label="Openers" color="#FCD34D" />
           <ShortcutRow keys={['⇧', '2']} label="Hooks" color="#FCD34D" />
@@ -75,7 +75,7 @@ export default function ShortcutsModal({ onClose }: { onClose: () => void }) {
           <ShortcutRow keys={['⇧', '4']} label="Misstep Corrections" color="#FCD34D" />
           <ShortcutRow keys={['⇧', '5']} label="The Financial Close" color="#FCD34D" />
         </div>
-        <p style={{ margin: '18px 0 0', fontSize: '10px', color: '#222', textAlign: 'center', letterSpacing: '.12em', textTransform: 'uppercase' }}>Press ? anytime to open this card</p>
+        <p style={{ margin: '18px 0 0', fontSize: '10px', color: 'var(--border)', textAlign: 'center', letterSpacing: '.12em', textTransform: 'uppercase' }}>Press ? anytime to open this card</p>
       </div>
     </div>
   );

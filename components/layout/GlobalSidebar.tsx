@@ -16,7 +16,7 @@ export default function GlobalSidebar({ open, onClose, onNav, currentView, isDir
     <>
       <div className={`global-sidebar-overlay${open ? ' open' : ''}`} onClick={onClose}/>
       <nav className={`global-sidebar${open ? ' open' : ''}`}>
-        <div style={{padding:'16px 20px', borderBottom:'1px solid #111', display:'flex', alignItems:'center', justifyContent:'space-between'}}>
+        <div style={{padding:'16px 20px', borderBottom:'1px solid var(--bg-sidebar-line)', display:'flex', alignItems:'center', justifyContent:'space-between'}}>
           <Logo height={22}/>
           <button aria-label="Close navigation" onClick={onClose} style={{background:'none', border:'1px solid var(--border)', borderRadius:'6px', padding:'4px 8px', cursor:'pointer', color:'var(--text-faint)', fontSize:'11px', fontFamily:'Inter'}}>&#10005;</button>
         </div>
@@ -102,7 +102,7 @@ export default function GlobalSidebar({ open, onClose, onNav, currentView, isDir
 
           {/* Director Dashboard */}
           {isDirector && (
-            <div className="gs-category" style={{borderTop:'1px solid #111', marginTop:'8px', paddingTop:'8px'}}>
+            <div className="gs-category" style={{borderTop:'1px solid var(--bg-sidebar-line)', marginTop:'8px', paddingTop:'8px'}}>
               <button className={`gs-item${currentView==='director'?' active':''}`} onClick={()=>go('director')} style={{paddingLeft:'20px'}}>
                 <span style={{fontSize:'14px'}}>&#127919;</span> Director Dashboard
               </button>

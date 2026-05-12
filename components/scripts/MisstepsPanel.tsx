@@ -11,7 +11,7 @@ const MisstepsPanel = () => (
 
     <div className="card" style={{padding:'20px',marginBottom:'12px'}}>
       <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'14px'}}>
-        <div style={{width:'8px',height:'8px',borderRadius:'50%',background:'#ff4444',boxShadow:'0 0 8px rgba(255,68,68,.5)',flexShrink:0}}/>
+        <div style={{width:'8px',height:'8px',borderRadius:'50%',background:'var(--red-strong)',boxShadow:'0 0 8px rgba(255,68,68,.5)',flexShrink:0}}/>
         <span className="tag-red">Correction 1 — Never Freeze on Money</span>
       </div>
       <div className="mistake-block"><span className="mistake-label">The Mistake</span>
@@ -30,7 +30,7 @@ const MisstepsPanel = () => (
 
     <div className="card" style={{padding:'20px',marginBottom:'12px'}}>
       <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'14px'}}>
-        <div style={{width:'8px',height:'8px',borderRadius:'50%',background:'#ff4444',boxShadow:'0 0 8px rgba(255,68,68,.5)',flexShrink:0}}/>
+        <div style={{width:'8px',height:'8px',borderRadius:'50%',background:'var(--red-strong)',boxShadow:'0 0 8px rgba(255,68,68,.5)',flexShrink:0}}/>
         <span className="tag-red">Correction 2 — Never Sound Desperate</span>
       </div>
       <div className="mistake-block"><span className="mistake-label">The Mistake</span>
@@ -56,7 +56,7 @@ const MisstepsPanel = () => (
 
     <div className="card" style={{padding:'20px'}}>
       <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'14px'}}>
-        <div style={{width:'8px',height:'8px',borderRadius:'50%',background:'#ff4444',boxShadow:'0 0 8px rgba(255,68,68,.5)',flexShrink:0}}/>
+        <div style={{width:'8px',height:'8px',borderRadius:'50%',background:'var(--red-strong)',boxShadow:'0 0 8px rgba(255,68,68,.5)',flexShrink:0}}/>
         <span className="tag-red">Correction 3 — Never Pitch-Dump</span>
       </div>
       <div className="mistake-block"><span className="mistake-label">The Mistake</span>

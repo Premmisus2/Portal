@@ -163,7 +163,7 @@ export default function ChatWidget({ userName, userEmail, currentView, repId, us
   );
 
   const accentColor = isDirector ? 'rgba(34,197,94' : 'rgba(0,240,255';
-  const solidAccent = isDirector ? '#22c55e' : 'var(--accent-ink)';
+  const solidAccent = isDirector ? 'var(--green)' : 'var(--accent-ink)';
 
   return (
     <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 400, fontFamily: 'Inter,sans-serif' }} className="no-print chat-widget">
@@ -188,7 +188,7 @@ export default function ChatWidget({ userName, userEmail, currentView, repId, us
                   <div style={{ marginBottom: '4px', display: 'flex', flexWrap: 'wrap', gap: '3px', maxWidth: '90%' }}>
                     {m.toolsUsed.map((t, ti) => {
                       const toolName = t.match(/\[([^\]]+)\]/)?.[1] || t;
-                      return <span key={ti} style={{ fontSize: '8px', fontWeight: 700, padding: '2px 6px', borderRadius: '3px', background: 'rgba(34,197,94,.08)', border: '1px solid rgba(34,197,94,.2)', color: '#22c55e', fontFamily: 'JetBrains Mono,monospace', letterSpacing: '.05em' }}>{toolName}</span>;
+                      return <span key={ti} style={{ fontSize: '8px', fontWeight: 700, padding: '2px 6px', borderRadius: '3px', background: 'rgba(34,197,94,.08)', border: '1px solid rgba(34,197,94,.2)', color: 'var(--green)', fontFamily: 'JetBrains Mono,monospace', letterSpacing: '.05em' }}>{toolName}</span>;
                     })}
                   </div>
                 )}
@@ -221,7 +221,7 @@ export default function ChatWidget({ userName, userEmail, currentView, repId, us
                       <button
                         onClick={() => submitFeedback(m.content)}
                         disabled={feedbackStatus === 'sending' || feedbackStatus === 'sent'}
-                        style={{ flex: 1, padding: '6px 0', background: feedbackStatus === 'sent' ? 'var(--accent-glow-15)' : feedbackStatus === 'error' ? 'rgba(255,68,68,.1)' : 'var(--accent-glow-10)', border: `1px solid ${feedbackStatus === 'sent' ? 'var(--accent-glow-40)' : feedbackStatus === 'error' ? 'rgba(255,68,68,.3)' : 'var(--accent-glow-25)'}`, borderRadius: '6px', color: feedbackStatus === 'sent' ? 'var(--accent-ink)' : feedbackStatus === 'error' ? '#ff6060' : '#7dd8e8', fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
+                        style={{ flex: 1, padding: '6px 0', background: feedbackStatus === 'sent' ? 'var(--accent-glow-15)' : feedbackStatus === 'error' ? 'rgba(255,68,68,.1)' : 'var(--accent-glow-10)', border: `1px solid ${feedbackStatus === 'sent' ? 'var(--accent-glow-40)' : feedbackStatus === 'error' ? 'rgba(255,68,68,.3)' : 'var(--accent-glow-25)'}`, borderRadius: '6px', color: feedbackStatus === 'sent' ? 'var(--accent-ink)' : feedbackStatus === 'error' ? 'var(--red)' : '#7dd8e8', fontSize: '11px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Inter,sans-serif' }}>
                         {feedbackStatus === 'sending' ? 'Sending...' : feedbackStatus === 'sent' ? '✓ Sent to Director' : feedbackStatus === 'error' ? 'Retry' : 'Send to Director'}
                       </button>
                     </div>
@@ -243,7 +243,7 @@ export default function ChatWidget({ userName, userEmail, currentView, repId, us
           <div style={{ padding: '10px 12px', borderTop: `1px solid ${accentColor},.3)`, display: 'flex', gap: '7px', alignItems: 'flex-end', flexShrink: 0, background: `${accentColor},.15)` }}>
             <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={onKey}
               placeholder={isDirector ? 'Query data, assign leads, post announcements...' : 'Ask anything — on a call right now?'}
-              rows={1} style={{ flex: 1, background: 'var(--bg-sidebar-line)', border: '1px solid #222', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'Inter,sans-serif', resize: 'none', outline: 'none', lineHeight: 1.45, maxHeight: '80px', overflowY: 'auto' }}
+              rows={1} style={{ flex: 1, background: 'var(--bg-sidebar-line)', border: '1px solid var(--border)', borderRadius: '8px', padding: '9px 12px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'Inter,sans-serif', resize: 'none', outline: 'none', lineHeight: 1.45, maxHeight: '80px', overflowY: 'auto' }}
               onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 80) + 'px'; }} />
             <button onClick={send} disabled={loading || !input.trim()}
               style={{ width: '34px', height: '34px', flexShrink: 0, borderRadius: '8px', background: (input.trim() && !loading) ? 'var(--accent-ink)' : 'var(--bg-sidebar-line)', border: `1px solid ${(input.trim() && !loading) ? 'var(--accent-ink)' : 'var(--border)'}`, color: (input.trim() && !loading) ? 'var(--bg-app)' : 'var(--text-faint)', cursor: (input.trim() && !loading) ? 'pointer' : 'default', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all .15s' }}>
@@ -258,7 +258,7 @@ export default function ChatWidget({ userName, userEmail, currentView, repId, us
         style={{ width: '50px', height: '50px', borderRadius: '50%', background: open ? 'var(--bg-elev-1)' : solidAccent, border: open ? `1px solid ${accentColor},.35)` : `2px solid ${solidAccent}`, color: open ? solidAccent : 'var(--bg-app)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', boxShadow: open ? `0 0 20px ${accentColor},.12)` : `0 0 28px ${accentColor},.45)`, transition: 'all .2s', position: 'relative' }}
         title={open ? (isDirector ? 'Close AI Command Center' : 'Close AI Sales Coach') : (isDirector ? 'Open AI Command Center' : 'Open AI Sales Coach')}>
         {open ? '✕' : isDirector ? '⌘' : '⚡'}
-        {unread && !open && <div style={{ position: 'absolute', top: '4px', right: '4px', width: '10px', height: '10px', borderRadius: '50%', background: '#ff4444', border: '2px solid #000', boxShadow: '0 0 6px rgba(255,68,68,.8)' }} />}
+        {unread && !open && <div style={{ position: 'absolute', top: '4px', right: '4px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--red-strong)', border: '2px solid var(--bg-app)', boxShadow: '0 0 6px rgba(255,68,68,.8)' }} />}
       </button>
     </div>
   );

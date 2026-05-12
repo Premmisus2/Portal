@@ -22,7 +22,7 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
   const isDnc = typeof lead.notes === 'string' && lead.notes.startsWith('🚫 DNC:');
   const statusBorderClass = (!isOverdue && !isDueToday && lead.status && lead.status !== 'new') ? ` status-${lead.status}` : '';
   const rowClass = `lead-row${isExpanded ? ' expanded' : ''}${isOverdue ? ' callback-overdue' : ''}${isDueToday ? ' callback-today' : ''}${statusBorderClass}`;
-  const statusColors: Record<string, string> = { new:'#22c55e', contacted:'#3B82F6', callback:'#A855F7', booked:'var(--accent-ink)', not_interested:'var(--text-muted)', discovery_completed:'#22c55e', no_show:'#ff6060', voicemail:'#F59E0B', wrong_number:'var(--text-muted)' };
+  const statusColors: Record<string, string> = { new:'var(--green)', contacted:'#3B82F6', callback:'#A855F7', booked:'var(--accent-ink)', not_interested:'var(--text-muted)', discovery_completed:'var(--green)', no_show:'var(--red)', voicemail:'var(--amber)', wrong_number:'var(--text-muted)' };
 
   const handleMarkDead = async () => {
     const reason = window.prompt('Mark this lead as DEAD (will never be called again).\n\nReason? (e.g. cussed me out / wrong fit / out of business / has agency)');
@@ -58,7 +58,7 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
             <span style={{fontSize:'9px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:`${statusColors[lead.status] || 'var(--text-muted)'}15`, color: statusColors[lead.status] || 'var(--text-muted)', letterSpacing:'.05em', textTransform:'uppercase'}}>{lead.status.replace('_',' ')}</span>
           )}
           {isDnc && (
-            <span title={lead.notes} style={{fontSize:'9px', fontWeight:800, padding:'2px 8px', borderRadius:'4px', background:'rgba(255,96,96,.15)', color:'#ff6060', letterSpacing:'.08em', textTransform:'uppercase', cursor:'help'}}>🚫 Dead</span>
+            <span title={lead.notes} style={{fontSize:'9px', fontWeight:800, padding:'2px 8px', borderRadius:'4px', background:'rgba(255,96,96,.15)', color:'var(--red)', letterSpacing:'.08em', textTransform:'uppercase', cursor:'help'}}>🚫 Dead</span>
           )}
         </div>
         <div style={{display:'flex', alignItems:'center', gap:'10px', flexShrink:0}}>
@@ -84,7 +84,7 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
             <span style={{fontSize:'10px', color: OUTCOME_COLORS[lastLog.outcome] || 'var(--text-muted)', fontWeight:700}}>{OUTCOME_LABELS[lastLog.outcome]}</span>
           )}
           {lastLog?.callback_date && (
-            <span style={{fontSize:'10px', color: isOverdue ? '#ff6060' : isDueToday ? '#F59E0B' : 'var(--text-faint)', fontWeight:600}}>
+            <span style={{fontSize:'10px', color: isOverdue ? 'var(--red)' : isDueToday ? 'var(--amber)' : 'var(--text-faint)', fontWeight:600}}>
               {isOverdue ? '⚠ Overdue' : isDueToday ? '📞 Today' : `CB: ${lastLog.callback_date}`}
             </span>
           )}
@@ -98,7 +98,7 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
           {!shadowMode && !isDnc && (
             <button onClick={e=>{e.stopPropagation(); handleMarkDead();}} title="Mark dead — never call again"
               style={{padding:'5px 9px', borderRadius:'6px', cursor:'pointer', fontSize:'12px', fontWeight:700, lineHeight:1, transition:'all .15s',
-                background:'transparent', border:'1px solid rgba(255,96,96,.25)', color:'#ff6060'}}
+                background:'transparent', border:'1px solid rgba(255,96,96,.25)', color:'var(--red)'}}
               onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(255,96,96,.1)'; (e.currentTarget as HTMLElement).style.borderColor='rgba(255,96,96,.5)';}}
               onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='transparent'; (e.currentTarget as HTMLElement).style.borderColor='rgba(255,96,96,.25)';}}>
               🚫
@@ -135,7 +135,7 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
                   const autoConfPct = typeof log.outcome_auto_confidence === 'number' ? Math.round(log.outcome_auto_confidence * 100) : null;
                   const aiDisagrees = !!log.outcome_auto && log.outcome_auto !== log.outcome && (log.outcome_auto_confidence || 0) > 0.7;
                   const aiAgrees = !!log.outcome_auto && log.outcome_auto === log.outcome;
-                  const aiBadgeColor = aiDisagrees ? '#F59E0B' : aiAgrees ? '#22c55e' : '#3B82F6';
+                  const aiBadgeColor = aiDisagrees ? 'var(--amber)' : aiAgrees ? 'var(--green)' : '#3B82F6';
                   return (
                   <div key={log.id} style={{display:'flex', flexDirection:'column', gap:'4px', padding:'6px 10px', background:'var(--bg-elev-2)', borderRadius:'6px', border:`1px solid ${aiDisagrees ? 'rgba(245,158,11,.35)' : '#151515'}`}}>
                     <div style={{display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap'}}>
@@ -158,7 +158,7 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
                       )}
                     </div>
                     {aiDisagrees && log.outcome_auto_reasoning && (
-                      <div style={{paddingLeft:'20px', fontSize:'10px', color:'#F59E0B', fontStyle:'italic'}}>
+                      <div style={{paddingLeft:'20px', fontSize:'10px', color:'var(--amber)', fontStyle:'italic'}}>
                         AI suggests {OUTCOME_LABELS[log.outcome_auto] || log.outcome_auto}: {log.outcome_auto_reasoning}
                       </div>
                     )}

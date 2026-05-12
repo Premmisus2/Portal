@@ -108,10 +108,10 @@ const TwilioCallModal = ({ lead, repId, repPhone, onClose, onCallComplete }: any
 
   const statusConfig: Record<string, any> = {
     initiating: { dot: 'var(--accent-ink)', pulse: true, label: 'Initiating call...' },
-    ringing:    { dot: '#F59E0B', pulse: true, label: 'Ringing your phone...' },
-    connected:  { dot: '#22c55e', pulse: false, label: 'Connected — hang up on your phone when done' },
-    completed:  { dot: '#22c55e', pulse: false, label: 'Call complete' },
-    failed:     { dot: '#ff6060', pulse: false, label: error || 'Call failed' },
+    ringing:    { dot: 'var(--amber)', pulse: true, label: 'Ringing your phone...' },
+    connected:  { dot: 'var(--green)', pulse: false, label: 'Connected — hang up on your phone when done' },
+    completed:  { dot: 'var(--green)', pulse: false, label: 'Call complete' },
+    failed:     { dot: 'var(--red)', pulse: false, label: error || 'Call failed' },
   };
   const cfg = statusConfig[status] || statusConfig.initiating;
 
@@ -144,14 +144,14 @@ const TwilioCallModal = ({ lead, repId, repPhone, onClose, onCallComplete }: any
         {/* Completed icon */}
         {status === 'completed' && (
           <div style={{textAlign:'center', marginBottom:'16px'}}>
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           </div>
         )}
 
         {/* Failed icon */}
         {status === 'failed' && (
           <div style={{textAlign:'center', marginBottom:'16px'}}>
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ff6060" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
           </div>
         )}
 
@@ -167,7 +167,7 @@ const TwilioCallModal = ({ lead, repId, repPhone, onClose, onCallComplete }: any
           )}
           {status === 'failed' && (
             <a href={`tel:${lead.phone}`} onClick={handleClose} style={{padding:'10px 24px', borderRadius:'8px', textDecoration:'none', display:'inline-block',
-              background:'transparent', border:'1px solid #333', color:'var(--text-tertiary)',
+              background:'transparent', border:'1px solid var(--text-faint)', color:'var(--text-tertiary)',
               fontWeight:800, fontSize:'12px', fontFamily:'Inter,sans-serif', letterSpacing:'.06em', textTransform:'uppercase', transition:'all .15s'}}
               onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor='var(--text-muted)'; (e.currentTarget as HTMLElement).style.color='var(--text-secondary)';}}
               onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='var(--text-faint)'; (e.currentTarget as HTMLElement).style.color='var(--text-tertiary)';}}>

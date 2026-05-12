@@ -16,15 +16,15 @@ export default function PipelineFunnelView({ leads, reps }: PipelineFunnelViewPr
 
   const stages = [
     { key: 'new', label: 'New Leads', color: 'var(--accent-ink)', statuses: ['new'] },
-    { key: 'contacted', label: 'Contacted', color: '#F59E0B', statuses: ['contacted', 'voicemail'] },
-    { key: 'callback', label: 'Callback', color: '#F59E0B', statuses: ['callback'] },
-    { key: 'booked', label: 'Booked', color: '#22c55e', statuses: ['booked'] },
+    { key: 'contacted', label: 'Contacted', color: 'var(--amber)', statuses: ['contacted', 'voicemail'] },
+    { key: 'callback', label: 'Callback', color: 'var(--amber)', statuses: ['callback'] },
+    { key: 'booked', label: 'Booked', color: 'var(--green)', statuses: ['booked'] },
     { key: 'discovery', label: 'Discovery Booked', color: 'var(--accent-ink)', statuses: ['discovery_completed'] },
     { key: 'noshow', label: 'No Show', color: '#ff8800', statuses: ['no_show'] },
   ];
   const dropoffs = [
-    { key: 'not_interested', label: 'Not Interested', color: '#ff6060', statuses: ['not_interested'] },
-    { key: 'wrong_number', label: 'Wrong Number', color: '#ff6060', statuses: ['wrong_number'] },
+    { key: 'not_interested', label: 'Not Interested', color: 'var(--red)', statuses: ['not_interested'] },
+    { key: 'wrong_number', label: 'Wrong Number', color: 'var(--red)', statuses: ['wrong_number'] },
   ];
 
   const counts: Record<string, number> = {};
@@ -99,7 +99,7 @@ export default function PipelineFunnelView({ leads, reps }: PipelineFunnelViewPr
 
       {/* Drop-offs */}
       <div className="card" style={{ padding: '16px 20px', borderColor: 'var(--border-soft)' }}>
-        <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#ff6060', margin: '0 0 12px' }}>Drop-offs</p>
+        <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--red)', margin: '0 0 12px' }}>Drop-offs</p>
         <div style={{ display: 'flex', gap: '20px' }}>
           {dropoffs.map(d => (
             <div key={d.key} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -120,8 +120,8 @@ export default function PipelineFunnelView({ leads, reps }: PipelineFunnelViewPr
           const bookRate = contacted > 0 ? ((booked / contacted) * 100).toFixed(0) : '0';
           const showRate = (booked + counts.noshow) > 0 ? ((discovery / (booked + counts.noshow + discovery)) * 100).toFixed(0) : '0';
           return [
-            { label: 'Contact Rate', value: `${contactRate}%`, sub: `${contacted} of ${total} leads`, color: '#F59E0B' },
-            { label: 'Book Rate', value: `${bookRate}%`, sub: `${booked} of ${contacted} contacted`, color: '#22c55e' },
+            { label: 'Contact Rate', value: `${contactRate}%`, sub: `${contacted} of ${total} leads`, color: 'var(--amber)' },
+            { label: 'Book Rate', value: `${bookRate}%`, sub: `${booked} of ${contacted} contacted`, color: 'var(--green)' },
             { label: 'Show Rate', value: `${showRate}%`, sub: `${discovery} of ${discovery + counts.noshow} scheduled`, color: 'var(--accent-ink)' },
           ];
         })().map(m => (
@@ -141,7 +141,7 @@ export default function PipelineFunnelView({ leads, reps }: PipelineFunnelViewPr
             const sourceMap: Record<string, number> = {};
             filtered.forEach(l => { const s = l.source || 'unknown'; sourceMap[s] = (sourceMap[s] || 0) + 1; });
             const sourceLabels: Record<string, string> = { warm_import: 'Warm Import', cold_import: 'Cold Import', csv_import: 'CSV Import', website: 'Website', manual: 'Manual Entry', cold_call: 'Cold Call', dm: 'DM Outreach', referral: 'Referral', unknown: 'Unknown' };
-            const sourceColors: Record<string, string> = { warm_import: '#F59E0B', cold_import: 'var(--accent-ink)', csv_import: 'var(--accent-ink)', website: '#22c55e', manual: 'var(--text-tertiary)', cold_call: '#a855f7', dm: '#ec4899', referral: '#22c55e', unknown: 'var(--text-faint)' };
+            const sourceColors: Record<string, string> = { warm_import: 'var(--amber)', cold_import: 'var(--accent-ink)', csv_import: 'var(--accent-ink)', website: 'var(--green)', manual: 'var(--text-tertiary)', cold_call: '#a855f7', dm: '#ec4899', referral: 'var(--green)', unknown: 'var(--text-faint)' };
             const sorted = Object.entries(sourceMap).sort((a, b) => b[1] - a[1]);
             const maxSrc = sorted.length > 0 ? sorted[0][1] : 1;
             return sorted.map(([src, count]) => (

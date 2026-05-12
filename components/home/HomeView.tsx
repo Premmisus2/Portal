@@ -130,7 +130,7 @@ export default function HomeView({ userName, userEmail, onNav, onLogout, totalCl
 
   return (
     <div style={{minHeight:'100vh', background:'var(--bg-app)', display:'flex', flexDirection:'column', paddingTop: shadowMode ? '40px' : 0}}>
-      <header className="no-print home-header" style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 20px', borderBottom:'1px solid #0f0f0f', background:'#040404', gap:'12px', flexWrap:'wrap'}}>
+      <header className="no-print home-header" style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 20px', borderBottom:'1px solid var(--bg-sidebar-line)', background:'var(--bg-nav)', gap:'12px', flexWrap:'wrap'}}>
         <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
           <button className="hamburger-btn" onClick={onToggleSidebar}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/></svg>
@@ -187,7 +187,7 @@ export default function HomeView({ userName, userEmail, onNav, onLogout, totalCl
               }}>
               {/* Notification badge for Director Dashboard */}
               {s.key === 'director' && missedEventCount > 0 && (
-                <span style={{position:'absolute', top:'-1px', right:'-1px', background:'#ff4444', color:'var(--text-primary)', borderRadius:'12px', minWidth:'22px', height:'22px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:800, padding:'0 6px', boxShadow:'0 0 12px rgba(255,68,68,.5)', zIndex:2}}>{missedEventCount}</span>
+                <span style={{position:'absolute', top:'-1px', right:'-1px', background:'var(--red-strong)', color:'var(--text-primary)', borderRadius:'12px', minWidth:'22px', height:'22px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:800, padding:'0 6px', boxShadow:'0 0 12px rgba(255,68,68,.5)', zIndex:2}}>{missedEventCount}</span>
               )}
               <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'16px'}}>
                 <span style={{fontSize:'10px', fontWeight:800, letterSpacing:'.2em', color:'var(--accent-ink)'}}>{s.num}</span>
@@ -213,11 +213,11 @@ export default function HomeView({ userName, userEmail, onNav, onLogout, totalCl
         </div>
       </div>
 
-      <div className="home-footer" style={{borderTop:'1px solid #0f0f0f', padding:'14px 32px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-        <p style={{margin:0, fontSize:'10px', color:'#2a2a2a', letterSpacing:'.15em', textTransform:'uppercase'}}>Premmisus · Internal Use Only · Confidential</p>
+      <div className="home-footer" style={{borderTop:'1px solid var(--bg-sidebar-line)', padding:'14px 32px', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+        <p style={{margin:0, fontSize:'10px', color:'var(--text-faint)', letterSpacing:'.15em', textTransform:'uppercase'}}>Premmisus · Internal Use Only · Confidential</p>
         <div style={{display:'flex', alignItems:'center', gap:'6px'}}>
           <div className="pulse" style={{width:'5px',height:'5px'}}/>
-          <p style={{margin:0, fontSize:'10px', color:'#2a2a2a', letterSpacing:'.1em'}}>Sales Command Rev 2.2</p>
+          <p style={{margin:0, fontSize:'10px', color:'var(--text-faint)', letterSpacing:'.1em'}}>Sales Command Rev 2.2</p>
         </div>
       </div>
     </div>
