@@ -17,6 +17,156 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 ---
 
 <!-- ENTRIES BELOW -->
+## 2026-05-11 [UNTAGGED] fix(call-center): bump callback button tap targets to 40px for mobile
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `1a54f3f5a33e197d98b2d7adaea94f2ba6ab5a48` (`1a54f3f`)
+
+**Files:**
+- `components/call-center/ColdCallView.tsx`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert 1a54f3f
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-11 [UNTAGGED] fix(call-center): callback button now actually dials from Follow Up + Booked tabs
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `8e1bc0a59abc779dd8daf61280c1202b9c9dcba1` (`8e1bc0a`)
+
+**Files:**
+- `components/call-center/ColdCallView.tsx`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert 8e1bc0a
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-11 [UNTAGGED] fix(call-logs): remove phantom auto-log on tap-to-call fallback
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `7278a08b28f4e90533823a2578e95ece425c554a` (`7278a08`)
+
+**Files:**
+- `components/call-center/LeadRow.tsx`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert 7278a08
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-11 [UNTAGGED] feat(call-logger): multi-select callback reasons + callback time
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `cc04e667b1e26c5cdf5599cd059ee84305c975f7` (`cc04e66`)
+
+**Files:**
+- `components/call-center/CallLogger.tsx`
+- `components/call-center/EditCallLogModal.tsx`
+- `lib/constants.ts`
+- `supabase/migrations/20260513_callback_time_and_multi_reason.sql`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert cc04e66
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-11 [UNTAGGED] feat(call-logger): multi-select outcomes — primary + secondary tags
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `801a122f5d3d4a120689a05c6c2fdf90a779135d` (`801a122`)
+
+**Files:**
+- `components/call-center/CallLogger.tsx`
+- `components/call-center/EditCallLogModal.tsx`
+- `lib/types.ts`
+- `supabase/migrations/20260511_additional_outcomes.sql`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert 801a122
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-10 [UNTAGGED] fix(sentry): add onRouterTransitionStart hook (SDK v10 requirement)
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `a4af448812f3a97e23aede560a04edc87f4637c6` (`a4af448`)
+
+**Files:**
+- `instrumentation-client.ts`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert a4af448
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
 ## 2026-05-10 [UNTAGGED] chore: redeploy to pick up Sentry DSN env vars
 
 **Status:** 🟡 STUB — needs enrichment

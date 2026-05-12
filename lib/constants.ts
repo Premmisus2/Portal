@@ -63,6 +63,11 @@ export const NICHE_LIST = [
 
 export const USD_TO_CAD = 1.38;
 
+// Pricing locked 2026-05-11 after market audit (Hook Agency, Service Scalers,
+// Scorpion, Blue Corona, Caliph Digital comps; Vapi/GHL raw-cost teardown).
+// Foundation 1.0 uses Option C — inbound vs outbound split. Reps quote based on
+// lead source; this constant carries the OUTBOUND price (90%+ of current closes).
+// Inbound price is in INBOUND_OVERRIDE_PRICING below.
 export const CLOSE_PRODUCTS = [
   // Marketing tiers
   { id: 'website',      label: 'Website Package',         pts: 1, price: '$1,500 CAD',        commission: '$500 CAD flat',               setupFee: null },
@@ -70,16 +75,69 @@ export const CLOSE_PRODUCTS = [
   { id: 'authority',    label: 'Authority System 2.0',     pts: 3, price: '$2,999/mo',          commission: '~$210 CAD/mo',                setupFee: null },
   { id: 'domination',   label: 'Market Domination 3.0',   pts: 4, price: '$5,999/mo',          commission: '~$420 CAD/mo',                setupFee: null },
   // AI services — individual (1 pt each)
-  { id: 'ai_vapi',      label: 'AI Receptionist',          pts: 1, price: '$1,200-1,500/mo',    commission: '$500 upfront + ~$98/mo',      setupFee: '$1,000' },
+  { id: 'ai_vapi_lite',     label: 'AI Receptionist — Lite',     pts: 1, price: '$499/mo',           commission: '$250 upfront + ~$35/mo',      setupFee: '$499' },
+  { id: 'ai_vapi',          label: 'AI Receptionist — Standard', pts: 1, price: '$999/mo',           commission: '$500 upfront + ~$70/mo',      setupFee: '$999' },
+  { id: 'ai_vapi_premium',  label: 'AI Receptionist — Premium',  pts: 2, price: '$1,499/mo',         commission: '$750 upfront + ~$105/mo',     setupFee: '$1,499' },
   { id: 'ai_sms',       label: 'SMS Sequences',            pts: 1, price: '$500-750/mo',         commission: '$375 upfront + ~$44/mo',      setupFee: '$750' },
-  { id: 'ai_email',     label: 'Email Sequences',          pts: 1, price: '$400-500/mo',         commission: '$250 upfront + ~$31/mo',      setupFee: '$500' },
+  { id: 'ai_email',     label: 'Email Sequences',          pts: 1, price: '$500-750/mo',         commission: '$250 upfront + ~$35/mo',      setupFee: '$500' },
   { id: 'ai_chat',      label: 'Website Chatbot',          pts: 1, price: '$500-750/mo',         commission: '$375 upfront + ~$44/mo',      setupFee: '$750' },
-  { id: 'ai_crm',       label: 'CRM Automation',           pts: 1, price: '$500-750/mo',         commission: '$375 upfront + ~$44/mo',      setupFee: '$750' },
+  { id: 'ai_crm',       label: 'CRM Automation',           pts: 1, price: '$600-900/mo',         commission: '$375 upfront + ~$53/mo',      setupFee: '$750' },
   // AI bundles — pts by total package value
   { id: 'ai_bundle_2',  label: 'AI Bundle (~$2K/mo)',      pts: 2, price: '~$2,000/mo',          commission: '50% setup + 7% MRR',          setupFee: 'Varies' },
   { id: 'ai_bundle_3',  label: 'AI Bundle (~$2.5K+/mo)',   pts: 3, price: '~$2,500-5,999/mo',    commission: '50% setup + 7% MRR',          setupFee: 'Varies' },
   { id: 'ai_bundle_4',  label: 'AI Bundle ($6K+/mo)',      pts: 4, price: '$6,000+/mo',           commission: '50% setup + 7% MRR',          setupFee: 'Varies' },
 ];
+
+// Inbound prices for Option C. When the lead source is warm (referral, website
+// opt-in, paid-ad form, social DM inbound, organic content), reps quote the
+// inbound number. The product itself is identical — only the price changes
+// based on how the prospect arrived.
+export const INBOUND_OVERRIDE_PRICING: Record<string, { price: string; commission: string }> = {
+  foundation: { price: '$1,799/mo', commission: '~$126 CAD/mo' },
+  // Authority / Market Domination / Full Stack stay single-price for now.
+  // Revisit when inbound channel matures (paid ads + social + SEO live).
+};
+
+// DACH pricing — applies when the client is in Germany / Austria / Switzerland.
+// EUR ceiling is real (Aaron.ai €350, Alveni €299-€499, Parloa €149+). Do NOT
+// quote CAD numbers in EUR; that prices Premmisus 2-3x above the market.
+export const DACH_PRICING: Record<string, { price: string; setupFee?: string; commission?: string }> = {
+  website:           { price: '€1,500 EUR',           commission: '€500 EUR flat' },
+  foundation:        { price: '€999/mo',              commission: '~€70/mo' }, // inbound override: €1,199/mo
+  authority:         { price: '€1,799/mo',            commission: '~€126/mo' },
+  domination:        { price: '€3,499/mo',            commission: '~€245/mo' },
+  full_stack:        { price: '€4,999-€8,999/mo',     commission: '50% setup + 7% MRR' },
+  ai_vapi_lite:      { price: '€299/mo',              setupFee: '€499',   commission: '€250 upfront + ~€21/mo' },
+  ai_vapi:           { price: '€499/mo',              setupFee: '€799',   commission: '€400 upfront + ~€35/mo' },
+  ai_vapi_premium:   { price: '€899/mo',              setupFee: '€1,500', commission: '€750 upfront + ~€63/mo' },
+  ai_sms:            { price: '€299-499/mo',          setupFee: '€499',   commission: '50% setup + 7% MRR' },
+  ai_email:          { price: '€299-499/mo',          setupFee: '€499',   commission: '50% setup + 7% MRR' },
+  ai_chat:           { price: '€299-499/mo',          setupFee: '€499',   commission: '50% setup + 7% MRR' },
+  ai_crm:            { price: '€399-599/mo',          setupFee: '€499',   commission: '50% setup + 7% MRR' },
+  bundle_discount:   { price: '€150 off when ≥3 services' },
+};
+
+// Bundle discount — CAD market.
+export const BUNDLE_DISCOUNT_CAD = 250;
+
+// Commission framework — locked 2026-05-11.
+// Setup: 50% of the setup fee, paid on director approval.
+// Recurring: 7% of MRR every month the client stays.
+// Manager override: 3% on team-member sales (Manager Growth Lead+).
+// CLAWBACK: 90-day cliff on RECURRING only. Setup commission stays untouched.
+//   - If the client cancels within 90 days, the recurring commission earned
+//     during those months is deducted from the rep's next commission check.
+//   - EXCEPTION: clawback does NOT apply if the cancellation is due to a
+//     Premmisus delivery failure (we didn't deliver what was sold). Director
+//     judgement call on which is which.
+export const COMMISSION_FRAMEWORK = {
+  setupPercent: 0.5,
+  recurringPercent: 0.07,
+  managerOverridePercent: 0.03,
+  clawbackWindowDays: 90,
+  clawbackAppliesToSetup: false,
+  clawbackExceptionDeliveryFailure: true,
+};
 
 export type TierInfo = {
   name: string;
