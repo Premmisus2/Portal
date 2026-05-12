@@ -25,31 +25,31 @@ const DIRECTOR_TABS = [
 
 function PendingClosesTab({ closes, onApprove, onReject }: { closes: any[]; onApprove: (id: string) => void; onReject: (id: string) => void }) {
   if (closes.length === 0) return (
-    <div style={{ textAlign: 'center', padding: '60px 20px', color: '#333' }}>
+    <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text-faint)' }}>
       <p style={{ fontSize: '32px', margin: '0 0 12px' }}>✓</p>
-      <p style={{ fontSize: '14px', fontWeight: 700, color: '#555', margin: 0 }}>No pending closes</p>
-      <p style={{ fontSize: '12px', color: '#333', margin: '4px 0 0' }}>All closes have been reviewed.</p>
+      <p style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', margin: 0 }}>No pending closes</p>
+      <p style={{ fontSize: '12px', color: 'var(--text-faint)', margin: '4px 0 0' }}>All closes have been reviewed.</p>
     </div>
   );
 
   return (
     <div>
       <div style={{ marginBottom: '16px' }}>
-        <h3 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: '#fff' }}>Pending Close Approvals</h3>
-        <p style={{ margin: 0, fontSize: '12px', color: '#555' }}>Review and approve or reject rep-submitted closes. Points only count after approval.</p>
+        <h3 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>Pending Close Approvals</h3>
+        <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>Review and approve or reject rep-submitted closes. Points only count after approval.</p>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {closes.map((c: any) => {
           const date = new Date(c.created_at).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/Toronto' });
           return (
-            <div key={c.id} style={{ background: '#0d0d0d', border: '1px solid rgba(245,158,11,.2)', borderRadius: '10px', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+            <div key={c.id} style={{ background: 'var(--bg-elev-1)', border: '1px solid rgba(245,158,11,.2)', borderRadius: '10px', padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
-                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#fff', fontFamily: 'Inter, sans-serif' }}>{c.reps?.name || 'Unknown Rep'}</span>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'Inter, sans-serif' }}>{c.reps?.name || 'Unknown Rep'}</span>
                   <span style={{ fontSize: '9px', fontWeight: 800, padding: '2px 8px', borderRadius: '20px', background: 'rgba(245,158,11,.1)', border: '1px solid rgba(245,158,11,.3)', color: '#F59E0B', fontFamily: 'JetBrains Mono, monospace', letterSpacing: '.1em', textTransform: 'uppercase' }}>PENDING</span>
                 </div>
-                <p style={{ margin: '0 0 2px', fontSize: '13px', color: '#ccc' }}>{c.product_label || `${c.pts} pt close`}</p>
-                <p style={{ margin: 0, fontSize: '11px', color: '#444' }}>{date} · +{c.pts} pt{c.pts > 1 ? 's' : ''}</p>
+                <p style={{ margin: '0 0 2px', fontSize: '13px', color: 'var(--text-secondary)' }}>{c.product_label || `${c.pts} pt close`}</p>
+                <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-faint)' }}>{date} · +{c.pts} pt{c.pts > 1 ? 's' : ''}</p>
               </div>
               <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                 <button onClick={() => onReject(c.id)}
@@ -103,7 +103,7 @@ export default function DirectorView(props: any) {
   }, []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000', paddingTop: shadowMode ? '40px' : 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg-app)', paddingTop: shadowMode ? '40px' : 0 }}>
       <TopBar title="Director Dashboard" subtitle="Command & Control"
         userName={userName} userEmail={userEmail} onHome={onHome} onLogout={onLogout} onPrint={() => {}}
         totalCloses={totalCloses} setTotalCloses={setTotalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}
@@ -112,14 +112,14 @@ export default function DirectorView(props: any) {
         shadowMode={shadowMode} shadowRepName={shadowRepName} allReps={allReps} enterShadow={enterShadow} exitShadow={exitShadow} />
 
       {/* Tab bar */}
-      <div className="no-print" style={{ display: 'flex', gap: '4px', padding: '8px 24px', borderBottom: '1px solid #111', background: '#050505', overflowX: 'auto', flexShrink: 0 }}>
+      <div className="no-print" style={{ display: 'flex', gap: '4px', padding: '8px 24px', borderBottom: '1px solid #111', background: 'var(--bg-nav)', overflowX: 'auto', flexShrink: 0 }}>
         {DIRECTOR_TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`call-tab${tab === t.id ? ' active' : ''}`}
             style={{ fontSize: '11px', padding: '7px 16px', whiteSpace: 'nowrap', position: 'relative' }}>
             {t.label}
             {t.id === 'closes' && pendingCount > 0 && (
-              <span style={{ marginLeft: '6px', background: '#F59E0B', color: '#000', fontSize: '9px', fontWeight: 800, borderRadius: '10px', padding: '1px 6px', fontFamily: 'JetBrains Mono, monospace' }}>{pendingCount}</span>
+              <span style={{ marginLeft: '6px', background: '#F59E0B', color: 'var(--bg-app)', fontSize: '9px', fontWeight: 800, borderRadius: '10px', padding: '1px 6px', fontFamily: 'JetBrains Mono, monospace' }}>{pendingCount}</span>
             )}
           </button>
         ))}

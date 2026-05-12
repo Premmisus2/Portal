@@ -3,7 +3,6 @@
 import Icon from '@/components/ui/Icon';
 import ClosesTracker from '@/components/shared/ClosesTracker';
 import ProfileDropdown from '@/components/layout/ProfileDropdown';
-import ThemeToggle from '@/components/ui/ThemeToggle';
 
 export default function TopBar({ title, subtitle, userName, userEmail, onHome, onLogout, onPrint, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, onShortcuts, onSettings, onToggleSidebar, actuallyDirector, viewAsRep, onToggleView, shadowMode, shadowRepName, allReps, enterShadow, exitShadow }: any) {
   return (
@@ -28,7 +27,6 @@ export default function TopBar({ title, subtitle, userName, userEmail, onHome, o
           <div className="pulse" />
           <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--text-faint)' }}>{userName}</span>
         </div>
-        <ThemeToggle />
         {onPrint && <button onClick={onPrint} className="btn-pdf mobile-hide"><Icon name="download" size={13} />Download PDF</button>}
         {actuallyDirector && (
           <a

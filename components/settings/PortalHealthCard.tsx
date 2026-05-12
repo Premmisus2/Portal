@@ -33,7 +33,7 @@ const STATUS_COLOR: Record<Status, string> = {
   ok: '#22c55e',
   warn: '#F59E0B',
   down: '#ff6060',
-  unknown: '#666',
+  unknown: 'var(--text-muted)',
 };
 
 const GROUP_LABEL: Record<Subsystem['group'], string> = {
@@ -43,12 +43,12 @@ const GROUP_LABEL: Record<Subsystem['group'], string> = {
 };
 
 const tileStyle: CSSProperties = {
-  background: '#0e0e0e', border: '1px solid #1a1a1a', borderRadius: '8px',
+  background: '#0e0e0e', border: '1px solid var(--border-soft)', borderRadius: '8px',
   padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '10px',
 };
 
 const groupHeaderStyle: CSSProperties = {
-  fontSize: '9px', fontWeight: 800, color: '#555', letterSpacing: '.16em',
+  fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '.16em',
   textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace',
   margin: '12px 0 8px',
 };
@@ -85,13 +85,13 @@ function Tile({ sub }: { sub: Subsystem }) {
       <StatusDot status={sub.status} />
       <div style={{ minWidth: 0, flex: 1 }}>
         <div style={{
-          fontSize: '12px', fontWeight: 700, color: '#fff', fontFamily: 'Inter, sans-serif',
+          fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'Inter, sans-serif',
           whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
           {sub.name}
         </div>
         <div style={{
-          fontSize: '10px', color: '#666', fontFamily: 'Roboto, sans-serif',
+          fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'Roboto, sans-serif',
           marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>
           {sub.detail}
@@ -164,7 +164,7 @@ export default function PortalHealthCard() {
     <SettingsSection
       title="Portal health"
       description="Live status across crons, integrations, and storage. Refresh re-runs every check."
-      badge={loading && !data ? { label: 'LOADING', color: '#666' } : summary}
+      badge={loading && !data ? { label: 'LOADING', color: 'var(--text-muted)' } : summary}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
         {errMsg && (
@@ -174,7 +174,7 @@ export default function PortalHealthCard() {
         )}
 
         {!data && loading && (
-          <p style={{ margin: '6px 0', fontSize: '11px', color: '#555', fontFamily: 'Roboto, sans-serif' }}>
+          <p style={{ margin: '6px 0', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'Roboto, sans-serif' }}>
             Probing subsystems…
           </p>
         )}
@@ -197,17 +197,17 @@ export default function PortalHealthCard() {
             marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #141414',
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px',
           }}>
-            <div style={{ fontSize: '10px', color: '#555', fontFamily: 'JetBrains Mono, monospace' }}>
+            <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
               v{data.build.version}
-              {data.build.commit && <> · <span style={{ color: '#777' }}>{data.build.commit}</span></>}
+              {data.build.commit && <> · <span style={{ color: 'var(--text-tertiary)' }}>{data.build.commit}</span></>}
               {data.build.branch && <> · {data.build.branch}</>}
               {data.checked_at && <> · checked {relTime(data.checked_at)}</>}
             </div>
             <button onClick={load} disabled={loading}
               style={{
                 padding: '6px 14px', borderRadius: '5px',
-                border: '1px solid rgba(0,240,255,.3)', background: 'rgba(0,240,255,.08)',
-                color: '#00F0FF', fontSize: '10px', fontWeight: 700, cursor: loading ? 'wait' : 'pointer',
+                border: '1px solid var(--accent-glow-30)', background: 'var(--accent-glow-08)',
+                color: 'var(--accent-ink)', fontSize: '10px', fontWeight: 700, cursor: loading ? 'wait' : 'pointer',
                 fontFamily: 'Inter, sans-serif', opacity: loading ? 0.5 : 1, letterSpacing: '.04em',
               }}>
               {loading ? 'REFRESHING…' : '↻ REFRESH'}

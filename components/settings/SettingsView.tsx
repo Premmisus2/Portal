@@ -22,7 +22,7 @@ interface Props {
 const groupHeaderStyle: CSSProperties = {
   display: 'flex', alignItems: 'center', gap: '10px',
   margin: '4px 0 12px', fontSize: '10px', fontWeight: 700,
-  color: '#444', letterSpacing: '.16em', textTransform: 'uppercase',
+  color: 'var(--text-faint)', letterSpacing: '.16em', textTransform: 'uppercase',
   fontFamily: 'JetBrains Mono, monospace',
 };
 
@@ -35,10 +35,10 @@ export default function SettingsView({ userName, userEmail, repId, isDirector, e
     <div style={{ maxWidth: '720px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
       {!embedded && (
         <div style={{ marginBottom: '6px' }}>
-          <h2 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: 800, color: '#fff', fontFamily: 'Inter, sans-serif' }}>
+          <h2 style={{ margin: '0 0 4px', fontSize: '20px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Inter, sans-serif' }}>
             Settings
           </h2>
-          <p style={{ margin: 0, fontSize: '12px', color: '#555', fontFamily: 'Roboto, sans-serif' }}>
+          <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'Roboto, sans-serif' }}>
             Manage your account, password, and notifications.
           </p>
         </div>
@@ -56,9 +56,9 @@ export default function SettingsView({ userName, userEmail, repId, isDirector, e
 
       {isDirector && (
         <>
-          <div style={{ ...groupHeaderStyle, marginTop: '14px', color: '#00F0FF' }}>
+          <div style={{ ...groupHeaderStyle, marginTop: '14px', color: 'var(--accent-ink)' }}>
             <span>Admin</span>
-            <span style={{ ...dividerStyle, background: 'rgba(0,240,255,.12)' }} />
+            <span style={{ ...dividerStyle, background: 'var(--accent-glow-12)' }} />
           </div>
 
           <PortalHealthCard />

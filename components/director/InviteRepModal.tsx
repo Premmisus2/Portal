@@ -60,45 +60,45 @@ export default function InviteRepModal({ existingNames, onClose }: Props) {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: '#0d0d0d', border: '1px solid #2a2a2a', borderRadius: '12px',
+    background: 'var(--bg-elev-1)', border: '1px solid #2a2a2a', borderRadius: '12px',
     padding: '24px 26px', maxWidth: '480px', width: '100%',
   };
 
   const inputStyle: React.CSSProperties = {
-    width: '100%', padding: '8px 10px', background: '#111', border: '1px solid #333',
-    borderRadius: '6px', color: '#fff', fontSize: '13px', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box',
+    width: '100%', padding: '8px 10px', background: 'var(--bg-sidebar-line)', border: '1px solid #333',
+    borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'Inter, sans-serif', outline: 'none', boxSizing: 'border-box',
   };
 
   return (
     <div style={overlayStyle} onClick={onClose}>
       <div style={cardStyle} onClick={e => e.stopPropagation()}>
-        <h2 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: '#fff' }}>Invite Rep</h2>
-        <p style={{ margin: '0 0 18px', fontSize: '12px', color: '#666', lineHeight: 1.6 }}>
+        <h2 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>Invite Rep</h2>
+        <p style={{ margin: '0 0 18px', fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
           Generate an invite code and send it to the rep. They register at portal.premmisus.ca with their email + this code.
           The rep row is created when they complete registration.
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: '#444', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '6px' }}>Rep Name</label>
+            <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '6px' }}>Rep Name</label>
             <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Isaiah Romanow" style={inputStyle} autoFocus />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: '#444', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '6px' }}>Email</label>
+            <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '6px' }}>Email</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="rep@premmisus.com" style={inputStyle} />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: '#444', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '6px' }}>Role</label>
+            <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '6px' }}>Role</label>
             <div style={{ display: 'flex', gap: '8px' }}>
               {(['rep', 'director'] as const).map(r => (
                 <button key={r} type="button" onClick={() => setRole(r)}
                   style={{
                     flex: 1, padding: '8px', borderRadius: '6px', cursor: 'pointer',
-                    border: `1px solid ${role === r ? (r === 'director' ? 'rgba(0,240,255,.4)' : '#2a2a2a') : '#1e1e1e'}`,
-                    background: role === r ? (r === 'director' ? 'rgba(0,240,255,.08)' : '#1a1a1a') : 'transparent',
-                    color: role === r ? (r === 'director' ? '#00F0FF' : '#fff') : '#666',
+                    border: `1px solid ${role === r ? (r === 'director' ? 'var(--accent-glow-40)' : '#2a2a2a') : 'var(--border)'}`,
+                    background: role === r ? (r === 'director' ? 'var(--accent-glow-08)' : 'var(--border-soft)') : 'transparent',
+                    color: role === r ? (r === 'director' ? 'var(--accent-ink)' : 'var(--text-primary)') : 'var(--text-muted)',
                     fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.1em',
                   }}>
                   {r}
@@ -114,15 +114,15 @@ export default function InviteRepModal({ existingNames, onClose }: Props) {
 
           {/* Generated code */}
           <div>
-            <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: '#444', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '6px' }}>Generated Invite Code</label>
+            <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '6px' }}>Generated Invite Code</label>
             <div style={{
-              padding: '14px 16px', background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '8px',
-              fontFamily: 'JetBrains Mono, monospace', fontSize: '15px', color: code ? '#00F0FF' : '#333', fontWeight: 700,
+              padding: '14px 16px', background: 'var(--bg-elev-pill)', border: '1px solid var(--border-soft)', borderRadius: '8px',
+              fontFamily: 'JetBrains Mono, monospace', fontSize: '15px', color: code ? 'var(--accent-ink)' : 'var(--text-faint)', fontWeight: 700,
               letterSpacing: '.06em', textAlign: 'center',
             }}>
               {code || 'Enter rep name to generate'}
             </div>
-            <p style={{ margin: '6px 0 0', fontSize: '10px', color: '#444', lineHeight: 1.6 }}>
+            <p style={{ margin: '6px 0 0', fontSize: '10px', color: 'var(--text-faint)', lineHeight: 1.6 }}>
               Suffix increments automatically if a rep with the same first name already exists.
               Note: this code is not stored until the rep completes registration — there's no allow-list.
             </p>
@@ -133,7 +133,7 @@ export default function InviteRepModal({ existingNames, onClose }: Props) {
             <button onClick={copyCode} disabled={!code}
               style={{
                 flex: 1, padding: '10px', borderRadius: '6px', cursor: code ? 'pointer' : 'not-allowed',
-                border: '1px solid rgba(0,240,255,.3)', background: 'rgba(0,240,255,.08)', color: '#00F0FF',
+                border: '1px solid var(--accent-glow-30)', background: 'var(--accent-glow-08)', color: 'var(--accent-ink)',
                 fontSize: '12px', fontWeight: 700, opacity: code ? 1 : 0.4,
               }}>
               {copied ? '✓ Copied' : 'Copy code only'}
@@ -151,7 +151,7 @@ export default function InviteRepModal({ existingNames, onClose }: Props) {
           {/* Footer */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '6px' }}>
             <button onClick={onClose}
-              style={{ padding: '8px 18px', borderRadius: '6px', border: '1px solid #2a2a2a', background: 'transparent', color: '#888', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>
+              style={{ padding: '8px 18px', borderRadius: '6px', border: '1px solid #2a2a2a', background: 'transparent', color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>
               Done
             </button>
           </div>

@@ -8,7 +8,7 @@ import SubjectLine from '@/components/shared/SubjectLine';
 const EmailPanel = () => (
   <div>
     <div style={{ marginBottom: '6px' }}><span className="tag">11</span></div>
-    <h2 style={{ fontSize: '26px', fontWeight: 900, color: '#fff', margin: '8px 0 4px' }}>Email Outreach — 3-Touch Cold Sequence</h2>
+    <h2 style={{ fontSize: '26px', fontWeight: 900, color: 'var(--text-primary)', margin: '8px 0 4px' }}>Email Outreach — 3-Touch Cold Sequence</h2>
     <Body>Cold B2B emails to publicly-listed business addresses are CASL-compliant. Always include your name, company, and opt-out line.</Body>
     <div className="divider" style={{ margin: '16px 0' }} />
     <OutreachRule title="CASL Compliance">Cold B2B emails are permitted under implied consent when the recipient is a business and their email is publicly visible. Always include: your name, company name, and "Reply STOP to be removed."</OutreachRule>

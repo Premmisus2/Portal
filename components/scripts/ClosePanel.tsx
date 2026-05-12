@@ -5,8 +5,8 @@ import { Rep, Body, SecH, SubH, PLabel } from '@/components/ui/Typography';
 const ClosePanel = () => (
   <div>
     <div style={{marginBottom:'6px'}}><span className="tag">06</span></div>
-    <h2 style={{fontSize:'26px',fontWeight:900,color:'#fff',margin:'8px 0 4px'}}>The Pivot & Financial Close</h2>
-    <Body>This is where deals are made or lost. Every line here is deliberate. <strong style={{color:'#fff'}}>Do not improvise.</strong></Body>
+    <h2 style={{fontSize:'26px',fontWeight:900,color:'var(--text-primary)',margin:'8px 0 4px'}}>The Pivot & Financial Close</h2>
+    <Body>This is where deals are made or lost. Every line here is deliberate. <strong style={{color:'var(--text-primary)'}}>Do not improvise.</strong></Body>
     <div className="divider" style={{margin:'16px 0'}}/>
 
     <SecH>The Pivot — Bridging to Full-Stack & the Meet</SecH>
@@ -31,7 +31,7 @@ const ClosePanel = () => (
     </div>
 
     <SecH>The Financial Close — The $500/$500 Split</SecH>
-    <Body>Once the prospect agrees to the website or preview, confidently establish the payment structure. <strong style={{color:'#fff'}}>Do not stutter when talking about money.</strong></Body>
+    <Body>Once the prospect agrees to the website or preview, confidently establish the payment structure. <strong style={{color:'var(--text-primary)'}}>Do not stutter when talking about money.</strong></Body>
 
     <div className="card-glow" style={{padding:'20px',marginTop:'12px',marginBottom:'12px'}}>
       <SubH>The De-Risked Pitch</SubH>

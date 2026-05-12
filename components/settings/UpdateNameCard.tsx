@@ -13,7 +13,7 @@ interface Props {
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '9px 12px', background: '#0e0e0e', border: '1px solid #1f1f1f',
-  borderRadius: '6px', color: '#fff', fontSize: '13px', fontFamily: 'Inter, sans-serif',
+  borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'Inter, sans-serif',
   outline: 'none',
 };
 
@@ -75,8 +75,8 @@ export default function UpdateNameCard({ repId, currentName }: Props) {
           <button onClick={submit} disabled={busy || !dirty}
             style={{
               padding: '9px 18px', borderRadius: '6px',
-              border: '1px solid rgba(0,240,255,.3)', background: 'rgba(0,240,255,.08)',
-              color: '#00F0FF', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+              border: '1px solid var(--accent-glow-30)', background: 'var(--accent-glow-08)',
+              color: 'var(--accent-ink)', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
               fontFamily: 'Inter, sans-serif', opacity: (busy || !dirty) ? 0.5 : 1,
             }}>
             {busy ? 'Saving…' : 'Save name'}

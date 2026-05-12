@@ -19,7 +19,7 @@ const NicheTracksPanel = () => {
   return (
     <div>
       <div style={{marginBottom:'6px'}}><span className="tag">06</span></div>
-      <h2 style={{fontSize:'26px',fontWeight:900,color:'#fff',margin:'8px 0 4px'}}>Niche Talk Tracks</h2>
+      <h2 style={{fontSize:'26px',fontWeight:900,color:'var(--text-primary)',margin:'8px 0 4px'}}>Niche Talk Tracks</h2>
       <Body>Industry-specific pain points, openers, and hooks. Know what hurts before you call — then speak their language.</Body>
       <div className="divider" style={{margin:'16px 0'}}/>
 
@@ -30,23 +30,23 @@ const NicheTracksPanel = () => {
               onClick={() => setActive(active === niche.id ? null : niche.id)}
               style={{
                 width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between',
-                padding:'14px 16px', background: active === niche.id ? '#0d0d0d' : '#080808',
-                border: active === niche.id ? '1px solid rgba(0,240,255,.2)' : '1px solid #1a1a1a',
+                padding:'14px 16px', background: active === niche.id ? 'var(--bg-elev-1)' : 'var(--bg-elev-2)',
+                border: active === niche.id ? '1px solid var(--accent-glow-22)' : '1px solid var(--border-soft)',
                 borderRadius: active === niche.id ? '10px 10px 0 0' : '10px',
                 cursor:'pointer', transition:'all .2s', outline:'none',
               }}
               onMouseEnter={e => { if (active !== niche.id) e.currentTarget.style.borderColor = '#2a2a2a'; }}
-              onMouseLeave={e => { if (active !== niche.id) e.currentTarget.style.borderColor = '#1a1a1a'; }}
+              onMouseLeave={e => { if (active !== niche.id) e.currentTarget.style.borderColor = 'var(--border-soft)'; }}
             >
               <div style={{display:'flex', alignItems:'center', gap:'12px'}}>
                 <span style={{fontSize:'18px'}}>{niche.icon}</span>
-                <span style={{fontSize:'14px', fontWeight:700, color: active === niche.id ? '#00F0FF' : '#888', fontFamily:'Inter,sans-serif', transition:'color .2s'}}>{niche.label}</span>
+                <span style={{fontSize:'14px', fontWeight:700, color: active === niche.id ? 'var(--accent-ink)' : 'var(--text-tertiary)', fontFamily:'Inter,sans-serif', transition:'color .2s'}}>{niche.label}</span>
               </div>
-              <span style={{fontSize:'12px', color:'#333', transform: active === niche.id ? 'rotate(90deg)' : 'rotate(0deg)', transition:'transform .2s'}}>▸</span>
+              <span style={{fontSize:'12px', color:'var(--text-faint)', transform: active === niche.id ? 'rotate(90deg)' : 'rotate(0deg)', transition:'transform .2s'}}>▸</span>
             </button>
 
             {active === niche.id && (
-              <div style={{padding:'20px', background:'#0a0a0a', border:'1px solid rgba(0,240,255,.2)', borderTop:'none', borderRadius:'0 0 10px 10px'}} className="fadein">
+              <div style={{padding:'20px', background:'var(--bg-elev-pill)', border:'1px solid var(--accent-glow-22)', borderTop:'none', borderRadius:'0 0 10px 10px'}} className="fadein">
                 {renderNicheContent(niche.id)}
               </div>
             )}
@@ -78,7 +78,7 @@ function TierBadge({ tier }: { tier: 'junior' | 'commander' | 'all' }) {
   if (tier === 'all') return null;
   const styles = tier === 'junior'
     ? { bg: 'rgba(249,115,22,.12)', border: 'rgba(249,115,22,.3)', color: '#fb923c', label: 'ALL TIERS' }
-    : { bg: 'rgba(0,240,255,.1)', border: 'rgba(0,240,255,.3)', color: '#00F0FF', label: 'FIELD COMMANDER+' };
+    : { bg: 'var(--accent-glow-10)', border: 'var(--accent-glow-30)', color: 'var(--accent-ink)', label: 'FIELD COMMANDER+' };
   return (
     <span style={{fontSize:'8px', fontWeight:800, padding:'2px 8px', borderRadius:'4px', fontFamily:'JetBrains Mono,monospace', letterSpacing:'.12em', background:styles.bg, border:`1px solid ${styles.border}`, color:styles.color, marginLeft:'8px', verticalAlign:'middle'}}>{styles.label}</span>
   );
@@ -199,9 +199,9 @@ function CleaningTrack() {
         <Body>Leads with the value prop directly. Filters fast — interested prospects lean in immediately, uninterested ones say so quickly. Good for high-volume calling.</Body>
       </div>
 
-      <div className="card" style={{padding:'18px',marginBottom:'12px',border:'1px solid rgba(0,240,255,.15)'}}>
+      <div className="card" style={{padding:'18px',marginBottom:'12px',border:'1px solid var(--accent-glow-15)'}}>
         <PLabel>[Opener 4: The Warm Callback]</PLabel>
-        <span style={{fontSize:'8px', fontWeight:800, padding:'2px 8px', borderRadius:'4px', fontFamily:'JetBrains Mono,monospace', letterSpacing:'.12em', background:'rgba(0,240,255,.1)', border:'1px solid rgba(0,240,255,.3)', color:'#00F0FF', marginLeft:'8px'}}>FIELD COMMANDER+</span>
+        <span style={{fontSize:'8px', fontWeight:800, padding:'2px 8px', borderRadius:'4px', fontFamily:'JetBrains Mono,monospace', letterSpacing:'.12em', background:'var(--accent-glow-10)', border:'1px solid var(--accent-glow-30)', color:'var(--accent-ink)', marginLeft:'8px'}}>FIELD COMMANDER+</span>
         <Rep>Hey [Name], this is [Rep] from Premmisus. We actually spoke about a month ago, and you told me to call back. Since then, AI has been moving so fast that I&rsquo;ve had to take this time to research everything that&rsquo;s been going on — and I think there&rsquo;s something here that&rsquo;s worth 60 seconds of your time.</Rep>
         <Body>Advanced play. Requires confidence and the ability to navigate if they don&rsquo;t remember the previous call. Works best when calling back warm leads from a previous pass. NOT for Junior Growth Associates — this takes experience to pull off naturally.</Body>
       </div>
@@ -240,7 +240,7 @@ function ConstructionTrack() {
   return (
     <div>
       <SubH>Pain Points You&rsquo;ll Hear</SubH>
-      <div style={{color:'#888',fontSize:'13px',lineHeight:1.7,fontFamily:'Roboto,sans-serif',marginTop:'8px'}}>
+      <div style={{color:'var(--text-tertiary)',fontSize:'13px',lineHeight:1.7,fontFamily:'Roboto,sans-serif',marginTop:'8px'}}>
         Content coming soon — Elliott is building these with real call data.
       </div>
     </div>
@@ -254,7 +254,7 @@ function LandscapingTrack() {
   return (
     <div>
       <SubH>Pain Points You&rsquo;ll Hear</SubH>
-      <div style={{color:'#888',fontSize:'13px',lineHeight:1.7,fontFamily:'Roboto,sans-serif',marginTop:'8px'}}>
+      <div style={{color:'var(--text-tertiary)',fontSize:'13px',lineHeight:1.7,fontFamily:'Roboto,sans-serif',marginTop:'8px'}}>
         Content coming soon — Elliott is building these with real call data.
       </div>
     </div>
@@ -268,7 +268,7 @@ function PlumbingTrack() {
   return (
     <div>
       <SubH>Pain Points You&rsquo;ll Hear</SubH>
-      <div style={{color:'#888',fontSize:'13px',lineHeight:1.7,fontFamily:'Roboto,sans-serif',marginTop:'8px'}}>
+      <div style={{color:'var(--text-tertiary)',fontSize:'13px',lineHeight:1.7,fontFamily:'Roboto,sans-serif',marginTop:'8px'}}>
         Content coming soon — Elliott is building these with real call data.
       </div>
     </div>
@@ -282,7 +282,7 @@ function PressureWashingTrack() {
   return (
     <div>
       <SubH>Pain Points You&rsquo;ll Hear</SubH>
-      <div style={{color:'#888',fontSize:'13px',lineHeight:1.7,fontFamily:'Roboto,sans-serif',marginTop:'8px'}}>
+      <div style={{color:'var(--text-tertiary)',fontSize:'13px',lineHeight:1.7,fontFamily:'Roboto,sans-serif',marginTop:'8px'}}>
         Content coming soon — Elliott is building these with real call data.
       </div>
     </div>
@@ -296,7 +296,7 @@ function WindowWashingTrack() {
   return (
     <div>
       <SubH>Pain Points You&rsquo;ll Hear</SubH>
-      <div style={{color:'#888',fontSize:'13px',lineHeight:1.7,fontFamily:'Roboto,sans-serif',marginTop:'8px'}}>
+      <div style={{color:'var(--text-tertiary)',fontSize:'13px',lineHeight:1.7,fontFamily:'Roboto,sans-serif',marginTop:'8px'}}>
         Content coming soon — Elliott is building these with real call data.
       </div>
     </div>

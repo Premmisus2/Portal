@@ -55,10 +55,10 @@ export default function SignOutAllCard() {
             background: '#0e0e0e', border: '1px solid #2a2a2a', borderRadius: '12px',
             padding: '22px 24px', maxWidth: '420px', width: '100%',
           }}>
-            <p style={{ margin: '0 0 8px', fontSize: '15px', fontWeight: 800, color: '#fff', fontFamily: 'Inter, sans-serif' }}>
+            <p style={{ margin: '0 0 8px', fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'Inter, sans-serif' }}>
               Sign out of every device?
             </p>
-            <p style={{ margin: '0 0 18px', fontSize: '12px', color: '#888', lineHeight: 1.6, fontFamily: 'Roboto, sans-serif' }}>
+            <p style={{ margin: '0 0 18px', fontSize: '12px', color: 'var(--text-tertiary)', lineHeight: 1.6, fontFamily: 'Roboto, sans-serif' }}>
               Every active session for your account ends immediately — every browser, every phone, every tab including this one. You will need to sign in again to keep working.
             </p>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
@@ -66,7 +66,7 @@ export default function SignOutAllCard() {
                 style={{
                   padding: '8px 16px', borderRadius: '6px',
                   border: '1px solid #2a2a2a', background: 'transparent',
-                  color: '#888', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+                  color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
                   fontFamily: 'Inter, sans-serif',
                 }}>
                 Cancel

@@ -499,28 +499,86 @@ input[type=range]::-moz-range-thumb {
 }
 
 @media print {
-  body { background:#fff !important; color:#000 !important; }
+  /* PDFs always render light, regardless of user theme. Override all theme
+     vars to their light values so every component (whether using CSS vars
+     or hardcoded inline styles falling through to body fg/bg) prints light. */
+  :root, body, body.theme-light {
+    --bg-app: #ffffff;
+    --bg-elev-1: #ffffff;
+    --bg-elev-2: #fafafa;
+    --bg-elev-pill: #f4f4f4;
+    --bg-nav: #ffffff;
+    --bg-sidebar-line: #e5e5e5;
+    --bg-overlay: rgba(0,0,0,.05);
+    --bg-strong-overlay: rgba(0,0,0,.1);
+
+    --text-primary: #0a0a0a;
+    --text-secondary: #222;
+    --text-tertiary: #555;
+    --text-muted: #777;
+    --text-faint: #999;
+
+    --border: #d8d8d8;
+    --border-soft: #ebebeb;
+    --border-strong: #b8b8b8;
+
+    --accent: #00838f;
+    --accent-ink: #006d75;
+    --accent-deep: #00838f;
+    --on-accent: #ffffff;
+    --accent-glow-04: rgba(0,109,117,.06);
+    --accent-glow-05: rgba(0,109,117,.07);
+    --accent-glow-06: rgba(0,109,117,.08);
+    --accent-glow-08: rgba(0,109,117,.1);
+    --accent-glow-10: rgba(0,109,117,.12);
+    --accent-glow-12: rgba(0,109,117,.14);
+    --accent-glow-15: rgba(0,109,117,.18);
+    --accent-glow-22: rgba(0,109,117,.25);
+    --accent-glow-25: rgba(0,109,117,.3);
+    --accent-glow-30: rgba(0,109,117,.34);
+    --accent-glow-35: rgba(0,109,117,.4);
+    --accent-glow-40: rgba(0,109,117,.45);
+    --accent-glow-50: rgba(0,109,117,.55);
+    --accent-glow-80: rgba(0,109,117,.85);
+
+    --green: #16a34a;
+    --green-soft: rgba(22,163,74,.08);
+    --green-border: rgba(22,163,74,.25);
+    --amber: #d97706;
+    --red: #dc2626;
+    --red-strong: #b91c1c;
+    --red-soft: rgba(220,38,38,.08);
+    --red-border: rgba(220,38,38,.25);
+  }
+
+  body { background:#fff !important; color:#0a0a0a !important; }
   .no-print { display:none !important; }
-  .sidebar { display:none !important; }
+  .sidebar, .global-sidebar, nav { display:none !important; }
   .print-area { margin:0 !important; padding:20px !important; }
-  .card,.card-glow { background:#f8f8f8 !important; border:1px solid #ddd !important; box-shadow:none !important; break-inside:avoid; }
-  .rep-block { background:#eef9ff !important; border-left-color:#3399cc !important; }
-  .rep-label { color:#006699 !important; }
-  .rep-text { color:#111 !important; }
-  .plabel,.sech h3 { color:#006699 !important; }
-  .sech-line,.divider { background:#ccc !important; }
-  .tag { border-color:#99c !important; color:#339 !important; background:#eef !important; }
-  .tag-red { border-color:#f99 !important; color:#900 !important; background:#fee !important; }
-  .dot { border-color:#69c !important; color:#069 !important; background:#e8f4fb !important; }
-  .if-branch { border-left-color:#acd !important; }
-  .if-label { color:#888 !important; }
-  .mistake-block { background:#fff0f0 !important; border-color:#fcc !important; }
-  .mistake-label { color:#900 !important; }
-  .mistake-text { color:#333 !important; }
-  .sms-bubble { background:#f0faff !important; border-color:#c0e0f0 !important; color:#222 !important; }
-  h1,h2,h3,h4,p,li,span { color:#333 !important; }
-  .pulse { display:none !important; }
-  * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+  .card, .card-glow {
+    background: #ffffff !important;
+    border: 1px solid #d8d8d8 !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .card-glow { border: 1.5px solid #00838f !important; }
+  .rep-block { background: rgba(0,109,117,.06) !important; border-left-color: #006d75 !important; }
+  .rep-label { color: #006d75 !important; }
+  .rep-text { color: #111 !important; }
+  .plabel, .sech h3 { color: #006d75 !important; }
+  .sech-line, .divider { background: #ccc !important; }
+  .tag { border-color: #006d75 !important; color: #006d75 !important; background: rgba(0,109,117,.05) !important; }
+  .tag-red { border-color: #b91c1c !important; color: #b91c1c !important; background: rgba(220,38,38,.06) !important; }
+  .dot { border-color: #006d75 !important; color: #006d75 !important; background: rgba(0,109,117,.06) !important; }
+  .if-branch { border-left-color: #006d75 !important; }
+  .if-label { color: #888 !important; }
+  .mistake-block { background: #fff5f5 !important; border-color: #fcc !important; }
+  .mistake-label { color: #b91c1c !important; }
+  .mistake-text { color: #333 !important; }
+  .sms-bubble { background: #f0faff !important; border-color: #c0e0f0 !important; color: #222 !important; }
+  .pulse { display: none !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }
 
 /* Focus States */

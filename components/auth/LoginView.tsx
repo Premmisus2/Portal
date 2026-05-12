@@ -124,15 +124,15 @@ export default function LoginView({ onLogin }: { onLogin: any }) {
 
   const inputField = ({ label, icon, type, placeholder, value, onChange, autoComplete, upperCase, showToggle, onToggle, showingText }: any) => (
     <div>
-      <label style={{display:'block', fontSize:'10px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'#555', marginBottom:'6px', fontFamily:'JetBrains Mono, monospace'}}>{label}</label>
+      <label style={{display:'block', fontSize:'10px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:'6px', fontFamily:'JetBrains Mono, monospace'}}>{label}</label>
       <div style={{position:'relative'}}>
-        <div style={{position:'absolute', left:'12px', top:'50%', transform:'translateY(-50%)', color:'#444', pointerEvents:'none'}}><Icon name={icon} size={14}/></div>
+        <div style={{position:'absolute', left:'12px', top:'50%', transform:'translateY(-50%)', color:'var(--text-faint)', pointerEvents:'none'}}><Icon name={icon} size={14}/></div>
         <input className="field" style={{paddingLeft:'38px', paddingRight: showToggle?'42px':'16px', textTransform: upperCase?'uppercase':'none', letterSpacing: upperCase?'.08em':'normal'}}
           type={showingText ? 'text' : type} placeholder={placeholder} value={value} autoComplete={autoComplete}
           onChange={onChange} required/>
         {showToggle && (
           <button type="button" onClick={onToggle}
-            style={{position:'absolute', right:'12px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'#555', cursor:'pointer', padding:0, display:'flex'}}>
+            style={{position:'absolute', right:'12px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', padding:0, display:'flex'}}>
             <Icon name={showingText?'eyeOff':'eye'} size={14}/>
           </button>
         )}
@@ -143,7 +143,7 @@ export default function LoginView({ onLogin }: { onLogin: any }) {
   const spinner = <svg style={{animation:'spin 1s linear infinite'}} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>;
 
   return (
-    <div style={{minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'#000', position:'relative', overflow:'hidden'}}>
+    <div style={{minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', background:'var(--bg-app)', position:'relative', overflow:'hidden'}}>
       <div className="grid-bg" style={{position:'absolute', inset:0, opacity:.6, pointerEvents:'none'}}/>
       <div className="login-glare" style={{position:'absolute', inset:0, pointerEvents:'none'}}/>
       <div style={{position:'relative', zIndex:10, width:'100%', maxWidth:'420px', padding:'0 24px'}}>
@@ -151,20 +151,20 @@ export default function LoginView({ onLogin }: { onLogin: any }) {
         {/* Logo */}
         <div style={{display:'flex', flexDirection:'column', alignItems:'center', marginBottom:'36px'}}>
           <div style={{marginBottom:'16px'}}><Logo height={52}/></div>
-          <p style={{fontSize:'10px', fontWeight:700, letterSpacing:'.3em', textTransform:'uppercase', color:'#444', margin:0, fontFamily:'JetBrains Mono, monospace'}}>Sales Operations Portal</p>
+          <p style={{fontSize:'10px', fontWeight:700, letterSpacing:'.3em', textTransform:'uppercase', color:'var(--text-faint)', margin:0, fontFamily:'JetBrains Mono, monospace'}}>Sales Operations Portal</p>
           <div className="divider" style={{width:'80px', marginTop:'12px'}}/>
         </div>
 
         <div className="card-glow" style={{padding:'32px'}}>
 
           {/* Tabs */}
-          <div style={{display:'flex', gap:'4px', marginBottom:'28px', background:'#0a0a0a', borderRadius:'8px', padding:'4px'}}>
+          <div style={{display:'flex', gap:'4px', marginBottom:'28px', background:'var(--bg-elev-pill)', borderRadius:'8px', padding:'4px'}}>
             {([['signin','Sign In'],['register','Register']] as const).map(([key, label]) => (
               <button key={key} type="button" onClick={() => { setTab(key); setError(''); }}
                 style={{flex:1, padding:'8px 0', borderRadius:'6px', border:'none', cursor:'pointer', fontFamily:'Inter, sans-serif', fontSize:'13px', fontWeight:700, transition:'all .2s',
                   background: tab===key ? '#141414' : 'transparent',
-                  color: tab===key ? '#fff' : '#444',
-                  boxShadow: tab===key ? '0 0 0 1px #252525' : 'none',
+                  color: tab===key ? 'var(--text-primary)' : 'var(--text-faint)',
+                  boxShadow: tab===key ? '0 0 0 1px var(--border-strong)' : 'none',
                 }}>{label}</button>
             ))}
           </div>
@@ -186,10 +186,10 @@ export default function LoginView({ onLogin }: { onLogin: any }) {
                   {loading ? <span style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'8px'}}>{spinner} Signing in...</span> : 'Sign In \u2192'}
                 </button>
               </div>
-              <p style={{margin:0, textAlign:'center', fontSize:'12px', color:'#333', fontFamily:'Roboto, sans-serif'}}>
+              <p style={{margin:0, textAlign:'center', fontSize:'12px', color:'var(--text-faint)', fontFamily:'Roboto, sans-serif'}}>
                 New device?{' '}
                 <button type="button" onClick={() => { setTab('register'); setError(''); }}
-                  style={{background:'none', border:'none', color:'#00F0FF', cursor:'pointer', fontSize:'12px', fontFamily:'Roboto, sans-serif', padding:0, textDecoration:'underline'}}>
+                  style={{background:'none', border:'none', color:'var(--accent-ink)', cursor:'pointer', fontSize:'12px', fontFamily:'Roboto, sans-serif', padding:0, textDecoration:'underline'}}>
                   Register with your invite code
                 </button>
               </p>
@@ -208,10 +208,10 @@ export default function LoginView({ onLogin }: { onLogin: any }) {
                   {loading ? <span style={{display:'flex', alignItems:'center', justifyContent:'center', gap:'8px'}}>{spinner} Verifying...</span> : 'Create Account \u2192'}
                 </button>
               </div>
-              <p style={{margin:0, textAlign:'center', fontSize:'12px', color:'#333', fontFamily:'Roboto, sans-serif'}}>
+              <p style={{margin:0, textAlign:'center', fontSize:'12px', color:'var(--text-faint)', fontFamily:'Roboto, sans-serif'}}>
                 Already registered?{' '}
                 <button type="button" onClick={() => { setTab('signin'); setError(''); }}
-                  style={{background:'none', border:'none', color:'#00F0FF', cursor:'pointer', fontSize:'12px', fontFamily:'Roboto, sans-serif', padding:0, textDecoration:'underline'}}>
+                  style={{background:'none', border:'none', color:'var(--accent-ink)', cursor:'pointer', fontSize:'12px', fontFamily:'Roboto, sans-serif', padding:0, textDecoration:'underline'}}>
                   Sign in instead
                 </button>
               </p>

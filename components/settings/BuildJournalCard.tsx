@@ -29,15 +29,15 @@ const PAGE_SIZE = 5;
 const STATUS_BADGE: Record<JournalStatus, { label: string; color: string }> = {
   shipped: { label: '✅ SHIPPED', color: '#22c55e' },
   stub:    { label: '🟡 STUB',    color: '#F59E0B' },
-  pending: { label: '⏸ PENDING',  color: '#888'    },
-  unknown: { label: '·',           color: '#555'    },
+  pending: { label: '⏸ PENDING',  color: 'var(--text-tertiary)'    },
+  unknown: { label: '·',           color: 'var(--text-muted)'    },
 };
 
 const tagPillStyle = (active: boolean): CSSProperties => ({
   padding: '4px 10px', borderRadius: '12px',
   border: active ? '1px solid rgba(0,240,255,.55)' : '1px solid #1f1f1f',
-  background: active ? 'rgba(0,240,255,.12)' : '#0e0e0e',
-  color: active ? '#00F0FF' : '#888',
+  background: active ? 'var(--accent-glow-12)' : '#0e0e0e',
+  color: active ? 'var(--accent-ink)' : 'var(--text-tertiary)',
   fontSize: '10px', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace',
   letterSpacing: '.04em', cursor: 'pointer', whiteSpace: 'nowrap',
 });
@@ -55,8 +55,8 @@ function renderMarkdown(md: string): ReactNode {
     if (codeBuf.length === 0) return;
     out.push(
       <pre key={`c-${out.length}`} style={{
-        background: '#0a0a0a', border: '1px solid #1a1a1a', borderRadius: '6px',
-        padding: '10px 12px', margin: '6px 0', fontSize: '11px', color: '#ccc',
+        background: 'var(--bg-elev-pill)', border: '1px solid var(--border-soft)', borderRadius: '6px',
+        padding: '10px 12px', margin: '6px 0', fontSize: '11px', color: 'var(--text-secondary)',
         fontFamily: 'JetBrains Mono, monospace', overflow: 'auto', lineHeight: 1.55,
       }}>{codeBuf.join('\n')}</pre>,
     );
@@ -68,11 +68,11 @@ function renderMarkdown(md: string): ReactNode {
     const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
     return parts.map((p, i) => {
       if (p.startsWith('**') && p.endsWith('**')) {
-        return <strong key={i} style={{ color: '#fff' }}>{p.slice(2, -2)}</strong>;
+        return <strong key={i} style={{ color: 'var(--text-primary)' }}>{p.slice(2, -2)}</strong>;
       }
       if (p.startsWith('`') && p.endsWith('`')) {
         return <code key={i} style={{
-          background: '#101010', border: '1px solid #1a1a1a', borderRadius: '3px',
+          background: '#101010', border: '1px solid var(--border-soft)', borderRadius: '3px',
           padding: '0 4px', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: '#9be7ff',
         }}>{p.slice(1, -1)}</code>;
       }
@@ -91,18 +91,18 @@ function renderMarkdown(md: string): ReactNode {
     if (!line.trim()) { out.push(<div key={i} style={{ height: '6px' }} />); return; }
 
     if (line.startsWith('### ')) {
-      out.push(<h4 key={i} style={{ margin: '10px 0 4px', fontSize: '12px', color: '#fff', fontFamily: 'Inter, sans-serif', fontWeight: 800 }}>{inline(line.slice(4))}</h4>);
+      out.push(<h4 key={i} style={{ margin: '10px 0 4px', fontSize: '12px', color: 'var(--text-primary)', fontFamily: 'Inter, sans-serif', fontWeight: 800 }}>{inline(line.slice(4))}</h4>);
       return;
     }
     if (/^\d+\.\s/.test(line)) {
-      out.push(<div key={i} style={{ margin: '2px 0 2px 8px', fontSize: '12px', color: '#bbb', fontFamily: 'Roboto, sans-serif', lineHeight: 1.6 }}>{inline(line)}</div>);
+      out.push(<div key={i} style={{ margin: '2px 0 2px 8px', fontSize: '12px', color: 'var(--text-secondary)', fontFamily: 'Roboto, sans-serif', lineHeight: 1.6 }}>{inline(line)}</div>);
       return;
     }
     if (line.startsWith('- ')) {
-      out.push(<div key={i} style={{ margin: '2px 0 2px 8px', fontSize: '12px', color: '#bbb', fontFamily: 'Roboto, sans-serif', lineHeight: 1.6 }}>• {inline(line.slice(2))}</div>);
+      out.push(<div key={i} style={{ margin: '2px 0 2px 8px', fontSize: '12px', color: 'var(--text-secondary)', fontFamily: 'Roboto, sans-serif', lineHeight: 1.6 }}>• {inline(line.slice(2))}</div>);
       return;
     }
-    out.push(<p key={i} style={{ margin: '2px 0', fontSize: '12px', color: '#bbb', fontFamily: 'Roboto, sans-serif', lineHeight: 1.6 }}>{inline(line)}</p>);
+    out.push(<p key={i} style={{ margin: '2px 0', fontSize: '12px', color: 'var(--text-secondary)', fontFamily: 'Roboto, sans-serif', lineHeight: 1.6 }}>{inline(line)}</p>);
   });
   flushCode();
   return out;
@@ -111,24 +111,24 @@ function renderMarkdown(md: string): ReactNode {
 function EntryCard({ entry, expanded, onToggle }: { entry: Entry; expanded: boolean; onToggle: () => void }) {
   const badge = STATUS_BADGE[entry.status];
   return (
-    <div style={{ background: '#0e0e0e', border: '1px solid #1a1a1a', borderRadius: '8px', overflow: 'hidden' }}>
+    <div style={{ background: '#0e0e0e', border: '1px solid var(--border-soft)', borderRadius: '8px', overflow: 'hidden' }}>
       <button onClick={onToggle} style={{
         width: '100%', textAlign: 'left', background: 'transparent', border: 'none',
         padding: '12px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px',
       }}>
         <span style={{
-          fontSize: '10px', fontFamily: 'JetBrains Mono, monospace', color: '#666',
+          fontSize: '10px', fontFamily: 'JetBrains Mono, monospace', color: 'var(--text-muted)',
           letterSpacing: '.04em', flexShrink: 0,
         }}>{entry.date}</span>
         {entry.tag && (
           <span style={{
             fontSize: '9px', padding: '2px 6px', borderRadius: '3px',
-            background: 'rgba(0,240,255,.06)', border: '1px solid rgba(0,240,255,.2)',
-            color: '#00F0FF', fontFamily: 'JetBrains Mono, monospace', flexShrink: 0,
+            background: 'var(--accent-glow-06)', border: '1px solid var(--accent-glow-22)',
+            color: 'var(--accent-ink)', fontFamily: 'JetBrains Mono, monospace', flexShrink: 0,
           }}>#{entry.tag}</span>
         )}
         <span style={{
-          flex: 1, minWidth: 0, fontSize: '12px', color: '#fff', fontWeight: 700,
+          flex: 1, minWidth: 0, fontSize: '12px', color: 'var(--text-primary)', fontWeight: 700,
           fontFamily: 'Inter, sans-serif', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         }}>{entry.title}</span>
         <span style={{
@@ -136,7 +136,7 @@ function EntryCard({ entry, expanded, onToggle }: { entry: Entry; expanded: bool
           background: `${badge.color}1a`, border: `1px solid ${badge.color}40`, color: badge.color,
           fontFamily: 'JetBrains Mono, monospace', flexShrink: 0,
         }}>{badge.label}</span>
-        <span style={{ color: '#555', fontSize: '11px', flexShrink: 0 }}>{expanded ? '▾' : '▸'}</span>
+        <span style={{ color: 'var(--text-muted)', fontSize: '11px', flexShrink: 0 }}>{expanded ? '▾' : '▸'}</span>
       </button>
       {expanded && (
         <div style={{ padding: '4px 16px 16px', borderTop: '1px solid #141414' }}>
@@ -201,7 +201,7 @@ export default function BuildJournalCard() {
     <SettingsSection
       title="Build journal"
       description="Every change shipped to the portal. Tag-filtered, click an entry to expand the full markdown body."
-      badge={data ? { label: `${data.total} ENTRIES`, color: '#00F0FF' } : (loading ? { label: 'LOADING', color: '#666' } : { label: '—', color: '#666' })}
+      badge={data ? { label: `${data.total} ENTRIES`, color: 'var(--accent-ink)' } : (loading ? { label: 'LOADING', color: 'var(--text-muted)' } : { label: '—', color: 'var(--text-muted)' })}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {errMsg && (
@@ -227,13 +227,13 @@ export default function BuildJournalCard() {
         )}
 
         {!data && loading && (
-          <p style={{ margin: '6px 0', fontSize: '11px', color: '#555', fontFamily: 'Roboto, sans-serif' }}>
+          <p style={{ margin: '6px 0', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'Roboto, sans-serif' }}>
             Loading journal…
           </p>
         )}
 
         {data && pageItems.length === 0 && (
-          <p style={{ margin: '6px 0', fontSize: '11px', color: '#555', fontFamily: 'Roboto, sans-serif' }}>
+          <p style={{ margin: '6px 0', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'Roboto, sans-serif' }}>
             No entries match the current filter.
           </p>
         )}
@@ -254,19 +254,19 @@ export default function BuildJournalCard() {
             <button onClick={() => setPage(Math.max(0, safePage - 1))} disabled={safePage === 0}
               style={{
                 padding: '5px 12px', borderRadius: '5px', border: '1px solid #1f1f1f',
-                background: '#0e0e0e', color: safePage === 0 ? '#333' : '#bbb',
+                background: '#0e0e0e', color: safePage === 0 ? 'var(--text-faint)' : 'var(--text-secondary)',
                 fontSize: '10px', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace',
                 cursor: safePage === 0 ? 'not-allowed' : 'pointer',
               }}>
               ← PREV
             </button>
-            <span style={{ fontSize: '10px', color: '#555', fontFamily: 'JetBrains Mono, monospace' }}>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
               {safePage + 1} / {totalPages} · {filtered.length} entries
             </span>
             <button onClick={() => setPage(Math.min(totalPages - 1, safePage + 1))} disabled={safePage >= totalPages - 1}
               style={{
                 padding: '5px 12px', borderRadius: '5px', border: '1px solid #1f1f1f',
-                background: '#0e0e0e', color: safePage >= totalPages - 1 ? '#333' : '#bbb',
+                background: '#0e0e0e', color: safePage >= totalPages - 1 ? 'var(--text-faint)' : 'var(--text-secondary)',
                 fontSize: '10px', fontWeight: 700, fontFamily: 'JetBrains Mono, monospace',
                 cursor: safePage >= totalPages - 1 ? 'not-allowed' : 'pointer',
               }}>

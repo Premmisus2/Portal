@@ -57,10 +57,10 @@ const BookingKit = () => {
 
   return (
     <div style={{ marginBottom: '32px' }}>
-      <p style={{ margin: '0 0 4px', fontSize: '10px', fontWeight: 800, letterSpacing: '.2em', textTransform: 'uppercase', color: '#00F0FF' }}>
+      <p style={{ margin: '0 0 4px', fontSize: '10px', fontWeight: 800, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--accent-ink)' }}>
         Booking Confirmation Kit
       </p>
-      <p style={{ margin: '0 0 16px', color: '#888', fontSize: '13px' }}>
+      <p style={{ margin: '0 0 16px', color: 'var(--text-tertiary)', fontSize: '13px' }}>
         Fill in the details below — the SMS templates and calendar link auto-generate. Send both within 2 minutes of hanging up.
       </p>
 
@@ -115,11 +115,11 @@ const BookingKit = () => {
           {calendarUrl && <CopyBtn text={calendarUrl} />}
         </div>
         {calendarUrl ? (
-          <a href={calendarUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#00F0FF', fontSize: '12px', wordBreak: 'break-all' }}>
+          <a href={calendarUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-ink)', fontSize: '12px', wordBreak: 'break-all' }}>
             {calendarUrl}
           </a>
         ) : (
-          <p style={{ color: '#444', fontSize: '12px', margin: 0 }}>Fill in date + time to generate</p>
+          <p style={{ color: 'var(--text-faint)', fontSize: '12px', margin: 0 }}>Fill in date + time to generate</p>
         )}
       </div>
 
@@ -128,7 +128,7 @@ const BookingKit = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
           <div>
             <p style={outputLabel}>📱 Confirmation SMS</p>
-            <p style={{ color: '#555', fontSize: '11px', margin: 0 }}>Send immediately after hanging up</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '11px', margin: 0 }}>Send immediately after hanging up</p>
           </div>
           <CopyBtn text={confirmationSMS} />
         </div>
@@ -141,7 +141,7 @@ const BookingKit = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
           <div>
             <p style={outputLabel}>⏰ Morning-Of Reminder</p>
-            <p style={{ color: '#555', fontSize: '11px', margin: 0 }}>Send morning of the call (8–9 AM)</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '11px', margin: 0 }}>Send morning of the call (8–9 AM)</p>
           </div>
           <CopyBtn text={morningOfSMS} />
         </div>
@@ -149,7 +149,7 @@ const BookingKit = () => {
         {!filled && <p style={hintStyle}>Add date + time to populate</p>}
       </div>
 
-      <p style={{ color: '#333', fontSize: '11px', marginTop: '12px' }}>
+      <p style={{ color: 'var(--text-faint)', fontSize: '11px', marginTop: '12px' }}>
         Don't have a Meet link yet? Open Google Calendar → create event → add Google Meet conferencing → copy the link → paste above.
       </p>
     </div>
@@ -159,7 +159,7 @@ const BookingKit = () => {
 const labelStyle: React.CSSProperties = {
   fontSize: '10px',
   fontWeight: 700,
-  color: '#444',
+  color: 'var(--text-faint)',
   letterSpacing: '.1em',
   textTransform: 'uppercase',
   display: 'block',
@@ -168,7 +168,7 @@ const labelStyle: React.CSSProperties = {
 
 const outputCard: React.CSSProperties = {
   background: 'rgba(0,240,255,.03)',
-  border: '1px solid rgba(0,240,255,.12)',
+  border: '1px solid var(--accent-glow-12)',
   borderRadius: '10px',
   padding: '14px 16px',
 };
@@ -176,13 +176,13 @@ const outputCard: React.CSSProperties = {
 const outputLabel: React.CSSProperties = {
   margin: 0,
   fontWeight: 700,
-  color: '#fff',
+  color: 'var(--text-primary)',
   fontSize: '13px',
 };
 
 const preStyle: React.CSSProperties = {
   margin: 0,
-  color: '#ccc',
+  color: 'var(--text-secondary)',
   fontSize: '12px',
   lineHeight: 1.6,
   whiteSpace: 'pre-wrap',
@@ -192,7 +192,7 @@ const preStyle: React.CSSProperties = {
 
 const hintStyle: React.CSSProperties = {
   margin: '8px 0 0',
-  color: '#333',
+  color: 'var(--text-faint)',
   fontSize: '11px',
   fontStyle: 'italic',
 };

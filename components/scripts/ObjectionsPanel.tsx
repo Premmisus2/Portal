@@ -25,7 +25,7 @@ const ObjectionsPanel = () => {
   return (
     <div>
       <div style={{marginBottom:'6px'}}><span className="tag">04</span></div>
-      <h2 style={{fontSize:'26px',fontWeight:900,color:'#fff',margin:'8px 0 4px'}}>Objection Handling</h2>
+      <h2 style={{fontSize:'26px',fontWeight:900,color:'var(--text-primary)',margin:'8px 0 4px'}}>Objection Handling</h2>
       <Body>Every objection is a question in disguise. Find the real concern — then bridge back to close.</Body>
 
       <div className="objection-search-wrap" style={{margin:'16px 0'}}>

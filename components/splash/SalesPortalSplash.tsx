@@ -59,7 +59,7 @@ export default function SalesPortalSplash({ onEnter }: { onEnter: () => void }) 
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#000', position: 'relative', overflow: 'hidden' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-app)', position: 'relative', overflow: 'hidden' }}>
       <div className="grid-bg" style={{ position: 'absolute', inset: 0, opacity: .6, pointerEvents: 'none' }} />
       <div className="login-glare" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
 
@@ -68,7 +68,7 @@ export default function SalesPortalSplash({ onEnter }: { onEnter: () => void }) 
         {/* Logo block — identical to login */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '36px' }}>
           <div style={{ marginBottom: '16px' }}><Logo height={52} /></div>
-          <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.3em', textTransform: 'uppercase', color: '#444', margin: 0, fontFamily: 'JetBrains Mono, monospace' }}>
+          <p style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.3em', textTransform: 'uppercase', color: 'var(--text-faint)', margin: 0, fontFamily: 'JetBrains Mono, monospace' }}>
             Sales Operations Portal
           </p>
           <div className="divider" style={{ width: '80px', marginTop: '12px' }} />
@@ -78,7 +78,7 @@ export default function SalesPortalSplash({ onEnter }: { onEnter: () => void }) 
         <div className="card-glow" style={{ padding: '32px' }}>
 
           {/* Section label — mimics the form's "EMAIL ADDRESS" / "PASSWORD" labels */}
-          <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#00F0FF', marginBottom: '20px', fontFamily: 'JetBrains Mono, monospace', textAlign: 'center' }}>
+          <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--accent-ink)', marginBottom: '20px', fontFamily: 'JetBrains Mono, monospace', textAlign: 'center' }}>
             {config.sectionLabel}
           </label>
 
@@ -87,10 +87,10 @@ export default function SalesPortalSplash({ onEnter }: { onEnter: () => void }) 
             style={{ margin: 0, opacity: fading ? 0 : 1, transition: 'opacity 300ms ease', minHeight: 180, display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', padding: '8px 4px 24px' }}
             aria-live="polite"
           >
-            <blockquote style={{ margin: 0, fontFamily: 'Inter, sans-serif', fontWeight: 300, fontSize: '20px', lineHeight: 1.45, color: '#f0f0f0', letterSpacing: '-0.005em' }}>
+            <blockquote style={{ margin: 0, fontFamily: 'Inter, sans-serif', fontWeight: 300, fontSize: '20px', lineHeight: 1.45, color: 'var(--text-primary)', letterSpacing: '-0.005em' }}>
               {quote.text}
             </blockquote>
-            <figcaption style={{ marginTop: '20px', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', fontWeight: 700, letterSpacing: '.3em', color: '#777', textTransform: 'uppercase' }}>
+            <figcaption style={{ marginTop: '20px', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', fontWeight: 700, letterSpacing: '.3em', color: 'var(--text-tertiary)', textTransform: 'uppercase' }}>
               — {quote.attribution}
             </figcaption>
           </figure>

@@ -22,7 +22,7 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
   const isDnc = typeof lead.notes === 'string' && lead.notes.startsWith('🚫 DNC:');
   const statusBorderClass = (!isOverdue && !isDueToday && lead.status && lead.status !== 'new') ? ` status-${lead.status}` : '';
   const rowClass = `lead-row${isExpanded ? ' expanded' : ''}${isOverdue ? ' callback-overdue' : ''}${isDueToday ? ' callback-today' : ''}${statusBorderClass}`;
-  const statusColors: Record<string, string> = { new:'#22c55e', contacted:'#3B82F6', callback:'#A855F7', booked:'#00F0FF', not_interested:'#555', discovery_completed:'#22c55e', no_show:'#ff6060', voicemail:'#F59E0B', wrong_number:'#555' };
+  const statusColors: Record<string, string> = { new:'#22c55e', contacted:'#3B82F6', callback:'#A855F7', booked:'var(--accent-ink)', not_interested:'var(--text-muted)', discovery_completed:'#22c55e', no_show:'#ff6060', voicemail:'#F59E0B', wrong_number:'var(--text-muted)' };
 
   const handleMarkDead = async () => {
     const reason = window.prompt('Mark this lead as DEAD (will never be called again).\n\nReason? (e.g. cussed me out / wrong fit / out of business / has agency)');
@@ -50,26 +50,26 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
     <div className={rowClass} onClick={()=>onToggle(lead.id)}>
       <div className="lead-row-header" style={{display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px'}}>
         <div style={{display:'flex', alignItems:'center', gap:'10px', flex:1, minWidth:0}}>
-          {leadNumber && <span style={{fontSize:'10px', color:'#333', fontFamily:'JetBrains Mono,monospace', fontWeight:600, minWidth:'28px'}}>#{leadNumber}</span>}
+          {leadNumber && <span style={{fontSize:'10px', color:'var(--text-faint)', fontFamily:'JetBrains Mono,monospace', fontWeight:600, minWidth:'28px'}}>#{leadNumber}</span>}
           <span className={priorityClass}>{lead.priority}</span>
-          <span style={{fontSize:'14px', fontWeight:700, color:'#fff', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{lead.business_name}</span>
+          <span style={{fontSize:'14px', fontWeight:700, color:'var(--text-primary)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{lead.business_name}</span>
           <span className="niche-badge">{lead.niche}</span>
           {lead.status && lead.status !== 'new' && (
-            <span style={{fontSize:'9px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:`${statusColors[lead.status] || '#555'}15`, color: statusColors[lead.status] || '#555', letterSpacing:'.05em', textTransform:'uppercase'}}>{lead.status.replace('_',' ')}</span>
+            <span style={{fontSize:'9px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:`${statusColors[lead.status] || 'var(--text-muted)'}15`, color: statusColors[lead.status] || 'var(--text-muted)', letterSpacing:'.05em', textTransform:'uppercase'}}>{lead.status.replace('_',' ')}</span>
           )}
           {isDnc && (
             <span title={lead.notes} style={{fontSize:'9px', fontWeight:800, padding:'2px 8px', borderRadius:'4px', background:'rgba(255,96,96,.15)', color:'#ff6060', letterSpacing:'.08em', textTransform:'uppercase', cursor:'help'}}>🚫 Dead</span>
           )}
         </div>
         <div style={{display:'flex', alignItems:'center', gap:'10px', flexShrink:0}}>
-          {lead.city && <span style={{fontSize:'11px', color:'#444'}}>{lead.city}</span>}
+          {lead.city && <span style={{fontSize:'11px', color:'var(--text-faint)'}}>{lead.city}</span>}
           {repPhone && !shadowMode ? (
             <button onClick={e=>{e.stopPropagation(); setShowCallModal(true);}}
               style={{display:'flex', alignItems:'center', gap:'5px', padding:'4px 10px', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'JetBrains Mono,monospace',
-                background:'transparent', border:'1px solid rgba(0,240,255,.3)', color:'#00F0FF', transition:'all .15s'}}
-              onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(0,240,255,.08)'; (e.currentTarget as HTMLElement).style.borderColor='rgba(0,240,255,.5)';}}
-              onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='transparent'; (e.currentTarget as HTMLElement).style.borderColor='rgba(0,240,255,.3)';}}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00F0FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                background:'transparent', border:'1px solid var(--accent-glow-30)', color:'var(--accent-ink)', transition:'all .15s'}}
+              onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='var(--accent-glow-08)'; (e.currentTarget as HTMLElement).style.borderColor='var(--accent-glow-50)';}}
+              onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='transparent'; (e.currentTarget as HTMLElement).style.borderColor='var(--accent-glow-30)';}}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
               {lead.phone}
             </button>
           ) : (
@@ -78,22 +78,22 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
             // Rep must use the "Log Call" button after the call to record outcome.
             <a href={'tel:' + lead.phone}
               onClick={e=>e.stopPropagation()}
-              style={{fontSize:'12px', color:'#00F0FF', textDecoration:'none', fontFamily:'JetBrains Mono,monospace', fontWeight:600, background:'none', border:'none', cursor:'pointer', padding:0}}>{lead.phone}</a>
+              style={{fontSize:'12px', color:'var(--accent-ink)', textDecoration:'none', fontFamily:'JetBrains Mono,monospace', fontWeight:600, background:'none', border:'none', cursor:'pointer', padding:0}}>{lead.phone}</a>
           )}
           {lastLog && (
-            <span style={{fontSize:'10px', color: OUTCOME_COLORS[lastLog.outcome] || '#555', fontWeight:700}}>{OUTCOME_LABELS[lastLog.outcome]}</span>
+            <span style={{fontSize:'10px', color: OUTCOME_COLORS[lastLog.outcome] || 'var(--text-muted)', fontWeight:700}}>{OUTCOME_LABELS[lastLog.outcome]}</span>
           )}
           {lastLog?.callback_date && (
-            <span style={{fontSize:'10px', color: isOverdue ? '#ff6060' : isDueToday ? '#F59E0B' : '#444', fontWeight:600}}>
+            <span style={{fontSize:'10px', color: isOverdue ? '#ff6060' : isDueToday ? '#F59E0B' : 'var(--text-faint)', fontWeight:600}}>
               {isOverdue ? '⚠ Overdue' : isDueToday ? '📞 Today' : `CB: ${lastLog.callback_date}`}
             </span>
           )}
           <button onClick={e=>{e.stopPropagation(); if(!shadowMode) setShowQuickLog(!showQuickLog);}}
             disabled={shadowMode}
             style={{padding:'5px 12px', borderRadius:'6px', cursor: shadowMode ? 'not-allowed' : 'pointer', fontSize:'10px', fontWeight:800, fontFamily:'Inter,sans-serif', letterSpacing:'.06em', textTransform:'uppercase', transition:'all .15s',
-              background: shadowMode ? 'rgba(255,255,255,.03)' : showQuickLog ? 'rgba(0,240,255,.15)' : 'rgba(0,240,255,.06)',
-              border: `1px solid ${shadowMode ? '#1e1e1e' : showQuickLog ? 'rgba(0,240,255,.4)' : 'rgba(0,240,255,.15)'}`,
-              color: shadowMode ? '#444' : '#00F0FF', opacity: shadowMode ? .5 : 1,
+              background: shadowMode ? 'rgba(255,255,255,.03)' : showQuickLog ? 'var(--accent-glow-15)' : 'var(--accent-glow-06)',
+              border: `1px solid ${shadowMode ? 'var(--border)' : showQuickLog ? 'var(--accent-glow-40)' : 'var(--accent-glow-15)'}`,
+              color: shadowMode ? 'var(--text-faint)' : 'var(--accent-ink)', opacity: shadowMode ? .5 : 1,
             }}>{shadowMode ? 'Read Only' : 'Log Call'}</button>
           {!shadowMode && !isDnc && (
             <button onClick={e=>{e.stopPropagation(); handleMarkDead();}} title="Mark dead — never call again"
@@ -109,7 +109,7 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
 
       {/* Quick Inline Logger — visible without expanding, hidden in shadow mode */}
       {showQuickLog && !isExpanded && !shadowMode && (
-        <div className="fadein" onClick={e=>e.stopPropagation()} style={{marginTop:'12px', padding:'12px 16px', background:'rgba(0,240,255,.02)', borderRadius:'8px', border:'1px solid rgba(0,240,255,.08)'}}>
+        <div className="fadein" onClick={e=>e.stopPropagation()} style={{marginTop:'12px', padding:'12px 16px', background:'rgba(0,240,255,.02)', borderRadius:'8px', border:'1px solid var(--accent-glow-08)'}}>
           <CallLogger lead={lead} repId={repId} userName={userName} onLogged={(leadId: any, outcome: any, newStatus: any) => { setTwilioCallData(null); onLogged(leadId, outcome, newStatus); setShowQuickLog(false); }} existingCallLogId={twilioCallData?.callLogId || null}/>
         </div>
       )}
@@ -118,18 +118,18 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
         <div className="fadein" onClick={e=>e.stopPropagation()} style={{marginTop:'16px'}}>
           {/* Lead Details */}
           <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:'10px', marginBottom:'14px'}}>
-            {lead.contact_name && <div><span style={{fontSize:'9px', fontWeight:700, color:'#444', letterSpacing:'.12em', textTransform:'uppercase'}}>Contact</span><p style={{margin:'2px 0 0', fontSize:'13px', color:'#ccc'}}>{lead.contact_name}</p></div>}
-            {lead.website && <div><span style={{fontSize:'9px', fontWeight:700, color:'#444', letterSpacing:'.12em', textTransform:'uppercase'}}>Website</span><p style={{margin:'2px 0 0', fontSize:'13px'}}><a href={lead.website} target="_blank" rel="noopener" style={{color:'#00F0FF', textDecoration:'none'}}>{lead.website}</a></p></div>}
-            {lead.email && <div><span style={{fontSize:'9px', fontWeight:700, color:'#444', letterSpacing:'.12em', textTransform:'uppercase'}}>Email</span><p style={{margin:'2px 0 0', fontSize:'13px', color:'#ccc'}}>{lead.email}</p></div>}
-            {lead.instagram && <div><span style={{fontSize:'9px', fontWeight:700, color:'#444', letterSpacing:'.12em', textTransform:'uppercase'}}>Instagram</span><p style={{margin:'2px 0 0', fontSize:'13px', color:'#ccc'}}>{lead.instagram}</p></div>}
-            <div><span style={{fontSize:'9px', fontWeight:700, color:'#444', letterSpacing:'.12em', textTransform:'uppercase'}}>Google Reviews</span><p style={{margin:'2px 0 0', fontSize:'13px', color:'#ccc'}}>{lead.google_reviews || 0}</p></div>
-            {lead.notes && <div style={{gridColumn:'1 / -1'}}><span style={{fontSize:'9px', fontWeight:700, color:'#444', letterSpacing:'.12em', textTransform:'uppercase'}}>Notes</span><p style={{margin:'2px 0 0', fontSize:'13px', color:'#888'}}>{lead.notes}</p></div>}
+            {lead.contact_name && <div><span style={{fontSize:'9px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.12em', textTransform:'uppercase'}}>Contact</span><p style={{margin:'2px 0 0', fontSize:'13px', color:'var(--text-secondary)'}}>{lead.contact_name}</p></div>}
+            {lead.website && <div><span style={{fontSize:'9px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.12em', textTransform:'uppercase'}}>Website</span><p style={{margin:'2px 0 0', fontSize:'13px'}}><a href={lead.website} target="_blank" rel="noopener" style={{color:'var(--accent-ink)', textDecoration:'none'}}>{lead.website}</a></p></div>}
+            {lead.email && <div><span style={{fontSize:'9px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.12em', textTransform:'uppercase'}}>Email</span><p style={{margin:'2px 0 0', fontSize:'13px', color:'var(--text-secondary)'}}>{lead.email}</p></div>}
+            {lead.instagram && <div><span style={{fontSize:'9px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.12em', textTransform:'uppercase'}}>Instagram</span><p style={{margin:'2px 0 0', fontSize:'13px', color:'var(--text-secondary)'}}>{lead.instagram}</p></div>}
+            <div><span style={{fontSize:'9px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.12em', textTransform:'uppercase'}}>Google Reviews</span><p style={{margin:'2px 0 0', fontSize:'13px', color:'var(--text-secondary)'}}>{lead.google_reviews || 0}</p></div>
+            {lead.notes && <div style={{gridColumn:'1 / -1'}}><span style={{fontSize:'9px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.12em', textTransform:'uppercase'}}>Notes</span><p style={{margin:'2px 0 0', fontSize:'13px', color:'var(--text-tertiary)'}}>{lead.notes}</p></div>}
           </div>
 
           {/* Call History */}
           {callLogs && callLogs.length > 0 && (
             <div style={{marginBottom:'14px'}}>
-              <p style={{fontSize:'9px', fontWeight:700, color:'#444', letterSpacing:'.12em', textTransform:'uppercase', margin:'0 0 8px'}}>Call History</p>
+              <p style={{fontSize:'9px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.12em', textTransform:'uppercase', margin:'0 0 8px'}}>Call History</p>
               <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
                 {callLogs.slice(0, 5).map((log: any) => {
                   const autoConfPct = typeof log.outcome_auto_confidence === 'number' ? Math.round(log.outcome_auto_confidence * 100) : null;
@@ -137,7 +137,7 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
                   const aiAgrees = !!log.outcome_auto && log.outcome_auto === log.outcome;
                   const aiBadgeColor = aiDisagrees ? '#F59E0B' : aiAgrees ? '#22c55e' : '#3B82F6';
                   return (
-                  <div key={log.id} style={{display:'flex', flexDirection:'column', gap:'4px', padding:'6px 10px', background:'#080808', borderRadius:'6px', border:`1px solid ${aiDisagrees ? 'rgba(245,158,11,.35)' : '#151515'}`}}>
+                  <div key={log.id} style={{display:'flex', flexDirection:'column', gap:'4px', padding:'6px 10px', background:'var(--bg-elev-2)', borderRadius:'6px', border:`1px solid ${aiDisagrees ? 'rgba(245,158,11,.35)' : '#151515'}`}}>
                     <div style={{display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap'}}>
                       <div className={`call-history-dot outcome-${log.outcome}`}/>
                       <span style={{fontSize:'11px', color: OUTCOME_COLORS[log.outcome], fontWeight:600}}>{OUTCOME_LABELS[log.outcome]}</span>
@@ -148,13 +148,13 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
                         </span>
                       )}
                       {log.duration_seconds != null && log.duration_seconds > 0 && (
-                        <span style={{fontSize:'10px', color:'#888', fontFamily:'JetBrains Mono,monospace', fontWeight:500}}>{Math.floor(log.duration_seconds/60)}m {log.duration_seconds%60}s</span>
+                        <span style={{fontSize:'10px', color:'var(--text-tertiary)', fontFamily:'JetBrains Mono,monospace', fontWeight:500}}>{Math.floor(log.duration_seconds/60)}m {log.duration_seconds%60}s</span>
                       )}
-                      <span style={{fontSize:'10px', color:'#333', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString(undefined, { timeZone: 'America/Toronto' })}</span>
+                      <span style={{fontSize:'10px', color:'var(--text-faint)', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString(undefined, { timeZone: 'America/Toronto' })}</span>
                       {log.notes && (
                         log.notes.length > 80 && expandedNote !== log.id
-                          ? <span onClick={e=>{e.stopPropagation(); setExpandedNote(log.id);}} style={{fontSize:'10px', color:'#555', fontStyle:'italic', maxWidth:'200px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', cursor:'pointer'}} title="Click to expand">— {log.notes.slice(0,80)}...</span>
-                          : <span onClick={e=>{e.stopPropagation(); setExpandedNote(expandedNote === log.id ? null : log.id);}} style={{fontSize:'10px', color:'#555', fontStyle:'italic', wordBreak:'break-word', whiteSpace:'normal', cursor: log.notes.length > 80 ? 'pointer' : 'default'}}>— {log.notes}</span>
+                          ? <span onClick={e=>{e.stopPropagation(); setExpandedNote(log.id);}} style={{fontSize:'10px', color:'var(--text-muted)', fontStyle:'italic', maxWidth:'200px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', cursor:'pointer'}} title="Click to expand">— {log.notes.slice(0,80)}...</span>
+                          : <span onClick={e=>{e.stopPropagation(); setExpandedNote(expandedNote === log.id ? null : log.id);}} style={{fontSize:'10px', color:'var(--text-muted)', fontStyle:'italic', wordBreak:'break-word', whiteSpace:'normal', cursor: log.notes.length > 80 ? 'pointer' : 'default'}}>— {log.notes}</span>
                       )}
                     </div>
                     {aiDisagrees && log.outcome_auto_reasoning && (

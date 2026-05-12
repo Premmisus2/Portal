@@ -66,32 +66,32 @@ export default function BottomNav({ currentView, onNav, addClose, shadowMode }: 
           return (
             <div key={item.key} className="bottom-nav-item bottom-nav-center" style={{position:'relative'}}>
               {pickerOpen && (
-                <div className="fadein" style={{position:'fixed', bottom:'80px', left:'14px', right:'14px', background:'#0a0a0a', border:'2px solid rgba(0,240,255,.3)', borderRadius:'12px', boxShadow:'0 16px 48px rgba(0,0,0,.9), 0 0 30px rgba(0,240,255,.1)', zIndex:500, padding:'6px'}}>
-                  <p style={{margin:'6px 8px 4px', fontSize:'9px', fontWeight:700, color:'#444', letterSpacing:'.15em', textTransform:'uppercase', fontFamily:'JetBrains Mono,monospace'}}>What did you close?</p>
-                  <p style={{margin:'0 8px 4px', fontSize:'8px', fontWeight:700, color:'#333', letterSpacing:'.12em', textTransform:'uppercase', fontFamily:'JetBrains Mono,monospace'}}>— Marketing</p>
+                <div className="fadein" style={{position:'fixed', bottom:'80px', left:'14px', right:'14px', background:'var(--bg-elev-pill)', border:'2px solid var(--accent-glow-30)', borderRadius:'12px', boxShadow:'0 16px 48px rgba(0,0,0,.9), 0 0 30px var(--accent-glow-10)', zIndex:500, padding:'6px'}}>
+                  <p style={{margin:'6px 8px 4px', fontSize:'9px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.15em', textTransform:'uppercase', fontFamily:'JetBrains Mono,monospace'}}>What did you close?</p>
+                  <p style={{margin:'0 8px 4px', fontSize:'8px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.12em', textTransform:'uppercase', fontFamily:'JetBrains Mono,monospace'}}>— Marketing</p>
                   {CLOSE_PRODUCTS.filter(p => !p.id.startsWith('ai')).map(prod => (
                     <button key={prod.id} onClick={()=>{ addClose(prod.pts); setPickerOpen(false); }}
                       style={{width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 10px', borderRadius:'7px', background:'none', border:'none', cursor:'pointer', textAlign:'left'}}
-                      onMouseEnter={e=>e.currentTarget.style.background='#111'}
+                      onMouseEnter={e=>e.currentTarget.style.background='var(--bg-sidebar-line)'}
                       onMouseLeave={e=>e.currentTarget.style.background='none'}>
                       <div>
-                        <p style={{margin:0, fontSize:'12px', fontWeight:700, color:'#fff', fontFamily:'Inter,sans-serif'}}>{prod.label}</p>
-                        <p style={{margin:'1px 0 0', fontSize:'10px', color:'#444', fontFamily:'Roboto,sans-serif'}}>{prod.price}</p>
+                        <p style={{margin:0, fontSize:'12px', fontWeight:700, color:'var(--text-primary)', fontFamily:'Inter,sans-serif'}}>{prod.label}</p>
+                        <p style={{margin:'1px 0 0', fontSize:'10px', color:'var(--text-faint)', fontFamily:'Roboto,sans-serif'}}>{prod.price}</p>
                       </div>
-                      <span style={{fontSize:'10px', fontWeight:800, padding:'3px 8px', borderRadius:'20px', background:'rgba(0,240,255,.08)', border:'1px solid rgba(0,240,255,.2)', color:'#00F0FF', fontFamily:'JetBrains Mono,monospace', flexShrink:0}}>+{prod.pts}pt{prod.pts>1?'s':''}</span>
+                      <span style={{fontSize:'10px', fontWeight:800, padding:'3px 8px', borderRadius:'20px', background:'var(--accent-glow-08)', border:'1px solid var(--accent-glow-22)', color:'var(--accent-ink)', fontFamily:'JetBrains Mono,monospace', flexShrink:0}}>+{prod.pts}pt{prod.pts>1?'s':''}</span>
                     </button>
                   ))}
-                  <p style={{margin:'6px 8px 4px', fontSize:'8px', fontWeight:700, color:'#00F0FF', letterSpacing:'.12em', textTransform:'uppercase', fontFamily:'JetBrains Mono,monospace'}}>— AI Services</p>
+                  <p style={{margin:'6px 8px 4px', fontSize:'8px', fontWeight:700, color:'var(--accent-ink)', letterSpacing:'.12em', textTransform:'uppercase', fontFamily:'JetBrains Mono,monospace'}}>— AI Services</p>
                   {CLOSE_PRODUCTS.filter(p => p.id.startsWith('ai')).map(prod => (
                     <button key={prod.id} onClick={()=>{ addClose(prod.pts); setPickerOpen(false); }}
                       style={{width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 10px', borderRadius:'7px', background:'none', border:'none', cursor:'pointer', textAlign:'left'}}
-                      onMouseEnter={e=>e.currentTarget.style.background='#111'}
+                      onMouseEnter={e=>e.currentTarget.style.background='var(--bg-sidebar-line)'}
                       onMouseLeave={e=>e.currentTarget.style.background='none'}>
                       <div>
-                        <p style={{margin:0, fontSize:'12px', fontWeight:700, color:'#fff', fontFamily:'Inter,sans-serif'}}>{prod.label}</p>
-                        <p style={{margin:'1px 0 0', fontSize:'10px', color:'#555', fontFamily:'Roboto,sans-serif'}}>{prod.price}</p>
+                        <p style={{margin:0, fontSize:'12px', fontWeight:700, color:'var(--text-primary)', fontFamily:'Inter,sans-serif'}}>{prod.label}</p>
+                        <p style={{margin:'1px 0 0', fontSize:'10px', color:'var(--text-muted)', fontFamily:'Roboto,sans-serif'}}>{prod.price}</p>
                       </div>
-                      <span style={{fontSize:'10px', fontWeight:800, padding:'3px 8px', borderRadius:'20px', background:'rgba(0,240,255,.08)', border:'1px solid rgba(0,240,255,.2)', color:'#00F0FF', fontFamily:'JetBrains Mono,monospace', flexShrink:0}}>+{prod.pts}pt{prod.pts>1?'s':''}</span>
+                      <span style={{fontSize:'10px', fontWeight:800, padding:'3px 8px', borderRadius:'20px', background:'var(--accent-glow-08)', border:'1px solid var(--accent-glow-22)', color:'var(--accent-ink)', fontFamily:'JetBrains Mono,monospace', flexShrink:0}}>+{prod.pts}pt{prod.pts>1?'s':''}</span>
                     </button>
                   ))}
                 </div>
@@ -101,11 +101,11 @@ export default function BottomNav({ currentView, onNav, addClose, shadowMode }: 
                 className="bottom-nav-center-btn"
                 onClick={() => { if (!shadowMode) setPickerOpen(p=>!p); }}
                 aria-label="Log a close"
-                style={shadowMode ? {opacity:.4, cursor:'not-allowed', background:'#555', boxShadow:'none'} : {}}
+                style={shadowMode ? {opacity:.4, cursor:'not-allowed', background:'var(--text-muted)', boxShadow:'none'} : {}}
               >
                 {item.icon}
               </button>
-              <span className="bottom-nav-label" style={{ color: '#00F0FF', marginTop: 4 }}>
+              <span className="bottom-nav-label" style={{ color: 'var(--accent-ink)', marginTop: 4 }}>
                 {item.label}
               </span>
             </div>

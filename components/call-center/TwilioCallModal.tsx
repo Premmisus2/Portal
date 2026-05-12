@@ -107,7 +107,7 @@ const TwilioCallModal = ({ lead, repId, repPhone, onClose, onCallComplete }: any
   };
 
   const statusConfig: Record<string, any> = {
-    initiating: { dot: '#00F0FF', pulse: true, label: 'Initiating call...' },
+    initiating: { dot: 'var(--accent-ink)', pulse: true, label: 'Initiating call...' },
     ringing:    { dot: '#F59E0B', pulse: true, label: 'Ringing your phone...' },
     connected:  { dot: '#22c55e', pulse: false, label: 'Connected — hang up on your phone when done' },
     completed:  { dot: '#22c55e', pulse: false, label: 'Call complete' },
@@ -118,14 +118,14 @@ const TwilioCallModal = ({ lead, repId, repPhone, onClose, onCallComplete }: any
   return (
     <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,.85)', zIndex:600, display:'flex', alignItems:'center', justifyContent:'center', padding:'20px'}}
       onClick={e => { if (e.target === e.currentTarget && (status === 'completed' || status === 'failed')) handleClose(); }}>
-      <div style={{maxWidth:'400px', width:'100%', background:'#0d0d0d', border:'1px solid #1e1e1e', borderRadius:'12px', padding:'32px', position:'relative'}}>
+      <div style={{maxWidth:'400px', width:'100%', background:'var(--bg-elev-1)', border:'1px solid var(--border)', borderRadius:'12px', padding:'32px', position:'relative'}}>
         {/* Close X */}
-        <button onClick={handleClose} style={{position:'absolute', top:'12px', right:'12px', background:'none', border:'none', color:'#555', cursor:'pointer', fontSize:'18px', lineHeight:1, padding:'4px'}}
-          onMouseEnter={e=>(e.currentTarget as HTMLElement).style.color='#fff'} onMouseLeave={e=>(e.currentTarget as HTMLElement).style.color='#555'}>×</button>
+        <button onClick={handleClose} style={{position:'absolute', top:'12px', right:'12px', background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', fontSize:'18px', lineHeight:1, padding:'4px'}}
+          onMouseEnter={e=>(e.currentTarget as HTMLElement).style.color='var(--text-primary)'} onMouseLeave={e=>(e.currentTarget as HTMLElement).style.color='var(--text-muted)'}>×</button>
 
         {/* Business Name */}
-        <p style={{margin:'0 0 4px', fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.12em', textTransform:'uppercase'}}>Calling</p>
-        <p style={{margin:'0 0 24px', fontSize:'20px', fontWeight:800, color:'#fff', fontFamily:'Inter,sans-serif'}}>{lead.business_name}</p>
+        <p style={{margin:'0 0 4px', fontSize:'10px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.12em', textTransform:'uppercase'}}>Calling</p>
+        <p style={{margin:'0 0 24px', fontSize:'20px', fontWeight:800, color:'var(--text-primary)', fontFamily:'Inter,sans-serif'}}>{lead.business_name}</p>
 
         {/* Status Indicator */}
         <div style={{display:'flex', alignItems:'center', gap:'12px', marginBottom:'20px'}}>
@@ -137,7 +137,7 @@ const TwilioCallModal = ({ lead, repId, repPhone, onClose, onCallComplete }: any
         {/* Duration (connected or completed) */}
         {(status === 'connected' || status === 'completed') && (
           <div style={{marginBottom:'24px', textAlign:'center'}}>
-            <p style={{margin:0, fontSize:'36px', fontWeight:700, color:'#00F0FF', fontFamily:'JetBrains Mono,monospace'}}>{formatDuration(duration)}</p>
+            <p style={{margin:0, fontSize:'36px', fontWeight:700, color:'var(--accent-ink)', fontFamily:'JetBrains Mono,monospace'}}>{formatDuration(duration)}</p>
           </div>
         )}
 
@@ -159,7 +159,7 @@ const TwilioCallModal = ({ lead, repId, repPhone, onClose, onCallComplete }: any
         <div style={{display:'flex', gap:'10px', justifyContent:'center', flexWrap:'wrap'}}>
           {status === 'completed' && (
             <button onClick={() => { onCallComplete({ callSid, callLogId, duration }); onClose(); }}
-              style={{padding:'10px 24px', borderRadius:'8px', cursor:'pointer', border:'none', background:'#00F0FF', color:'#000',
+              style={{padding:'10px 24px', borderRadius:'8px', cursor:'pointer', border:'none', background:'var(--accent-ink)', color:'var(--bg-app)',
                 fontWeight:800, fontSize:'12px', fontFamily:'Inter,sans-serif', letterSpacing:'.06em', textTransform:'uppercase', transition:'opacity .15s'}}
               onMouseEnter={e=>(e.currentTarget as HTMLElement).style.opacity='.85'} onMouseLeave={e=>(e.currentTarget as HTMLElement).style.opacity='1'}>
               Log Outcome
@@ -167,10 +167,10 @@ const TwilioCallModal = ({ lead, repId, repPhone, onClose, onCallComplete }: any
           )}
           {status === 'failed' && (
             <a href={`tel:${lead.phone}`} onClick={handleClose} style={{padding:'10px 24px', borderRadius:'8px', textDecoration:'none', display:'inline-block',
-              background:'transparent', border:'1px solid #333', color:'#888',
+              background:'transparent', border:'1px solid #333', color:'var(--text-tertiary)',
               fontWeight:800, fontSize:'12px', fontFamily:'Inter,sans-serif', letterSpacing:'.06em', textTransform:'uppercase', transition:'all .15s'}}
-              onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor='#555'; (e.currentTarget as HTMLElement).style.color='#ccc';}}
-              onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='#333'; (e.currentTarget as HTMLElement).style.color='#888';}}>
+              onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor='var(--text-muted)'; (e.currentTarget as HTMLElement).style.color='var(--text-secondary)';}}
+              onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='var(--text-faint)'; (e.currentTarget as HTMLElement).style.color='var(--text-tertiary)';}}>
               Call Manually
             </a>
           )}

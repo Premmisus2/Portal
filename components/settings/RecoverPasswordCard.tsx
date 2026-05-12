@@ -49,7 +49,7 @@ export default function RecoverPasswordCard({ userEmail }: Props) {
               style={{
                 padding: '9px 18px', borderRadius: '6px',
                 border: '1px solid #2a2a2a', background: 'transparent',
-                color: '#aaa', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+                color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
                 fontFamily: 'Inter, sans-serif', opacity: busy ? 0.5 : 1,
               }}>
               {busy ? 'Sending…' : `Send reset email to ${userEmail}`}

@@ -5,7 +5,7 @@ import { Rep, Body, PLabel, IfBlock } from '@/components/ui/Typography';
 const MisstepsPanel = () => (
   <div>
     <div style={{marginBottom:'6px'}}><span className="tag">05</span></div>
-    <h2 style={{fontSize:'26px',fontWeight:900,color:'#fff',margin:'8px 0 4px'}}>Misstep Corrections</h2>
+    <h2 style={{fontSize:'26px',fontWeight:900,color:'var(--text-primary)',margin:'8px 0 4px'}}>Misstep Corrections</h2>
     <Body>When the call goes off-track, use these recovery lines to re-establish control and momentum.</Body>
     <div className="divider" style={{margin:'16px 0'}}/>
 
@@ -16,7 +16,7 @@ const MisstepsPanel = () => (
       </div>
       <div className="mistake-block"><span className="mistake-label">The Mistake</span>
         <p className="mistake-text">Saying "Okay, understood, bye" when they say they have no budget.</p></div>
-      <p style={{color:'#555',fontSize:'11px',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',margin:'10px 0 4px'}}>The Protocol — Use This Exact Flow:</p>
+      <p style={{color:'var(--text-muted)',fontSize:'11px',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',margin:'10px 0 4px'}}>The Protocol — Use This Exact Flow:</p>
       <Rep>I totally get it. Cash flow is king. That's precisely why we don't operate on massive retainers without showing you exactly what we can do first.</Rep>
       <PLabel>[The Value Contrast]</PLabel>
       <Rep>A traditional agency will charge you $3,000 to $50,000 for a website. We build you a fully custom, SEO-optimized, revenue-generating website for $1,500. That is an extreme discount for a premium asset.</Rep>
@@ -35,7 +35,7 @@ const MisstepsPanel = () => (
       </div>
       <div className="mistake-block"><span className="mistake-label">The Mistake</span>
         <p className="mistake-text">Saying "Wait, but you haven't heard my offer!" when they try to hang up.</p></div>
-      <p style={{color:'#555',fontSize:'11px',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',margin:'10px 0 4px'}}>The Protocol — Use This Exact Flow:</p>
+      <p style={{color:'var(--text-muted)',fontSize:'11px',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',margin:'10px 0 4px'}}>The Protocol — Use This Exact Flow:</p>
       <PLabel>[The Playful Challenge]</PLabel>
       <Rep>Oh, wow. So you're telling me you guys are completely booked to maximum capacity for the entire year already?</Rep>
       <IfBlock label="If they say 'Yep' to blow you off">
@@ -61,10 +61,10 @@ const MisstepsPanel = () => (
       </div>
       <div className="mistake-block"><span className="mistake-label">The Mistake</span>
         <p className="mistake-text">Rambling for 60 seconds straight without letting the prospect speak, which instantly triggers their "salesman defense."</p></div>
-      <p style={{color:'#555',fontSize:'11px',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',margin:'10px 0 4px'}}>The Protocol — Use This Exact Flow:</p>
+      <p style={{color:'var(--text-muted)',fontSize:'11px',fontWeight:700,letterSpacing:'.12em',textTransform:'uppercase',margin:'10px 0 4px'}}>The Protocol — Use This Exact Flow:</p>
       <PLabel>[The Sophisticated Interrupt]</PLabel>
       <Rep>Hi [Name], I know I'm an uninvited guest right now, but I'm looking at your current online setup. Being a specialist in social media marketing and AI, I actually noticed a couple of things that I believe could help you significantly increase your profit. These are actually the exact same systems we've implemented for a couple of other businesses in your niche as well. Do you have exactly 30 seconds for me to explain, or should I just hang up on myself?</Rep>
-      <p style={{color:'#555',fontSize:'12px',fontStyle:'italic',margin:'6px 0 10px',paddingLeft:'4px'}}>Wait for their response. Let the silence and the contrast do the heavy lifting.</p>
+      <p style={{color:'var(--text-muted)',fontSize:'12px',fontStyle:'italic',margin:'6px 0 10px',paddingLeft:'4px'}}>Wait for their response. Let the silence and the contrast do the heavy lifting.</p>
       <IfBlock label="Scenario A: They chuckle or say 'Okay, you have 30 seconds'">
         <Rep>I appreciate it. I have your website open right now. It looks clean, but right now it's acting more like a digital brochure than a lead engine. If a premium client landed there at 2:00 PM today while you're busy on a job site... is there a system to instantly capture and text them back? Do you guys have that? (Wait for their response).</Rep>
         <PLabel>[The Industry Reality]</PLabel>

@@ -5,7 +5,7 @@ import { Rep, Body, SecH, SubH } from '@/components/ui/Typography';
 const HooksPanel = () => (
   <div>
     <div style={{marginBottom:'6px'}}><span className="tag">03</span></div>
-    <h2 style={{fontSize:'26px',fontWeight:900,color:'#fff',margin:'8px 0 4px'}}>Verbatim Hooks</h2>
+    <h2 style={{fontSize:'26px',fontWeight:900,color:'var(--text-primary)',margin:'8px 0 4px'}}>Verbatim Hooks</h2>
     <Body>Use these exact psychological triggers to de-risk the offer and build trust.</Body>
     <div className="divider" style={{margin:'16px 0'}}/>
 
@@ -44,7 +44,7 @@ const HooksPanel = () => (
     </div>
 
     <div className="card-glow" style={{padding:'16px 20px'}}>
-      <p style={{fontSize:'10px',fontWeight:700,letterSpacing:'.15em',textTransform:'uppercase',color:'#00F0FF',margin:'0 0 8px'}}>Add to the End of Most Hooks Above</p>
+      <p style={{fontSize:'10px',fontWeight:700,letterSpacing:'.15em',textTransform:'uppercase',color:'var(--accent-ink)',margin:'0 0 8px'}}>Add to the End of Most Hooks Above</p>
       <Rep>How does that sound? When would you be available to hop on a 10- or 15-minute call so that we can show you how we do so?</Rep>
     </div>
   </div>

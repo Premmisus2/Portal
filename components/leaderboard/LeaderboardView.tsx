@@ -64,7 +64,7 @@ function rankBadge(rank: number) {
   if (rank === 1) return { label: '1ST', bg: 'rgba(255,200,0,.12)', border: 'rgba(255,200,0,.45)', color: '#FFC800' };
   if (rank === 2) return { label: '2ND', bg: 'rgba(192,192,192,.10)', border: 'rgba(192,192,192,.4)', color: '#C0C0C0' };
   if (rank === 3) return { label: '3RD', bg: 'rgba(205,127,50,.10)', border: 'rgba(205,127,50,.4)', color: '#CD7F32' };
-  return { label: `${rank}`, bg: 'rgba(0,240,255,.05)', border: '#1e1e1e', color: '#666' };
+  return { label: `${rank}`, bg: 'var(--accent-glow-05)', border: 'var(--border)', color: 'var(--text-muted)' };
 }
 
 interface BroadcastResult {
@@ -210,7 +210,7 @@ export default function LeaderboardView(props: any) {
   const isToday = date === todayISO();
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#000' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg-app)' }}>
       <TopBar
         title="Leaderboard"
         subtitle={isToday ? 'Live — today' : `Snapshot — ${date}`}
@@ -221,17 +221,17 @@ export default function LeaderboardView(props: any) {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
           <div>
             <span className="tag">DAILY STANDUP</span>
-            <h2 style={{ fontSize: '26px', fontWeight: 900, color: '#fff', margin: '8px 0 4px', letterSpacing: '-.01em' }}>
+            <h2 style={{ fontSize: '26px', fontWeight: 900, color: 'var(--text-primary)', margin: '8px 0 4px', letterSpacing: '-.01em' }}>
               {isToday ? "Today's Leaderboard" : `Leaderboard — ${date}`}
             </h2>
-            <p style={{ color: '#666', fontSize: '13px', margin: 0 }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>
               Calls, bookings, discoveries, and callbacks per rep. Updated live.
             </p>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontFamily: 'JetBrains Mono, monospace' }}>
             <button
               onClick={() => setDate(d => shiftDate(d, -1))}
-              style={{ background: '#0a0a0a', border: '1px solid #1e1e1e', color: '#aaa', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}
+              style={{ background: 'var(--bg-elev-pill)', border: '1px solid var(--border)', color: 'var(--text-secondary)', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}
               aria-label="Previous day"
             >
               ←
@@ -241,12 +241,12 @@ export default function LeaderboardView(props: any) {
               value={date}
               max={todayISO()}
               onChange={e => setDate(e.target.value || todayISO())}
-              style={{ background: '#0a0a0a', border: '1px solid #1e1e1e', color: '#fff', padding: '6px 10px', borderRadius: '6px', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace', colorScheme: 'dark' }}
+              style={{ background: 'var(--bg-elev-pill)', border: '1px solid var(--border)', color: 'var(--text-primary)', padding: '6px 10px', borderRadius: '6px', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace', colorScheme: 'dark' }}
             />
             <button
               onClick={() => setDate(d => (d >= todayISO() ? d : shiftDate(d, 1)))}
               disabled={date >= todayISO()}
-              style={{ background: '#0a0a0a', border: '1px solid #1e1e1e', color: date >= todayISO() ? '#333' : '#aaa', padding: '6px 10px', borderRadius: '6px', cursor: date >= todayISO() ? 'not-allowed' : 'pointer', fontSize: '12px' }}
+              style={{ background: 'var(--bg-elev-pill)', border: '1px solid var(--border)', color: date >= todayISO() ? 'var(--text-faint)' : 'var(--text-secondary)', padding: '6px 10px', borderRadius: '6px', cursor: date >= todayISO() ? 'not-allowed' : 'pointer', fontSize: '12px' }}
               aria-label="Next day"
             >
               →
@@ -254,7 +254,7 @@ export default function LeaderboardView(props: any) {
             {!isToday && (
               <button
                 onClick={() => setDate(todayISO())}
-                style={{ background: 'rgba(0,240,255,.08)', border: '1px solid rgba(0,240,255,.3)', color: '#00F0FF', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 700, letterSpacing: '.1em' }}
+                style={{ background: 'var(--accent-glow-08)', border: '1px solid var(--accent-glow-30)', color: 'var(--accent-ink)', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '11px', fontWeight: 700, letterSpacing: '.1em' }}
               >
                 TODAY
               </button>
@@ -265,14 +265,14 @@ export default function LeaderboardView(props: any) {
         {/* Team totals */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginBottom: '24px' }}>
           {[
-            { label: 'Calls', value: totals.calls, color: '#fff' },
-            { label: 'Connects', value: totals.connects, color: '#aaa' },
+            { label: 'Calls', value: totals.calls, color: 'var(--text-primary)' },
+            { label: 'Connects', value: totals.connects, color: 'var(--text-secondary)' },
             { label: 'Booked', value: totals.booked, color: '#22c55e' },
-            { label: 'Discovery', value: totals.discovery, color: '#00F0FF' },
+            { label: 'Discovery', value: totals.discovery, color: 'var(--accent-ink)' },
             { label: 'Callbacks', value: totals.callbacks, color: '#F59E0B' },
           ].map(stat => (
-            <div key={stat.label} style={{ background: '#070707', border: '1px solid #1a1a1a', borderRadius: '8px', padding: '14px 16px' }}>
-              <p style={{ margin: 0, fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', color: '#444', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>{stat.label}</p>
+            <div key={stat.label} style={{ background: '#070707', border: '1px solid var(--border-soft)', borderRadius: '8px', padding: '14px 16px' }}>
+              <p style={{ margin: 0, fontSize: '10px', fontWeight: 700, letterSpacing: '.15em', color: 'var(--text-faint)', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>{stat.label}</p>
               <p style={{ margin: '4px 0 0', fontSize: '24px', fontWeight: 900, color: stat.color, fontFamily: 'JetBrains Mono, monospace' }}>{stat.value}</p>
             </div>
           ))}
@@ -283,8 +283,8 @@ export default function LeaderboardView(props: any) {
           <div style={{ background: '#070707', border: '1px solid rgba(0,240,255,.18)', borderRadius: '10px', padding: '14px 16px', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: broadcastResult ? '12px' : 0 }}>
               <div style={{ minWidth: 0 }}>
-                <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, letterSpacing: '.15em', color: '#00F0FF', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>Director Console</p>
-                <p style={{ margin: '4px 0 0', color: '#888', fontSize: '12px' }}>
+                <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, letterSpacing: '.15em', color: 'var(--accent-ink)', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>Director Console</p>
+                <p style={{ margin: '4px 0 0', color: 'var(--text-tertiary)', fontSize: '12px' }}>
                   Dry-run the daily standup SMS. The cron auto-sends it at 9PM ET (Mon–Fri).
                 </p>
               </div>
@@ -292,14 +292,14 @@ export default function LeaderboardView(props: any) {
                 <button
                   onClick={() => callBroadcast('preview')}
                   disabled={broadcasting}
-                  style={{ background: '#0a0a0a', border: '1px solid #1e1e1e', color: '#aaa', padding: '8px 14px', borderRadius: '6px', cursor: broadcasting ? 'wait' : 'pointer', fontSize: '11px', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}
+                  style={{ background: 'var(--bg-elev-pill)', border: '1px solid var(--border)', color: 'var(--text-secondary)', padding: '8px 14px', borderRadius: '6px', cursor: broadcasting ? 'wait' : 'pointer', fontSize: '11px', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}
                 >
                   Preview
                 </button>
                 <button
                   onClick={() => callBroadcast('me')}
                   disabled={broadcasting}
-                  style={{ background: 'rgba(0,240,255,.06)', border: '1px solid rgba(0,240,255,.3)', color: '#00F0FF', padding: '8px 14px', borderRadius: '6px', cursor: broadcasting ? 'wait' : 'pointer', fontSize: '11px', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}
+                  style={{ background: 'var(--accent-glow-06)', border: '1px solid var(--accent-glow-30)', color: 'var(--accent-ink)', padding: '8px 14px', borderRadius: '6px', cursor: broadcasting ? 'wait' : 'pointer', fontSize: '11px', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}
                 >
                   Send to Me
                 </button>
@@ -314,7 +314,7 @@ export default function LeaderboardView(props: any) {
             </div>
 
             {broadcasting && (
-              <p style={{ margin: '8px 0 0', color: '#666', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace' }}>Sending…</p>
+              <p style={{ margin: '8px 0 0', color: 'var(--text-muted)', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace' }}>Sending…</p>
             )}
 
             {broadcastResult && (
@@ -323,21 +323,21 @@ export default function LeaderboardView(props: any) {
                   <p style={{ margin: 0, color: '#ff8888', fontSize: '13px' }}>Error: {broadcastResult.error}</p>
                 ) : (
                   <>
-                    <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, letterSpacing: '.15em', color: '#666', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
+                    <p style={{ margin: 0, fontSize: '11px', fontWeight: 700, letterSpacing: '.15em', color: 'var(--text-muted)', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
                       {broadcastResult.dryRun
                         ? `Preview (${broadcastResult.recipients?.length ?? 0} recipient${broadcastResult.recipients?.length === 1 ? '' : 's'} — nothing sent)`
                         : `Sent: ${broadcastResult.sent} · Failed: ${broadcastResult.failed}`}
                     </p>
                     {broadcastResult.smsBody && (
-                      <pre style={{ margin: '8px 0 0', padding: '10px 12px', background: '#000', border: '1px solid #1a1a1a', borderRadius: '6px', color: '#ddd', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{broadcastResult.smsBody}</pre>
+                      <pre style={{ margin: '8px 0 0', padding: '10px 12px', background: 'var(--bg-app)', border: '1px solid var(--border-soft)', borderRadius: '6px', color: 'var(--text-secondary)', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{broadcastResult.smsBody}</pre>
                     )}
                     {!broadcastResult.dryRun && broadcastResult.results && broadcastResult.results.length > 0 && (
                       <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                         {broadcastResult.results.map(r => (
                           <div key={`${r.name}-${r.phone}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace' }}>
                             <span style={{ color: r.ok ? '#22c55e' : '#ff5555', fontWeight: 800, minWidth: '14px' }}>{r.ok ? '✓' : '✗'}</span>
-                            <span style={{ color: '#fff' }}>{r.name}</span>
-                            <span style={{ color: '#555' }}>{r.phone}</span>
+                            <span style={{ color: 'var(--text-primary)' }}>{r.name}</span>
+                            <span style={{ color: 'var(--text-muted)' }}>{r.phone}</span>
                             {!r.ok && <span style={{ color: '#ff8888' }}>— {r.error}</span>}
                           </div>
                         ))}
@@ -346,7 +346,7 @@ export default function LeaderboardView(props: any) {
                     {broadcastResult.dryRun && broadcastResult.recipients && (
                       <div style={{ marginTop: '10px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                         {broadcastResult.recipients.map(r => (
-                          <span key={`${r.name}-${r.phone}`} style={{ fontSize: '11px', color: '#aaa', background: '#0a0a0a', border: '1px solid #1e1e1e', borderRadius: '4px', padding: '3px 8px', fontFamily: 'JetBrains Mono, monospace' }}>{r.name} {r.phone}</span>
+                          <span key={`${r.name}-${r.phone}`} style={{ fontSize: '11px', color: 'var(--text-secondary)', background: 'var(--bg-elev-pill)', border: '1px solid var(--border)', borderRadius: '4px', padding: '3px 8px', fontFamily: 'JetBrains Mono, monospace' }}>{r.name} {r.phone}</span>
                         ))}
                         {broadcastResult.recipients.length === 0 && (
                           <span style={{ fontSize: '12px', color: '#F59E0B' }}>⚠ No reps have phone numbers set yet — set them in Director Dashboard → Reps.</span>
@@ -363,10 +363,10 @@ export default function LeaderboardView(props: any) {
         {/* Confirm modal — Send to Team */}
         {confirmOpen && (
           <div role="dialog" aria-modal="true" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.7)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 600, padding: '20px' }}>
-            <div style={{ background: '#0a0a0a', border: '1px solid rgba(245,158,11,.4)', borderRadius: '10px', padding: '24px', maxWidth: '440px', width: '100%' }}>
+            <div style={{ background: 'var(--bg-elev-pill)', border: '1px solid rgba(245,158,11,.4)', borderRadius: '10px', padding: '24px', maxWidth: '440px', width: '100%' }}>
               <p style={{ margin: 0, fontSize: '11px', fontWeight: 800, letterSpacing: '.15em', color: '#F59E0B', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>Confirm Broadcast</p>
-              <h3 style={{ margin: '8px 0 12px', fontSize: '20px', color: '#fff', fontWeight: 800 }}>Send the standup SMS to every rep right now?</h3>
-              <p style={{ margin: 0, color: '#888', fontSize: '13px', lineHeight: 1.5 }}>
+              <h3 style={{ margin: '8px 0 12px', fontSize: '20px', color: 'var(--text-primary)', fontWeight: 800 }}>Send the standup SMS to every rep right now?</h3>
+              <p style={{ margin: 0, color: 'var(--text-tertiary)', fontSize: '13px', lineHeight: 1.5 }}>
                 Every active rep with a phone number on file will receive the SMS immediately, including yourself.
                 The body is prefixed with [Premmisus TEST] so reps know it's a dry run.
               </p>
@@ -374,14 +374,14 @@ export default function LeaderboardView(props: any) {
                 <button
                   onClick={() => setConfirmOpen(false)}
                   disabled={broadcasting}
-                  style={{ background: 'transparent', border: '1px solid #1e1e1e', color: '#aaa', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}
+                  style={{ background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-secondary)', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => callBroadcast('all')}
                   disabled={broadcasting}
-                  style={{ background: '#F59E0B', border: '1px solid #F59E0B', color: '#000', padding: '8px 16px', borderRadius: '6px', cursor: broadcasting ? 'wait' : 'pointer', fontSize: '12px', fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}
+                  style={{ background: '#F59E0B', border: '1px solid #F59E0B', color: 'var(--bg-app)', padding: '8px 16px', borderRadius: '6px', cursor: broadcasting ? 'wait' : 'pointer', fontSize: '12px', fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}
                 >
                   {broadcasting ? 'Sending…' : 'Send Now'}
                 </button>
@@ -397,12 +397,12 @@ export default function LeaderboardView(props: any) {
         )}
 
         {loading ? (
-          <div style={{ padding: '40px 0', textAlign: 'center', color: '#444', fontSize: '12px', letterSpacing: '.15em', textTransform: 'uppercase' }}>Loading…</div>
+          <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-faint)', fontSize: '12px', letterSpacing: '.15em', textTransform: 'uppercase' }}>Loading…</div>
         ) : stats.length === 0 ? (
-          <div style={{ padding: '40px 0', textAlign: 'center', color: '#444', fontSize: '13px' }}>No active reps found.</div>
+          <div style={{ padding: '40px 0', textAlign: 'center', color: 'var(--text-faint)', fontSize: '13px' }}>No active reps found.</div>
         ) : (
-          <div style={{ background: '#070707', border: '1px solid #1a1a1a', borderRadius: '10px', overflow: 'hidden' }}>
-            <div className="leaderboard-grid" style={{ display: 'grid', gridTemplateColumns: '60px 1.4fr repeat(5, 1fr) 0.9fr', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid #1a1a1a', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', fontWeight: 700, color: '#444', letterSpacing: '.15em', textTransform: 'uppercase' }}>
+          <div style={{ background: '#070707', border: '1px solid var(--border-soft)', borderRadius: '10px', overflow: 'hidden' }}>
+            <div className="leaderboard-grid" style={{ display: 'grid', gridTemplateColumns: '60px 1.4fr repeat(5, 1fr) 0.9fr', alignItems: 'center', padding: '12px 16px', borderBottom: '1px solid var(--border-soft)', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '.15em', textTransform: 'uppercase' }}>
               <div>#</div>
               <div>Rep</div>
               <div style={{ textAlign: 'right' }}>Calls</div>
@@ -429,7 +429,7 @@ export default function LeaderboardView(props: any) {
                     borderBottom: '1px solid #111',
                     fontFamily: 'JetBrains Mono, monospace',
                     fontSize: '14px',
-                    color: inactive ? '#444' : '#fff',
+                    color: inactive ? 'var(--text-faint)' : 'var(--text-primary)',
                     background: rank === 1 && !inactive ? 'linear-gradient(90deg, rgba(255,200,0,.04), transparent 60%)' : 'transparent',
                   }}
                 >
@@ -437,24 +437,24 @@ export default function LeaderboardView(props: any) {
                     <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '32px', padding: '3px 8px', borderRadius: '4px', background: badge.bg, border: `1px solid ${badge.border}`, color: badge.color, fontSize: '10px', fontWeight: 800, letterSpacing: '.1em' }}>{badge.label}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
-                    <span style={{ color: inactive ? '#555' : '#fff', fontWeight: 700, fontFamily: 'Inter, sans-serif', fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</span>
+                    <span style={{ color: inactive ? 'var(--text-muted)' : 'var(--text-primary)', fontWeight: 700, fontFamily: 'Inter, sans-serif', fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.name}</span>
                     {s.role === 'director' && (
-                      <span style={{ fontSize: '8px', fontWeight: 800, letterSpacing: '.15em', color: '#00F0FF', background: 'rgba(0,240,255,.08)', border: '1px solid rgba(0,240,255,.25)', borderRadius: '3px', padding: '1px 5px' }}>DIR</span>
+                      <span style={{ fontSize: '8px', fontWeight: 800, letterSpacing: '.15em', color: 'var(--accent-ink)', background: 'var(--accent-glow-08)', border: '1px solid var(--accent-glow-25)', borderRadius: '3px', padding: '1px 5px' }}>DIR</span>
                     )}
                   </div>
                   <div style={{ textAlign: 'right' }}>{s.calls}</div>
-                  <div style={{ textAlign: 'right', color: inactive ? '#444' : '#aaa' }}>{s.connects}</div>
-                  <div style={{ textAlign: 'right', color: s.booked > 0 ? '#22c55e' : inactive ? '#444' : '#666', fontWeight: s.booked > 0 ? 800 : 400 }}>{s.booked}</div>
-                  <div style={{ textAlign: 'right', color: s.discovery > 0 ? '#00F0FF' : inactive ? '#444' : '#666', fontWeight: s.discovery > 0 ? 800 : 400 }}>{s.discovery}</div>
-                  <div style={{ textAlign: 'right', color: s.callbacks > 0 ? '#F59E0B' : inactive ? '#444' : '#666', fontWeight: s.callbacks > 0 ? 800 : 400 }}>{s.callbacks}</div>
-                  <div style={{ textAlign: 'right', color: inactive ? '#444' : '#aaa' }}>{s.calls > 0 ? `${s.conversion}%` : '—'}</div>
+                  <div style={{ textAlign: 'right', color: inactive ? 'var(--text-faint)' : 'var(--text-secondary)' }}>{s.connects}</div>
+                  <div style={{ textAlign: 'right', color: s.booked > 0 ? '#22c55e' : inactive ? 'var(--text-faint)' : 'var(--text-muted)', fontWeight: s.booked > 0 ? 800 : 400 }}>{s.booked}</div>
+                  <div style={{ textAlign: 'right', color: s.discovery > 0 ? 'var(--accent-ink)' : inactive ? 'var(--text-faint)' : 'var(--text-muted)', fontWeight: s.discovery > 0 ? 800 : 400 }}>{s.discovery}</div>
+                  <div style={{ textAlign: 'right', color: s.callbacks > 0 ? '#F59E0B' : inactive ? 'var(--text-faint)' : 'var(--text-muted)', fontWeight: s.callbacks > 0 ? 800 : 400 }}>{s.callbacks}</div>
+                  <div style={{ textAlign: 'right', color: inactive ? 'var(--text-faint)' : 'var(--text-secondary)' }}>{s.calls > 0 ? `${s.conversion}%` : '—'}</div>
                 </div>
               );
             })}
           </div>
         )}
 
-        <p style={{ marginTop: '20px', fontSize: '11px', color: '#333', textAlign: 'center', letterSpacing: '.1em', fontFamily: 'JetBrains Mono, monospace' }}>
+        <p style={{ marginTop: '20px', fontSize: '11px', color: 'var(--text-faint)', textAlign: 'center', letterSpacing: '.1em', fontFamily: 'JetBrains Mono, monospace' }}>
           A team SMS goes out at 9PM ET (Mon–Fri) with these numbers. Auto-summary via Premmisus Nerve Center.
         </p>
       </main>

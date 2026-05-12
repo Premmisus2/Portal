@@ -129,7 +129,7 @@ export default function HomeView({ userName, userEmail, onNav, onLogout, totalCl
   }
 
   return (
-    <div style={{minHeight:'100vh', background:'#000', display:'flex', flexDirection:'column', paddingTop: shadowMode ? '40px' : 0}}>
+    <div style={{minHeight:'100vh', background:'var(--bg-app)', display:'flex', flexDirection:'column', paddingTop: shadowMode ? '40px' : 0}}>
       <header className="no-print home-header" style={{display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 20px', borderBottom:'1px solid #0f0f0f', background:'#040404', gap:'12px', flexWrap:'wrap'}}>
         <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
           <button className="hamburger-btn" onClick={onToggleSidebar}>
@@ -141,7 +141,7 @@ export default function HomeView({ userName, userEmail, onNav, onLogout, totalCl
         <div style={{display:'flex', alignItems:'center', gap:'10px'}}>
           <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
             <div className="pulse"/>
-            <span style={{fontSize:'11px', fontWeight:600, color:'#444', letterSpacing:'.08em'}}>{userName}</span>
+            <span style={{fontSize:'11px', fontWeight:600, color:'var(--text-faint)', letterSpacing:'.08em'}}>{userName}</span>
           </div>
           <ProfileDropdown userName={userName} userEmail={userEmail} totalCloses={totalCloses} totalPoints={totalPoints} onLogout={onLogout} onShortcuts={onShortcuts} actuallyDirector={actuallyDirector} viewAsRep={viewAsRep} onToggleView={onToggleView} shadowMode={shadowMode} shadowRepName={shadowRepName} allReps={allReps} enterShadow={enterShadow} exitShadow={exitShadow}/>
         </div>
@@ -149,14 +149,14 @@ export default function HomeView({ userName, userEmail, onNav, onLogout, totalCl
 
       <div className="hub-hero" style={{position:'relative', overflow:'hidden', padding:'40px 20px 36px', textAlign:'center'}}>
         <div className="grid-bg" style={{position:'absolute', inset:0, opacity:.4, pointerEvents:'none'}}/>
-        <div style={{position:'absolute', inset:0, background:'radial-gradient(ellipse 70% 60% at 50% 0%, rgba(0,240,255,.07) 0%, transparent 65%)', pointerEvents:'none'}}/>
+        <div style={{position:'absolute', inset:0, background:'radial-gradient(ellipse 70% 60% at 50% 0%, var(--accent-glow-06) 0%, transparent 65%)', pointerEvents:'none'}}/>
         <div style={{position:'relative', zIndex:1}}>
           <span className="tag" style={{marginBottom:'20px', display:'inline-block'}}>Premmisus Sales Command</span>
           <RotatingHeadline />
-          <p className="hub-subtitle" style={{color:'#555', fontSize:'15px', maxWidth:'480px', margin:'0 auto 8px', lineHeight:1.6}}>
+          <p className="hub-subtitle" style={{color:'var(--text-muted)', fontSize:'15px', maxWidth:'480px', margin:'0 auto 8px', lineHeight:1.6}}>
             Your full sales operating system. Scripts, outreach, commissions, and coaching — all in one place.
           </p>
-          <p className="hub-shortcuts" style={{color:'#2e2e2e', fontSize:'11px', margin:0, letterSpacing:'.12em', textTransform:'uppercase', fontWeight:600}}>
+          <p className="hub-shortcuts" style={{color:'var(--border-strong)', fontSize:'11px', margin:0, letterSpacing:'.12em', textTransform:'uppercase', fontWeight:600}}>
             Shift + 1–8 to jump · Press ? for shortcuts
           </p>
         </div>
@@ -179,7 +179,7 @@ export default function HomeView({ userName, userEmail, onNav, onLogout, totalCl
                 padding:'28px',
                 textAlign:'left',
                 cursor: s.locked ? 'default' : 'pointer',
-                border: s.featured ? '1px solid rgba(0,240,255,.3)' : '1px solid #1a1a1a',
+                border: s.featured ? '1px solid var(--accent-glow-30)' : '1px solid var(--border-soft)',
                 outline:'none',
                 font:'inherit',
                 opacity: s.locked ? .35 : 1,
@@ -187,25 +187,25 @@ export default function HomeView({ userName, userEmail, onNav, onLogout, totalCl
               }}>
               {/* Notification badge for Director Dashboard */}
               {s.key === 'director' && missedEventCount > 0 && (
-                <span style={{position:'absolute', top:'-1px', right:'-1px', background:'#ff4444', color:'#fff', borderRadius:'12px', minWidth:'22px', height:'22px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:800, padding:'0 6px', boxShadow:'0 0 12px rgba(255,68,68,.5)', zIndex:2}}>{missedEventCount}</span>
+                <span style={{position:'absolute', top:'-1px', right:'-1px', background:'#ff4444', color:'var(--text-primary)', borderRadius:'12px', minWidth:'22px', height:'22px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'11px', fontWeight:800, padding:'0 6px', boxShadow:'0 0 12px rgba(255,68,68,.5)', zIndex:2}}>{missedEventCount}</span>
               )}
               <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'16px'}}>
-                <span style={{fontSize:'10px', fontWeight:800, letterSpacing:'.2em', color:'#00F0FF'}}>{s.num}</span>
-                <div style={{flex:1, height:'1px', background:'rgba(0,240,255,.15)'}}/>
+                <span style={{fontSize:'10px', fontWeight:800, letterSpacing:'.2em', color:'var(--accent-ink)'}}>{s.num}</span>
+                <div style={{flex:1, height:'1px', background:'var(--accent-glow-15)'}}/>
                 {s.featured && (
-                  <span style={{fontSize:'9px', fontWeight:800, letterSpacing:'.18em', textTransform:'uppercase', color:'#00F0FF', background:'rgba(0,240,255,.08)', border:'1px solid rgba(0,240,255,.25)', borderRadius:'4px', padding:'2px 8px', flexShrink:0}}>
+                  <span style={{fontSize:'9px', fontWeight:800, letterSpacing:'.18em', textTransform:'uppercase', color:'var(--accent-ink)', background:'var(--accent-glow-08)', border:'1px solid var(--accent-glow-25)', borderRadius:'4px', padding:'2px 8px', flexShrink:0}}>
                     {s.key === 'ladder' ? 'Live Calculator' : s.key === 'scripts' ? 'Live Scripts' : s.key === 'coldcall' ? 'Command Center' : 'Featured'}
                   </span>
                 )}
               </div>
-              <h2 style={{fontSize: s.key==='scripts' ? '24px' : '20px', fontWeight:800, color:'#fff', margin:'0 0 10px', letterSpacing:'-.01em'}}>{s.title}</h2>
-              <p style={{color:'#666', fontSize:'13px', lineHeight:1.6, margin:'0 0 20px'}}>{s.desc}</p>
+              <h2 style={{fontSize: s.key==='scripts' ? '24px' : '20px', fontWeight:800, color:'var(--text-primary)', margin:'0 0 10px', letterSpacing:'-.01em'}}>{s.title}</h2>
+              <p style={{color:'var(--text-muted)', fontSize:'13px', lineHeight:1.6, margin:'0 0 20px'}}>{s.desc}</p>
               <div style={{display:'flex', flexWrap:'wrap', gap:'6px', marginBottom:'24px'}}>
                 {s.pills.map((pill: any)=>(
-                  <span key={pill} style={{fontSize:'10px', fontWeight:600, color:'#444', background:'rgba(255,255,255,.03)', border:'1px solid #1e1e1e', borderRadius:'4px', padding:'2px 8px'}}>{pill}</span>
+                  <span key={pill} style={{fontSize:'10px', fontWeight:600, color:'var(--text-faint)', background:'rgba(255,255,255,.03)', border:'1px solid var(--border)', borderRadius:'4px', padding:'2px 8px'}}>{pill}</span>
                 ))}
               </div>
-              <div style={{display:'flex', alignItems:'center', gap:'8px', color: s.locked ? '#555' : '#00F0FF', fontSize:'12px', fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase'}}>
+              <div style={{display:'flex', alignItems:'center', gap:'8px', color: s.locked ? 'var(--text-muted)' : 'var(--accent-ink)', fontSize:'12px', fontWeight:700, letterSpacing:'.1em', textTransform:'uppercase'}}>
                 {s.locked ? <><Icon name="lock" size={13}/> {s.lockLabel}</> : <>Open Section <Icon name="arrow" size={13}/></>}
               </div>
             </button>

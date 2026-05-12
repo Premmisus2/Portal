@@ -210,7 +210,7 @@ export default function RepsTab() {
 
   if (loading) return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 0' }}>
-      <svg style={{ animation: 'spin 1s linear infinite' }} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00F0FF" strokeWidth="2">
+      <svg style={{ animation: 'spin 1s linear infinite' }} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" strokeWidth="2">
         <path d="M21 12a9 9 0 1 1-6.219-8.56" />
       </svg>
     </div>
@@ -227,15 +227,15 @@ export default function RepsTab() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h3 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: '#fff' }}>Reps</h3>
-          <p style={{ margin: 0, fontSize: '12px', color: '#555' }}>Manage your sales team. Click a row to edit. Sort defaults to Total Closes desc.</p>
+          <h3 style={{ margin: '0 0 4px', fontSize: '18px', fontWeight: 800, color: 'var(--text-primary)' }}>Reps</h3>
+          <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-muted)' }}>Manage your sales team. Click a row to edit. Sort defaults to Total Closes desc.</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: '#666', cursor: 'pointer', userSelect: 'none' }}>
-            <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} style={{ accentColor: '#00F0FF' }} />
+          <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--text-muted)', cursor: 'pointer', userSelect: 'none' }}>
+            <input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} style={{ accentColor: 'var(--accent-ink)' }} />
             Show inactive
           </label>
-          <button onClick={() => setInviteOpen(true)} style={{ padding: '8px 18px', borderRadius: '6px', border: 'none', background: '#00F0FF', color: '#000', cursor: 'pointer', fontSize: '12px', fontWeight: 800, fontFamily: 'Inter, sans-serif' }}>
+          <button onClick={() => setInviteOpen(true)} style={{ padding: '8px 18px', borderRadius: '6px', border: 'none', background: 'var(--accent-ink)', color: 'var(--bg-app)', cursor: 'pointer', fontSize: '12px', fontWeight: 800, fontFamily: 'Inter, sans-serif' }}>
             + Invite Rep
           </button>
         </div>
@@ -244,17 +244,17 @@ export default function RepsTab() {
       {/* Summary cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '8px', marginBottom: '16px' }}>
         {[
-          { val: rows.filter(r => r.active !== false).length, label: 'Active Reps', color: '#fff' },
-          { val: rows.filter(r => r.role === 'director').length, label: 'Directors', color: '#00F0FF' },
-          { val: rows.reduce((s, r) => s + r.stats.total_calls, 0), label: 'Total Calls', color: '#00F0FF' },
+          { val: rows.filter(r => r.active !== false).length, label: 'Active Reps', color: 'var(--text-primary)' },
+          { val: rows.filter(r => r.role === 'director').length, label: 'Directors', color: 'var(--accent-ink)' },
+          { val: rows.reduce((s, r) => s + r.stats.total_calls, 0), label: 'Total Calls', color: 'var(--accent-ink)' },
           { val: rows.reduce((s, r) => s + r.stats.total_closes, 0), label: 'Total Closes', color: '#22c55e' },
           { val: rows.reduce((s, r) => s + r.stats.pending_closes, 0), label: 'Pending', color: '#F59E0B' },
           { val: rows.reduce((s, r) => s + r.stats.approved_points, 0), label: 'Approved Pts', color: '#22c55e' },
-          { val: rows.reduce((s, r) => s + r.stats.assigned_leads, 0), label: 'Assigned Leads', color: '#fff' },
+          { val: rows.reduce((s, r) => s + r.stats.assigned_leads, 0), label: 'Assigned Leads', color: 'var(--text-primary)' },
         ].map(s => (
           <div key={s.label} className="card-glow" style={{ padding: '12px 14px', textAlign: 'center' }}>
             <p style={{ margin: 0, fontSize: '22px', fontWeight: 900, color: s.color, fontFamily: 'monospace' }}>{s.val}</p>
-            <p style={{ margin: '2px 0 0', fontSize: '9px', color: '#444', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase' }}>{s.label}</p>
+            <p style={{ margin: '2px 0 0', fontSize: '9px', color: 'var(--text-faint)', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase' }}>{s.label}</p>
           </div>
         ))}
       </div>
@@ -272,14 +272,14 @@ export default function RepsTab() {
               ].map(([key, label]) => (
                 <th key={key} onClick={() => toggleSort(key as SortKey)} style={{
                   padding: '8px 12px', textAlign: 'left', fontSize: '11px', fontWeight: 700,
-                  color: sortKey === key ? '#00F0FF' : '#c0c0c0', cursor: 'pointer', whiteSpace: 'nowrap',
-                  borderBottom: '2px solid #333', borderRight: '1px solid #1a1a1a', background: '#111',
+                  color: sortKey === key ? 'var(--accent-ink)' : '#c0c0c0', cursor: 'pointer', whiteSpace: 'nowrap',
+                  borderBottom: '2px solid #333', borderRight: '1px solid var(--border-soft)', background: 'var(--bg-sidebar-line)',
                   userSelect: 'none',
                 }}>
                   {label} {sortKey === key ? (sortDir === 'asc' ? '↑' : '↓') : ''}
                 </th>
               ))}
-              <th style={{ padding: '8px 12px', background: '#111', borderBottom: '2px solid #333', width: '50px' }}></th>
+              <th style={{ padding: '8px 12px', background: 'var(--bg-sidebar-line)', borderBottom: '2px solid #333', width: '50px' }}></th>
             </tr>
           </thead>
           <tbody>
@@ -291,49 +291,49 @@ export default function RepsTab() {
                   cursor: 'pointer', opacity: isInactive ? 0.45 : 1,
                   transition: 'background .1s',
                 }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#1a1a1a')}
+                  onMouseEnter={e => (e.currentTarget.style.background = 'var(--border-soft)')}
                   onMouseLeave={e => (e.currentTarget.style.background = idx % 2 === 0 ? '#0e0e0e' : '#131313')}>
-                  <td style={{ padding: '8px 12px', borderBottom: '1px solid #1a1a1a', borderRight: '1px solid #141414' }}>
+                  <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-soft)', borderRight: '1px solid #141414' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ color: r.role === 'director' ? '#00F0FF' : '#fff', fontWeight: 700 }}>{r.name || r.email}</span>
+                      <span style={{ color: r.role === 'director' ? 'var(--accent-ink)' : 'var(--text-primary)', fontWeight: 700 }}>{r.name || r.email}</span>
                       {isInactive && <span style={{ fontSize: '8px', padding: '1px 6px', borderRadius: '10px', background: 'rgba(255,96,96,.1)', border: '1px solid rgba(255,96,96,.25)', color: '#ff6060', fontWeight: 800, letterSpacing: '.1em', textTransform: 'uppercase' }}>Inactive</span>}
                     </div>
-                    <div style={{ fontSize: '10px', color: '#444', fontFamily: 'JetBrains Mono, monospace', marginTop: '2px' }}>{r.email}</div>
+                    <div style={{ fontSize: '10px', color: 'var(--text-faint)', fontFamily: 'JetBrains Mono, monospace', marginTop: '2px' }}>{r.email}</div>
                   </td>
-                  <td style={{ padding: '8px 12px', borderBottom: '1px solid #1a1a1a', borderRight: '1px solid #141414' }}>
+                  <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-soft)', borderRight: '1px solid #141414' }}>
                     <span style={{
                       fontSize: '9px', fontWeight: 800, padding: '2px 8px', borderRadius: '20px',
-                      background: r.role === 'director' ? 'rgba(0,240,255,.08)' : 'rgba(255,255,255,.04)',
-                      border: `1px solid ${r.role === 'director' ? 'rgba(0,240,255,.2)' : '#1e1e1e'}`,
-                      color: r.role === 'director' ? '#00F0FF' : '#888',
+                      background: r.role === 'director' ? 'var(--accent-glow-08)' : 'rgba(255,255,255,.04)',
+                      border: `1px solid ${r.role === 'director' ? 'var(--accent-glow-22)' : 'var(--border)'}`,
+                      color: r.role === 'director' ? 'var(--accent-ink)' : 'var(--text-tertiary)',
                       letterSpacing: '.1em', textTransform: 'uppercase',
                     }}>{r.role}</span>
                   </td>
-                  <td style={{ padding: '8px 12px', borderBottom: '1px solid #1a1a1a', borderRight: '1px solid #141414', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: r.phone ? '#bbb' : '#333' }}>
+                  <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-soft)', borderRight: '1px solid #141414', fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: r.phone ? 'var(--text-secondary)' : 'var(--text-faint)' }}>
                     {r.phone || 'No phone'}
                   </td>
-                  <td style={{ padding: '8px 12px', borderBottom: '1px solid #1a1a1a', borderRight: '1px solid #141414', textAlign: 'center', fontFamily: 'monospace', color: r.stats.total_calls > 0 ? '#00F0FF' : '#444', fontWeight: 700 }}>
+                  <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-soft)', borderRight: '1px solid #141414', textAlign: 'center', fontFamily: 'monospace', color: r.stats.total_calls > 0 ? 'var(--accent-ink)' : 'var(--text-faint)', fontWeight: 700 }}>
                     {r.stats.total_calls}
                   </td>
-                  <td style={{ padding: '8px 12px', borderBottom: '1px solid #1a1a1a', borderRight: '1px solid #141414', textAlign: 'center', fontFamily: 'monospace', color: '#fff', fontWeight: 700 }}>
+                  <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-soft)', borderRight: '1px solid #141414', textAlign: 'center', fontFamily: 'monospace', color: 'var(--text-primary)', fontWeight: 700 }}>
                     {r.stats.total_closes}
                   </td>
-                  <td style={{ padding: '8px 12px', borderBottom: '1px solid #1a1a1a', borderRight: '1px solid #141414', textAlign: 'center', fontFamily: 'monospace', color: r.stats.pending_closes > 0 ? '#F59E0B' : '#444', fontWeight: 700 }}>
+                  <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-soft)', borderRight: '1px solid #141414', textAlign: 'center', fontFamily: 'monospace', color: r.stats.pending_closes > 0 ? '#F59E0B' : 'var(--text-faint)', fontWeight: 700 }}>
                     {r.stats.pending_closes}
                   </td>
-                  <td style={{ padding: '8px 12px', borderBottom: '1px solid #1a1a1a', borderRight: '1px solid #141414', textAlign: 'center', fontFamily: 'monospace', color: r.stats.approved_points > 0 ? '#22c55e' : '#444', fontWeight: 700 }}>
+                  <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-soft)', borderRight: '1px solid #141414', textAlign: 'center', fontFamily: 'monospace', color: r.stats.approved_points > 0 ? '#22c55e' : 'var(--text-faint)', fontWeight: 700 }}>
                     {r.stats.approved_points}
                   </td>
-                  <td style={{ padding: '8px 12px', borderBottom: '1px solid #1a1a1a', borderRight: '1px solid #141414', fontSize: '11px', color: r.stats.last_close_at ? '#ccc' : '#444' }}>
+                  <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-soft)', borderRight: '1px solid #141414', fontSize: '11px', color: r.stats.last_close_at ? 'var(--text-secondary)' : 'var(--text-faint)' }}>
                     {fmtRelative(r.stats.last_close_at)}
                   </td>
-                  <td style={{ padding: '8px 12px', borderBottom: '1px solid #1a1a1a', borderRight: '1px solid #141414', fontSize: '11px', color: r.stats.last_call_at ? '#ccc' : '#444' }}>
+                  <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-soft)', borderRight: '1px solid #141414', fontSize: '11px', color: r.stats.last_call_at ? 'var(--text-secondary)' : 'var(--text-faint)' }}>
                     {fmtRelative(r.stats.last_call_at)}
                   </td>
-                  <td style={{ padding: '8px 12px', borderBottom: '1px solid #1a1a1a', borderRight: '1px solid #141414', textAlign: 'center', fontFamily: 'monospace', color: r.stats.assigned_leads > 0 ? '#fff' : '#444', fontWeight: 700 }}>
+                  <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-soft)', borderRight: '1px solid #141414', textAlign: 'center', fontFamily: 'monospace', color: r.stats.assigned_leads > 0 ? 'var(--text-primary)' : 'var(--text-faint)', fontWeight: 700 }}>
                     {r.stats.assigned_leads}
                   </td>
-                  <td style={{ padding: '8px 12px', borderBottom: '1px solid #1a1a1a', textAlign: 'center', color: '#555', fontSize: '14px' }}>
+                  <td style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-soft)', textAlign: 'center', color: 'var(--text-muted)', fontSize: '14px' }}>
                     &rsaquo;
                   </td>
                 </tr>
@@ -341,7 +341,7 @@ export default function RepsTab() {
             })}
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={10} style={{ padding: '40px', textAlign: 'center', color: '#444', fontSize: '12px' }}>
+                <td colSpan={10} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-faint)', fontSize: '12px' }}>
                   No reps {showInactive ? '' : '(toggle "Show inactive" to see deactivated)'}
                 </td>
               </tr>

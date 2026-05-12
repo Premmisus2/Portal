@@ -16,8 +16,8 @@ const NoShowPanel = () => (
     <div className="card-glow" style={{padding:'16px 20px',marginTop:'16px',marginBottom:'4px'}}>
       <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
         <div className="dot">!</div>
-        <p style={{margin:0,fontSize:'14px',color:'#ccc',lineHeight:1.5,fontWeight:600}}>
-          The Principle: <span style={{color:'#fff'}}>Don't chase. Replace.</span> <span style={{color:'#888',fontWeight:400}}>But always leave the door open. They no-showed — that's data, not an insult. Fill the slot, keep moving, and let the sequence do its job.</span>
+        <p style={{margin:0,fontSize:'14px',color:'var(--text-secondary)',lineHeight:1.5,fontWeight:600}}>
+          The Principle: <span style={{color:'var(--text-primary)'}}>Don't chase. Replace.</span> <span style={{color:'var(--text-tertiary)',fontWeight:400}}>But always leave the door open. They no-showed — that's data, not an insult. Fill the slot, keep moving, and let the sequence do its job.</span>
         </p>
       </div>
     </div>
@@ -50,12 +50,12 @@ const NoShowPanel = () => (
 
     <SecH>No-Show Protocol</SecH>
     <ul style={{padding:0,margin:0}}>
-      <Li><strong style={{color:'#fff'}}>Stay on the call for 5 minutes</strong> — they might be running late. Don't leave at the 1-minute mark.</Li>
-      <Li><strong style={{color:'#fff'}}>Send SMS 1 while you're still at your desk</strong> — timing matters. Immediate = professional, not desperate.</Li>
-      <Li><strong style={{color:'#fff'}}>Log the no-show in the CRM</strong> — update the lead status. This is data for your pipeline.</Li>
-      <Li><strong style={{color:'#fff'}}>Book a replacement call immediately</strong> — open that slot up and fill it. Volume solves no-shows.</Li>
-      <Li><strong style={{color:'#fff'}}>After SMS 3, stop all outreach</strong> — if they come back, great. If not, they were never your client.</Li>
-      <Li><strong style={{color:'#fff'}}>Same-day confirmation texts</strong> — prevent no-shows by confirming the morning of every booked call.</Li>
+      <Li><strong style={{color:'var(--text-primary)'}}>Stay on the call for 5 minutes</strong> — they might be running late. Don't leave at the 1-minute mark.</Li>
+      <Li><strong style={{color:'var(--text-primary)'}}>Send SMS 1 while you're still at your desk</strong> — timing matters. Immediate = professional, not desperate.</Li>
+      <Li><strong style={{color:'var(--text-primary)'}}>Log the no-show in the CRM</strong> — update the lead status. This is data for your pipeline.</Li>
+      <Li><strong style={{color:'var(--text-primary)'}}>Book a replacement call immediately</strong> — open that slot up and fill it. Volume solves no-shows.</Li>
+      <Li><strong style={{color:'var(--text-primary)'}}>After SMS 3, stop all outreach</strong> — if they come back, great. If not, they were never your client.</Li>
+      <Li><strong style={{color:'var(--text-primary)'}}>Same-day confirmation texts</strong> — prevent no-shows by confirming the morning of every booked call.</Li>
     </ul>
 
     <div style={{height:'16px'}} />

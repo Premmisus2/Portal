@@ -6,7 +6,7 @@ const KbdKey = ({ children }: { children: React.ReactNode }) => (
     minWidth: '28px', height: '24px', padding: '0 6px',
     background: '#0e0e0e', border: '1px solid #2a2a2a',
     borderBottom: '2px solid #333', borderRadius: '5px',
-    fontSize: '11px', fontWeight: 700, color: '#ccc',
+    fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)',
     fontFamily: 'Inter, monospace', letterSpacing: '.05em',
     boxShadow: '0 1px 3px rgba(0,0,0,.5)',
   }}>{children}</span>
@@ -17,7 +17,7 @@ const ShortcutRow = ({ keys, label, color }: { keys: string[]; label: string; co
     <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexShrink: 0, minWidth: '80px' }}>
       {keys.map((k, i) => <KbdKey key={i}>{k}</KbdKey>)}
     </div>
-    <span style={{ fontSize: '12px', color: color || '#555', fontWeight: 500, letterSpacing: '.04em' }}>{label}</span>
+    <span style={{ fontSize: '12px', color: color || 'var(--text-muted)', fontWeight: 500, letterSpacing: '.04em' }}>{label}</span>
   </div>
 );
 
@@ -28,22 +28,22 @@ export default function ShortcutsModal({ onClose }: { onClose: () => void }) {
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        background: '#060606', border: '1px solid #1e1e1e', borderRadius: '18px',
+        background: '#060606', border: '1px solid var(--border)', borderRadius: '18px',
         padding: '28px 32px', maxWidth: '560px', width: '100%', maxHeight: '85vh', overflowY: 'auto',
-        boxShadow: '0 0 60px rgba(0,240,255,.07)',
+        boxShadow: '0 0 60px var(--accent-glow-06)',
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '22px' }}>
           <div>
             <span className="tag" style={{ marginBottom: '8px', display: 'inline-block' }}>Reference Card</span>
-            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 900, color: '#fff', letterSpacing: '-.02em' }}>Keyboard Shortcuts</h2>
-            <p style={{ margin: '4px 0 0', color: '#333', fontSize: '11px', letterSpacing: '.1em', textTransform: 'uppercase' }}>Premmisus Sales Command</p>
+            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-.02em' }}>Keyboard Shortcuts</h2>
+            <p style={{ margin: '4px 0 0', color: 'var(--text-faint)', fontSize: '11px', letterSpacing: '.1em', textTransform: 'uppercase' }}>Premmisus Sales Command</p>
           </div>
-          <button onClick={onClose} style={{ background: 'none', border: '1px solid #1e1e1e', borderRadius: '8px', padding: '6px 10px', cursor: 'pointer', color: '#444', fontSize: '12px', fontFamily: 'Inter,sans-serif', fontWeight: 600 }}>✕ Close</button>
+          <button onClick={onClose} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '8px', padding: '6px 10px', cursor: 'pointer', color: 'var(--text-faint)', fontSize: '12px', fontFamily: 'Inter,sans-serif', fontWeight: 600 }}>✕ Close</button>
         </div>
         <div style={{ marginBottom: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <div style={{ width: '3px', height: '14px', background: '#555', borderRadius: '2px' }} />
-            <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '.2em', textTransform: 'uppercase', color: '#555' }}>Global — Works Anywhere</span>
+            <div style={{ width: '3px', height: '14px', background: 'var(--text-muted)', borderRadius: '2px' }} />
+            <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Global — Works Anywhere</span>
           </div>
           <ShortcutRow keys={['Esc']} label="Return to Home" color="#888" />
           <ShortcutRow keys={['H']} label="Return to Home" color="#888" />
@@ -51,8 +51,8 @@ export default function ShortcutsModal({ onClose }: { onClose: () => void }) {
         </div>
         <div style={{ marginBottom: '20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <div style={{ width: '3px', height: '14px', background: '#00F0FF', borderRadius: '2px' }} />
-            <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '.2em', textTransform: 'uppercase', color: '#00F0FF' }}>From Home — Jump to Section</span>
+            <div style={{ width: '3px', height: '14px', background: 'var(--accent-ink)', borderRadius: '2px' }} />
+            <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--accent-ink)' }}>From Home — Jump to Section</span>
           </div>
           <ShortcutRow keys={['⇧', '1']} label="Call Center" color="#ccc" />
           <ShortcutRow keys={['⇧', '2']} label="Scripts & Sequences" color="#ccc" />

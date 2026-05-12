@@ -15,7 +15,7 @@ interface Props {
 
 const drawerStyle: React.CSSProperties = {
   position: 'fixed', top: 0, right: 0, bottom: 0, width: '480px', maxWidth: '90vw',
-  background: '#0a0a0a', borderLeft: '1px solid #1e1e1e', boxShadow: '-12px 0 30px rgba(0,0,0,.6)',
+  background: 'var(--bg-elev-pill)', borderLeft: '1px solid var(--border)', boxShadow: '-12px 0 30px rgba(0,0,0,.6)',
   zIndex: 1000, display: 'flex', flexDirection: 'column',
 };
 
@@ -28,13 +28,13 @@ const sectionStyle: React.CSSProperties = {
 };
 
 const labelStyle: React.CSSProperties = {
-  fontSize: '10px', fontWeight: 700, color: '#444',
+  fontSize: '10px', fontWeight: 700, color: 'var(--text-faint)',
   letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '6px',
 };
 
 const inputStyle: React.CSSProperties = {
-  width: '100%', padding: '8px 10px', background: '#111', border: '1px solid #333',
-  borderRadius: '6px', color: '#fff', fontSize: '13px', fontFamily: 'JetBrains Mono, monospace', outline: 'none',
+  width: '100%', padding: '8px 10px', background: 'var(--bg-sidebar-line)', border: '1px solid #333',
+  borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'JetBrains Mono, monospace', outline: 'none',
 };
 
 export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Props) {
@@ -154,7 +154,7 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
         <div style={{ ...sectionStyle, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px', flexWrap: 'wrap' }}>
-              <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: rep.role === 'director' ? '#00F0FF' : '#fff' }}>
+              <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: rep.role === 'director' ? 'var(--accent-ink)' : 'var(--text-primary)' }}>
                 {rep.name || rep.email}
               </h2>
               {isInactive && (
@@ -163,15 +163,15 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
                 </span>
               )}
             </div>
-            <p style={{ margin: 0, fontSize: '11px', color: '#444', fontFamily: 'JetBrains Mono, monospace' }}>{rep.email}</p>
+            <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-faint)', fontFamily: 'JetBrains Mono, monospace' }}>{rep.email}</p>
             {rep.invite_code && (
-              <p style={{ margin: '4px 0 0', fontSize: '10px', color: '#555', fontFamily: 'JetBrains Mono, monospace' }}>
-                Code: <span style={{ color: '#888' }}>{rep.invite_code}</span>
+              <p style={{ margin: '4px 0 0', fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
+                Code: <span style={{ color: 'var(--text-tertiary)' }}>{rep.invite_code}</span>
               </p>
             )}
           </div>
           <button onClick={onClose} aria-label="Close drawer"
-            style={{ background: 'none', border: '1px solid #1e1e1e', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', color: '#555', fontSize: '14px' }}>
+            style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '6px', padding: '4px 10px', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '14px' }}>
             ✕
           </button>
         </div>
@@ -183,35 +183,35 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
               {[
                 // Row 1: call activity
-                { v: stats.total_calls, l: 'Calls', c: stats.total_calls > 0 ? '#00F0FF' : '#444' },
-                { v: stats.total_calls_auto, l: 'Auto-dialed', c: stats.total_calls_auto > 0 ? '#00F0FF' : '#444', sub: 'Twilio' },
-                { v: stats.total_calls_manual, l: 'Manual log', c: stats.total_calls_manual > 0 ? '#888' : '#444', sub: 'Hand-logged' },
+                { v: stats.total_calls, l: 'Calls', c: stats.total_calls > 0 ? 'var(--accent-ink)' : 'var(--text-faint)' },
+                { v: stats.total_calls_auto, l: 'Auto-dialed', c: stats.total_calls_auto > 0 ? 'var(--accent-ink)' : 'var(--text-faint)', sub: 'Twilio' },
+                { v: stats.total_calls_manual, l: 'Manual log', c: stats.total_calls_manual > 0 ? 'var(--text-tertiary)' : 'var(--text-faint)', sub: 'Hand-logged' },
                 // Row 2: close stack
-                { v: stats.total_closes, l: 'Closes', c: '#fff' },
-                { v: stats.pending_closes, l: 'Pending', c: stats.pending_closes > 0 ? '#F59E0B' : '#444' },
-                { v: stats.approved_points, l: 'Approved Pts', c: stats.approved_points > 0 ? '#22c55e' : '#444' },
+                { v: stats.total_closes, l: 'Closes', c: 'var(--text-primary)' },
+                { v: stats.pending_closes, l: 'Pending', c: stats.pending_closes > 0 ? '#F59E0B' : 'var(--text-faint)' },
+                { v: stats.approved_points, l: 'Approved Pts', c: stats.approved_points > 0 ? '#22c55e' : 'var(--text-faint)' },
                 // Row 3: warm-lead funnel
-                { v: stats.assigned_leads, l: 'Leads', c: '#fff' },
-                { v: stats.warm_leads_contacted, l: 'Warm Cont.', c: stats.warm_leads_contacted > 0 ? '#F59E0B' : '#444', sub: 'HOT/HIGH touched' },
-                { v: stats.warm_leads_closed, l: 'Warm Closed', c: stats.warm_leads_closed > 0 ? '#22c55e' : '#444', sub: 'HOT/HIGH booked' },
+                { v: stats.assigned_leads, l: 'Leads', c: 'var(--text-primary)' },
+                { v: stats.warm_leads_contacted, l: 'Warm Cont.', c: stats.warm_leads_contacted > 0 ? '#F59E0B' : 'var(--text-faint)', sub: 'HOT/HIGH touched' },
+                { v: stats.warm_leads_closed, l: 'Warm Closed', c: stats.warm_leads_closed > 0 ? '#22c55e' : 'var(--text-faint)', sub: 'HOT/HIGH booked' },
               ].map(s => (
-                <div key={s.l} style={{ padding: '10px', background: '#0e0e0e', border: '1px solid #1a1a1a', borderRadius: '6px', textAlign: 'center' }}>
+                <div key={s.l} style={{ padding: '10px', background: '#0e0e0e', border: '1px solid var(--border-soft)', borderRadius: '6px', textAlign: 'center' }}>
                   <p style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: s.c, fontFamily: 'monospace' }}>{s.v}</p>
-                  <p style={{ margin: '2px 0 0', fontSize: '8px', color: '#444', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase' }}>{s.l}</p>
-                  {s.sub && <p style={{ margin: '1px 0 0', fontSize: '7px', color: '#333', fontFamily: 'JetBrains Mono, monospace' }}>{s.sub}</p>}
+                  <p style={{ margin: '2px 0 0', fontSize: '8px', color: 'var(--text-faint)', fontWeight: 700, letterSpacing: '.1em', textTransform: 'uppercase' }}>{s.l}</p>
+                  {s.sub && <p style={{ margin: '1px 0 0', fontSize: '7px', color: 'var(--text-faint)', fontFamily: 'JetBrains Mono, monospace' }}>{s.sub}</p>}
                 </div>
               ))}
             </div>
 
             {/* AI classification breakdown — only renders when classifier has actually run */}
             {stats.total_results_auto > 0 && stats.total_calls > 0 && (
-              <div style={{ marginTop: '12px', padding: '10px 12px', background: '#0a0a0a', border: '1px solid rgba(0,240,255,.15)', borderRadius: '6px' }}>
+              <div style={{ marginTop: '12px', padding: '10px 12px', background: 'var(--bg-elev-pill)', border: '1px solid var(--accent-glow-15)', borderRadius: '6px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
                   <div>
-                    <p style={{ margin: 0, fontSize: '10px', fontWeight: 700, color: '#00F0FF', letterSpacing: '.1em', textTransform: 'uppercase' }}>AI Classified</p>
-                    <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#888' }}>Gemini auto-tagged the outcome on {stats.total_results_auto} of {stats.total_calls} call{stats.total_calls === 1 ? '' : 's'}.</p>
+                    <p style={{ margin: 0, fontSize: '10px', fontWeight: 700, color: 'var(--accent-ink)', letterSpacing: '.1em', textTransform: 'uppercase' }}>AI Classified</p>
+                    <p style={{ margin: '2px 0 0', fontSize: '11px', color: 'var(--text-tertiary)' }}>Gemini auto-tagged the outcome on {stats.total_results_auto} of {stats.total_calls} call{stats.total_calls === 1 ? '' : 's'}.</p>
                   </div>
-                  <p style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: '#00F0FF', fontFamily: 'JetBrains Mono, monospace' }}>
+                  <p style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: 'var(--accent-ink)', fontFamily: 'JetBrains Mono, monospace' }}>
                     {Math.round((stats.total_results_auto / stats.total_calls) * 100)}%
                   </p>
                 </div>
@@ -219,16 +219,16 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
             )}
 
             {/* Footer: last call (was a tile, now a single line so the grid stays clean) */}
-            <p style={{ margin: '10px 0 0', fontSize: '10px', color: '#555', fontFamily: 'JetBrains Mono, monospace' }}>
-              Last call: <span style={{ color: stats.last_call_at ? '#bbb' : '#444' }}>{stats.last_call_at ? fmtAgo(stats.last_call_at) : '—'}</span>
-              {stats.last_close_at && <span style={{ marginLeft: '14px' }}>Last close: <span style={{ color: '#bbb' }}>{fmtAgo(stats.last_close_at)}</span></span>}
+            <p style={{ margin: '10px 0 0', fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
+              Last call: <span style={{ color: stats.last_call_at ? 'var(--text-secondary)' : 'var(--text-faint)' }}>{stats.last_call_at ? fmtAgo(stats.last_call_at) : '—'}</span>
+              {stats.last_close_at && <span style={{ marginLeft: '14px' }}>Last close: <span style={{ color: 'var(--text-secondary)' }}>{fmtAgo(stats.last_close_at)}</span></span>}
             </p>
           </div>
 
           {/* Phone */}
           <div style={sectionStyle}>
             <div style={labelStyle}>Phone (Twilio dialer)</div>
-            <p style={{ margin: '0 0 10px', fontSize: '11px', color: '#555', lineHeight: 1.6 }}>
+            <p style={{ margin: '0 0 10px', fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
               E.164 format (+1XXXXXXXXXX). The dialer button only appears for reps with a phone set.
             </p>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -239,7 +239,7 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
                 onKeyDown={e => { if (e.key === 'Enter') savePhone(); }}
               />
               <button onClick={savePhone} disabled={savingPhone || phone.trim() === (rep.phone || '')}
-                style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid rgba(0,240,255,.3)', background: 'rgba(0,240,255,.08)', color: '#00F0FF', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', opacity: (savingPhone || phone.trim() === (rep.phone || '')) ? 0.5 : 1 }}>
+                style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid var(--accent-glow-30)', background: 'var(--accent-glow-08)', color: 'var(--accent-ink)', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', opacity: (savingPhone || phone.trim() === (rep.phone || '')) ? 0.5 : 1 }}>
                 {savingPhone ? '...' : 'Save'}
               </button>
             </div>
@@ -251,15 +251,15 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
             <div style={labelStyle}>Role</div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
               <div>
-                <p style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 700 }}>
-                  Currently: <span style={{ color: rep.role === 'director' ? '#00F0FF' : '#888' }}>{rep.role}</span>
+                <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-primary)', fontWeight: 700 }}>
+                  Currently: <span style={{ color: rep.role === 'director' ? 'var(--accent-ink)' : 'var(--text-tertiary)' }}>{rep.role}</span>
                 </p>
-                <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#555' }}>
-                  Changing to <strong style={{ color: rep.role === 'director' ? '#888' : '#00F0FF' }}>{rep.role === 'director' ? 'rep' : 'director'}</strong> {rep.role === 'director' ? 'removes' : 'grants'} dashboard access.
+                <p style={{ margin: '2px 0 0', fontSize: '11px', color: 'var(--text-muted)' }}>
+                  Changing to <strong style={{ color: rep.role === 'director' ? 'var(--text-tertiary)' : 'var(--accent-ink)' }}>{rep.role === 'director' ? 'rep' : 'director'}</strong> {rep.role === 'director' ? 'removes' : 'grants'} dashboard access.
                 </p>
               </div>
               <button onClick={() => setShowRoleConfirm(true)} disabled={busy}
-                style={{ padding: '7px 14px', borderRadius: '6px', border: '1px solid #2a2a2a', background: 'transparent', color: '#aaa', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                style={{ padding: '7px 14px', borderRadius: '6px', border: '1px solid #2a2a2a', background: 'transparent', color: 'var(--text-secondary)', fontSize: '11px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}>
                 Change role
               </button>
             </div>
@@ -268,22 +268,22 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
           {/* Assign leads */}
           <div style={sectionStyle}>
             <div style={labelStyle}>Assign Unassigned Leads</div>
-            <p style={{ margin: '0 0 10px', fontSize: '11px', color: '#555' }}>
+            <p style={{ margin: '0 0 10px', fontSize: '11px', color: 'var(--text-muted)' }}>
               Showing first 200 unassigned leads (sorted by priority). For bulk operations, use the All Leads tab.
             </p>
             <input value={assignSearch} onChange={e => setAssignSearch(e.target.value)}
               placeholder="Filter by name, niche, city..."
               style={{ ...inputStyle, marginBottom: '10px', fontFamily: 'Inter, sans-serif' }} />
-            <div style={{ maxHeight: '240px', overflowY: 'auto', border: '1px solid #1a1a1a', borderRadius: '6px', background: '#0c0c0c' }}>
+            <div style={{ maxHeight: '240px', overflowY: 'auto', border: '1px solid var(--border-soft)', borderRadius: '6px', background: '#0c0c0c' }}>
               {assignLoading ? (
-                <p style={{ margin: 0, padding: '20px', textAlign: 'center', fontSize: '11px', color: '#555' }}>Loading...</p>
+                <p style={{ margin: 0, padding: '20px', textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)' }}>Loading...</p>
               ) : filteredUnassigned.length === 0 ? (
-                <p style={{ margin: 0, padding: '20px', textAlign: 'center', fontSize: '11px', color: '#555' }}>No unassigned leads match.</p>
+                <p style={{ margin: 0, padding: '20px', textAlign: 'center', fontSize: '11px', color: 'var(--text-muted)' }}>No unassigned leads match.</p>
               ) : filteredUnassigned.map(lead => (
                 <div key={lead.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid #131313', gap: '8px' }}>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#fff', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{lead.business_name}</p>
-                    <p style={{ margin: '2px 0 0', fontSize: '10px', color: '#555' }}>
+                    <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-primary)', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{lead.business_name}</p>
+                    <p style={{ margin: '2px 0 0', fontSize: '10px', color: 'var(--text-muted)' }}>
                       {[lead.niche, lead.city, lead.priority].filter(Boolean).join(' · ') || '—'}
                     </p>
                   </div>
@@ -299,7 +299,7 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
           {/* Active toggle */}
           <div style={sectionStyle}>
             <div style={labelStyle}>{isInactive ? 'Reactivate' : 'Deactivate'}</div>
-            <p style={{ margin: '0 0 10px', fontSize: '11px', color: '#555', lineHeight: 1.6 }}>
+            <p style={{ margin: '0 0 10px', fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
               {isInactive
                 ? 'Reactivating restores sign-in access and re-enables this rep for assignments.'
                 : 'Deactivating blocks sign-in and removes this rep from assignment dropdowns. History is preserved. Reversible.'}
@@ -324,7 +324,7 @@ export default function RepDetailDrawer({ rep, stats, onClose, onMutated }: Prop
               ? 'They will lose access to the Director Dashboard, Pending Closes, and All Leads management.'
               : 'They will gain full Director Dashboard access including pending close approvals and bulk lead operations.'}
             confirmLabel="Change role"
-            confirmColor="#00F0FF"
+            confirmColor="var(--accent-ink)"
             busy={busy}
             onCancel={() => setShowRoleConfirm(false)}
             onConfirm={toggleRole}
@@ -366,10 +366,10 @@ function ConfirmOverlay({ title, body, confirmLabel, confirmColor, busy, onCance
   return (
     <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,.85)', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
       <div style={{ background: '#0e0e0e', border: '1px solid #2a2a2a', borderRadius: '10px', padding: '20px 22px', maxWidth: '400px' }}>
-        <p style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: 800, color: '#fff' }}>{title}</p>
-        <p style={{ margin: '0 0 16px', fontSize: '12px', color: '#888', lineHeight: 1.6 }}>{body}</p>
+        <p style={{ margin: '0 0 8px', fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>{title}</p>
+        <p style={{ margin: '0 0 16px', fontSize: '12px', color: 'var(--text-tertiary)', lineHeight: 1.6 }}>{body}</p>
         <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-          <button onClick={onCancel} disabled={busy} style={{ padding: '7px 16px', borderRadius: '6px', border: '1px solid #2a2a2a', background: 'transparent', color: '#888', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>
+          <button onClick={onCancel} disabled={busy} style={{ padding: '7px 16px', borderRadius: '6px', border: '1px solid #2a2a2a', background: 'transparent', color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}>
             Cancel
           </button>
           <button onClick={onConfirm} disabled={busy} style={{

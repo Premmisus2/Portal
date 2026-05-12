@@ -7,7 +7,7 @@ const ProofPointsPanel = () => (
     {/* ── SOCIAL PROOF ── */}
     <div className="card-glow" style={{ padding: '24px 22px', marginTop: '14px' }}>
       <div style={{ marginBottom: '6px' }}><span className="tag">SOCIAL PROOF</span></div>
-      <h2 style={{ fontSize: '22px', fontWeight: 900, color: '#fff', margin: '8px 0 4px' }}>Quick-Reference — Proof Points</h2>
+      <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', margin: '8px 0 4px' }}>Quick-Reference — Proof Points</h2>
       <Body>Pull these mid-call when the prospect needs confidence. Adapt naturally — never read verbatim.</Body>
 
       <SecH>Trydentt Case Study (Live Client)</SecH>
@@ -53,7 +53,7 @@ const ProofPointsPanel = () => (
     {/* ── AI SUBCONTRACTOR THREADING ── */}
     <div className="card-glow" style={{ padding: '24px 22px', marginTop: '14px' }}>
       <div style={{ marginBottom: '6px' }}><span className="tag">AI SUBCONTRACTOR</span></div>
-      <h2 style={{ fontSize: '22px', fontWeight: 900, color: '#fff', margin: '8px 0 4px' }}>AI Subcontractor Threading — 5 Script Inserts</h2>
+      <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', margin: '8px 0 4px' }}>AI Subcontractor Threading — 5 Script Inserts</h2>
       <Body>The "AI subcontractor" metaphor is Premmisus's single strongest positioning concept. These inserts weave it throughout the entire call flow.</Body>
 
       <SecH>Insert 1 — Opener 3 (0.5 Base / No-Website Businesses)</SecH>
@@ -93,7 +93,7 @@ const ProofPointsPanel = () => (
     {/* ── COMPETITOR AMMUNITION ── */}
     <div className="card-glow" style={{ padding: '24px 22px', marginTop: '14px' }}>
       <div style={{ marginBottom: '6px' }}><span className="tag-red">COMPETITOR AMMO</span></div>
-      <h2 style={{ fontSize: '22px', fontWeight: 900, color: '#fff', margin: '8px 0 4px' }}>Competitor Ammunition — Verbal Scripts</h2>
+      <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', margin: '8px 0 4px' }}>Competitor Ammunition — Verbal Scripts</h2>
       <Body>Never trash-talk competitors by name. Position Premmisus by highlighting what we do differently — let the prospect connect the dots.</Body>
 
       <SecH>When They Mention a Lock-In Agency</SecH>
@@ -135,7 +135,7 @@ const ProofPointsPanel = () => (
     {/* ── CREDIBILITY BUILDERS ── */}
     <div className="card-glow" style={{ padding: '24px 22px', marginTop: '14px' }}>
       <div style={{ marginBottom: '6px' }}><span className="tag">CREDIBILITY</span></div>
-      <h2 style={{ fontSize: '22px', fontWeight: 900, color: '#fff', margin: '8px 0 4px' }}>Credibility Builders — Natural Mid-Call Drops</h2>
+      <h2 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', margin: '8px 0 4px' }}>Credibility Builders — Natural Mid-Call Drops</h2>
       <Body>Weave these in casually when rapport is building. They should feel like insights, not sales pitches. One per call maximum — do not stack them.</Body>
 
       <SecH>The Tech Credibility Drop</SecH>

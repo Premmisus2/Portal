@@ -65,39 +65,39 @@ const QuickLogForm = ({ repId, onLogged }: any) => {
     setSaving(false);
   };
 
-  const fieldStyle: React.CSSProperties = { width:'100%', padding:'10px 14px', background:'rgba(255,255,255,.03)', border:'1px solid #1e1e1e', borderRadius:'8px', color:'#fff', fontSize:'13px', fontFamily:'Inter,sans-serif', outline:'none', transition:'border-color .15s' };
+  const fieldStyle: React.CSSProperties = { width:'100%', padding:'10px 14px', background:'rgba(255,255,255,.03)', border:'1px solid var(--border)', borderRadius:'8px', color:'var(--text-primary)', fontSize:'13px', fontFamily:'Inter,sans-serif', outline:'none', transition:'border-color .15s' };
 
   return (
     <div className="fadein">
       <div className="card-glow" style={{padding:'24px', marginBottom:'20px'}}>
-        <p style={{margin:'0 0 20px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'#00F0FF'}}>Log a Call</p>
+        <p style={{margin:'0 0 20px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'var(--accent-ink)'}}>Log a Call</p>
 
         <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginBottom:'16px'}}>
           <div>
-            <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Business Name *</label>
+            <label style={{fontSize:'10px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Business Name *</label>
             <input value={form.businessName} onChange={e=>setForm(p=>({...p, businessName:e.target.value}))} placeholder="King Quality Cleaning" style={fieldStyle} className="field"/>
           </div>
           <div>
-            <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Contact Name</label>
+            <label style={{fontSize:'10px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Contact Name</label>
             <input value={form.contactName} onChange={e=>setForm(p=>({...p, contactName:e.target.value}))} placeholder="Farid" style={fieldStyle} className="field"/>
           </div>
           <div>
-            <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Phone</label>
+            <label style={{fontSize:'10px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Phone</label>
             <input value={form.phone} onChange={e=>setForm(p=>({...p, phone:e.target.value}))} placeholder="(437) 770-8080" style={fieldStyle} className="field"/>
           </div>
           <div>
-            <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>City</label>
+            <label style={{fontSize:'10px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>City</label>
             <input value={form.city} onChange={e=>setForm(p=>({...p, city:e.target.value}))} placeholder="Richmond Hill" style={fieldStyle} className="field"/>
           </div>
           <div>
-            <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Niche</label>
+            <label style={{fontSize:'10px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Niche</label>
             <select value={form.niche} onChange={e=>setForm(p=>({...p, niche:e.target.value}))} style={fieldStyle} className="field">
               <option value="">Select Niche</option>
               {NICHE_LIST.map(n => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
           <div>
-            <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Call Type</label>
+            <label style={{fontSize:'10px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Call Type</label>
             <select value={form.callType} onChange={e=>setForm(p=>({...p, callType:e.target.value}))} style={fieldStyle} className="field">
               {Object.entries(CALL_TYPES).map(([k,v]) => <option key={k} value={k}>{v}</option>)}
             </select>
@@ -105,14 +105,14 @@ const QuickLogForm = ({ repId, onLogged }: any) => {
         </div>
 
         <div style={{marginBottom:'16px'}}>
-          <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'8px'}}>Outcome *</label>
+          <label style={{fontSize:'10px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'8px'}}>Outcome *</label>
           <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
             {Object.entries(OUTCOME_LABELS).map(([key, label]) => (
               <button key={key} onClick={()=>setForm(p=>({...p, outcome:key}))}
                 style={{padding:'7px 14px', borderRadius:'7px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif', transition:'all .15s',
                   background: form.outcome===key ? `${OUTCOME_COLORS[key]}18` : 'transparent',
-                  border: `1px solid ${form.outcome===key ? OUTCOME_COLORS[key]+'66' : '#1e1e1e'}`,
-                  color: form.outcome===key ? OUTCOME_COLORS[key] : '#555',
+                  border: `1px solid ${form.outcome===key ? OUTCOME_COLORS[key]+'66' : 'var(--border)'}`,
+                  color: form.outcome===key ? OUTCOME_COLORS[key] : 'var(--text-muted)',
                 }}>{label}</button>
             ))}
           </div>
@@ -120,19 +120,19 @@ const QuickLogForm = ({ repId, onLogged }: any) => {
 
         {form.outcome === 'callback_requested' && (
           <div style={{marginBottom:'16px'}}>
-            <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Callback Date</label>
+            <label style={{fontSize:'10px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Callback Date</label>
             <input type="date" value={form.callbackDate} onChange={e=>setForm(p=>({...p, callbackDate:e.target.value}))} style={{...fieldStyle, maxWidth:'200px', colorScheme:'dark'}} className="field"/>
           </div>
         )}
 
         <div style={{marginBottom:'16px'}}>
-          <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Notes</label>
+          <label style={{fontSize:'10px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Notes</label>
           <textarea value={form.notes} onChange={e=>setForm(p=>({...p, notes:e.target.value}))} placeholder="What happened on this call..." style={{...fieldStyle, minHeight:'70px', resize:'vertical'}} className="field" rows={3}/>
         </div>
 
         <button onClick={handleSubmit} disabled={saving || !form.outcome || !form.businessName}
           style={{padding:'12px 28px', borderRadius:'8px', cursor:'pointer', fontSize:'13px', fontWeight:800, fontFamily:'Inter,sans-serif', border:'none', transition:'all .15s',
-            background: saved ? '#22c55e' : 'rgba(0,240,255,.15)', color: saved ? '#000' : '#00F0FF',
+            background: saved ? '#22c55e' : 'var(--accent-glow-15)', color: saved ? 'var(--bg-app)' : 'var(--accent-ink)',
             opacity: (saving || !form.outcome || !form.businessName) ? 0.4 : 1,
           }}>
           {saving ? 'Saving...' : saved ? 'Logged!' : 'Log Call'}
@@ -142,14 +142,14 @@ const QuickLogForm = ({ repId, onLogged }: any) => {
       {/* Recent Quick Logs (session only) */}
       {history.length > 0 && (
         <div>
-          <p style={{margin:'0 0 12px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'#444'}}>Logged This Session</p>
+          <p style={{margin:'0 0 12px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'var(--text-faint)'}}>Logged This Session</p>
           <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
             {history.map((h, i) => (
               <div key={i} className="card" style={{padding:'10px 16px', display:'flex', alignItems:'center', gap:'12px', fontSize:'12px'}}>
                 <span style={{color: OUTCOME_COLORS[h.outcome], fontWeight:700, fontSize:'10px', minWidth:'100px'}}>{OUTCOME_LABELS[h.outcome]}</span>
-                <span style={{color:'#fff', fontWeight:600}}>{h.businessName}</span>
-                {h.contactName && <span style={{color:'#555'}}>({h.contactName})</span>}
-                <span style={{color:'#333', marginLeft:'auto', fontSize:'10px', fontFamily:'monospace'}}>{CALL_TYPES[h.callType]}</span>
+                <span style={{color:'var(--text-primary)', fontWeight:600}}>{h.businessName}</span>
+                {h.contactName && <span style={{color:'var(--text-muted)'}}>({h.contactName})</span>}
+                <span style={{color:'var(--text-faint)', marginLeft:'auto', fontSize:'10px', fontFamily:'monospace'}}>{CALL_TYPES[h.callType]}</span>
               </div>
             ))}
           </div>

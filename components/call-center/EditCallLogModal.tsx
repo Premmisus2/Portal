@@ -139,11 +139,11 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
 
   const fieldStyle: React.CSSProperties = {
     width: '100%', padding: '10px 14px', background: 'rgba(255,255,255,.03)',
-    border: '1px solid #1e1e1e', borderRadius: '8px', color: '#fff',
+    border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text-primary)',
     fontSize: '13px', fontFamily: 'Inter,sans-serif', outline: 'none',
   };
   const labelStyle: React.CSSProperties = {
-    fontSize: '10px', fontWeight: 700, color: '#444', letterSpacing: '.1em',
+    fontSize: '10px', fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '.1em',
     textTransform: 'uppercase', display: 'block', marginBottom: '4px',
   };
 
@@ -166,13 +166,13 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <p style={{ margin: 0, fontSize: '10px', fontWeight: 800, letterSpacing: '.2em', textTransform: 'uppercase', color: '#00F0FF' }}>
+          <p style={{ margin: 0, fontSize: '10px', fontWeight: 800, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--accent-ink)' }}>
             Edit Call Log
           </p>
           <button
             onClick={onClose}
             style={{
-              background: 'transparent', border: 'none', color: '#555',
+              background: 'transparent', border: 'none', color: 'var(--text-muted)',
               fontSize: '20px', cursor: 'pointer', padding: '0 6px', lineHeight: 1,
             }}
             aria-label="Close"
@@ -191,7 +191,7 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
 
         <div style={{ marginBottom: '16px' }}>
           <label style={labelStyle}>Outcome *</label>
-          <p style={{ margin: '0 0 8px', fontSize: '9px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#444' }}>
+          <p style={{ margin: '0 0 8px', fontSize: '9px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--text-faint)' }}>
             Tap to select. First pick is primary; add more if needed.
           </p>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -211,8 +211,8 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
                     transition: 'all .15s',
                     display: 'inline-flex', alignItems: 'center', gap: '6px',
                     background: isPrimary ? `${color}28` : isSecondary ? `${color}12` : 'transparent',
-                    border: `1px solid ${isPrimary ? color : isSecondary ? color + '55' : '#1e1e1e'}`,
-                    color: isSelected ? color : '#555',
+                    border: `1px solid ${isPrimary ? color : isSecondary ? color + '55' : 'var(--border)'}`,
+                    color: isSelected ? color : 'var(--text-muted)',
                     boxShadow: isPrimary ? `0 0 0 1px ${color}44 inset` : 'none',
                   }}
                 >
@@ -221,7 +221,7 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
                       fontSize: '9px', fontWeight: 800, padding: '1px 5px', borderRadius: '4px',
                       background: isPrimary ? `${color}44` : 'transparent',
                       border: isPrimary ? 'none' : `1px solid ${color}66`,
-                      color: isPrimary ? '#fff' : color,
+                      color: isPrimary ? 'var(--text-primary)' : color,
                       fontFamily: 'JetBrains Mono,monospace', letterSpacing: '.05em',
                     }}>{isPrimary ? 'PRIMARY' : `+${idx}`}</span>
                   )}
@@ -257,7 +257,7 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
               </div>
             </div>
             <label style={labelStyle}>Callback Reason</label>
-            <p style={{ margin: '0 0 8px', fontSize: '9px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#444' }}>
+            <p style={{ margin: '0 0 8px', fontSize: '9px', fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--text-faint)' }}>
               Tap to select. First pick is primary; add more if needed.
             </p>
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -277,8 +277,8 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
                       transition: 'all .15s',
                       display: 'inline-flex', alignItems: 'center', gap: '6px',
                       background: isPrimary ? `${color}28` : isSecondary ? `${color}12` : 'transparent',
-                      border: `1px solid ${isPrimary ? color : isSecondary ? color + '55' : '#1e1e1e'}`,
-                      color: isSelected ? color : '#555',
+                      border: `1px solid ${isPrimary ? color : isSecondary ? color + '55' : 'var(--border)'}`,
+                      color: isSelected ? color : 'var(--text-muted)',
                       boxShadow: isPrimary ? `0 0 0 1px ${color}44 inset` : 'none',
                     }}
                   >
@@ -287,7 +287,7 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
                         fontSize: '9px', fontWeight: 800, padding: '1px 5px', borderRadius: '4px',
                         background: isPrimary ? `${color}44` : 'transparent',
                         border: isPrimary ? 'none' : `1px solid ${color}66`,
-                        color: isPrimary ? '#fff' : color,
+                        color: isPrimary ? 'var(--text-primary)' : color,
                         fontFamily: 'JetBrains Mono,monospace', letterSpacing: '.05em',
                       }}>{isPrimary ? 'PRIMARY' : `+${idx}`}</span>
                     )}
@@ -334,7 +334,7 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
               style={{
                 padding: '10px 20px', borderRadius: '8px', cursor: 'pointer',
                 fontSize: '12px', fontWeight: 700, fontFamily: 'Inter,sans-serif',
-                background: 'transparent', border: '1px solid #1e1e1e', color: '#888',
+                background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-tertiary)',
               }}
             >Cancel</button>
             <button
@@ -344,7 +344,7 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
                 padding: '10px 24px', borderRadius: '8px', cursor: 'pointer',
                 fontSize: '12px', fontWeight: 800, fontFamily: 'Inter,sans-serif',
                 border: 'none',
-                background: 'rgba(0,240,255,.15)', color: '#00F0FF',
+                background: 'var(--accent-glow-15)', color: 'var(--accent-ink)',
                 opacity: (saving || deleting || !outcome) ? 0.4 : 1,
               }}
             >{saving ? 'Saving...' : 'Save Changes'}</button>

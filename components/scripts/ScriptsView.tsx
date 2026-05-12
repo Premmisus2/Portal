@@ -64,14 +64,14 @@ export default function ScriptsView({ scriptTab, setScriptTab, userName, userEma
   };
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: '#000', paddingTop: shadowMode ? '40px' : 0 }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'var(--bg-app)', paddingTop: shadowMode ? '40px' : 0 }}>
       {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
-      <aside className={`sidebar no-print${sidebarOpen ? ' sidebar-open' : ''}`} style={{ display: 'flex', flexDirection: 'column', width: '228px', flexShrink: 0, borderRight: '1px solid #111', overflowY: 'auto', background: '#050505' }}>
+      <aside className={`sidebar no-print${sidebarOpen ? ' sidebar-open' : ''}`} style={{ display: 'flex', flexDirection: 'column', width: '228px', flexShrink: 0, borderRight: '1px solid #111', overflowY: 'auto', background: 'var(--bg-nav)' }}>
         <div style={{ padding: '16px', borderBottom: '1px solid #111' }}>
           <Logo height={26} />
-          <p style={{ color: '#333', fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', margin: '6px 0 0', fontWeight: 600 }}>Scripts</p>
+          <p style={{ color: 'var(--text-faint)', fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', margin: '6px 0 0', fontWeight: 600 }}>Scripts</p>
         </div>
-        <div style={{ padding: '10px 16px', borderBottom: '1px solid #0d0d0d' }}>
+        <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--bg-elev-1)' }}>
           <button className="btn-back" style={{ width: '100%', justifyContent: 'flex-start' }} onClick={onHome}>
             <Icon name="chevron" size={12} /> Back to Home
           </button>
@@ -81,8 +81,8 @@ export default function ScriptsView({ scriptTab, setScriptTab, userName, userEma
             <button key={tab.id} onClick={() => handleTabSelect(tab.id)}
               className={activeTab === tab.id ? 'nav-active' : ''}
               style={{ width: '100%', textAlign: 'left', padding: '9px 10px', borderRadius: '7px', cursor: 'pointer', background: 'transparent', border: activeTab === tab.id ? '' : '2px solid transparent', display: 'flex', alignItems: 'flex-start', gap: '10px', transition: 'all .15s', outline: 'none', font: 'inherit' }}>
-              <span style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '.18em', flexShrink: 0, marginTop: '2px', color: activeTab === tab.id ? '#00F0FF' : '#333' }}>{tab.num}</span>
-              <span style={{ fontSize: '11.5px', fontWeight: 600, lineHeight: 1.35, color: activeTab === tab.id ? '#00F0FF' : '#555' }}>{tab.label}</span>
+              <span style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '.18em', flexShrink: 0, marginTop: '2px', color: activeTab === tab.id ? 'var(--accent-ink)' : 'var(--text-faint)' }}>{tab.num}</span>
+              <span style={{ fontSize: '11.5px', fontWeight: 600, lineHeight: 1.35, color: activeTab === tab.id ? 'var(--accent-ink)' : 'var(--text-muted)' }}>{tab.label}</span>
             </button>
           ))}
         </nav>
@@ -93,7 +93,7 @@ export default function ScriptsView({ scriptTab, setScriptTab, userName, userEma
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         {/* Mobile tab bar */}
-        <div className="no-print mobile-tab-bar" style={{ display: 'none', padding: '8px 12px', borderBottom: '1px solid #111', background: '#050505', overflowX: 'auto', gap: '4px', flexShrink: 0 }}>
+        <div className="no-print mobile-tab-bar" style={{ display: 'none', padding: '8px 12px', borderBottom: '1px solid #111', background: 'var(--bg-nav)', overflowX: 'auto', gap: '4px', flexShrink: 0 }}>
           <button className="hamburger-btn" aria-label="Open navigation" aria-expanded={sidebarOpen} onClick={() => setSidebarOpen(true)} style={{ marginRight: '8px' }}>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="2" y1="4" x2="14" y2="4" /><line x1="2" y1="8" x2="14" y2="8" /><line x1="2" y1="12" x2="14" y2="12" /></svg>
           </button>

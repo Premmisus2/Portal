@@ -7,7 +7,7 @@ import OutreachRule from '@/components/shared/OutreachRule';
 const SMSPanel = () => (
   <div>
     <div style={{ marginBottom: '6px' }}><span className="tag">12</span></div>
-    <h2 style={{ fontSize: '26px', fontWeight: 900, color: '#fff', margin: '8px 0 4px' }}>SMS Sequences — Warm Leads</h2>
+    <h2 style={{ fontSize: '26px', fontWeight: 900, color: 'var(--text-primary)', margin: '8px 0 4px' }}>SMS Sequences — Warm Leads</h2>
     <Body>SMS is for warm leads only. Never cold-SMS a prospect who hasn't heard of Premmisus.</Body>
     <div className="divider" style={{ margin: '16px 0' }} />
     <OutreachRule title="When to Use SMS">Only for leads you've already spoken with, who showed interest, or who were referred. Cold SMS violates CASL and destroys trust.</OutreachRule>

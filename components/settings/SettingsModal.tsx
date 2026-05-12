@@ -25,24 +25,24 @@ export default function SettingsModal({ userName, userEmail, repId, isDirector, 
       overflowY: 'auto',
     }}>
       <div onClick={e => e.stopPropagation()} style={{
-        background: '#060606', border: '1px solid #1e1e1e', borderRadius: '14px',
+        background: '#060606', border: '1px solid var(--border)', borderRadius: '14px',
         padding: '28px 32px', maxWidth: '760px', width: '100%',
-        boxShadow: '0 0 60px rgba(0,240,255,.06)',
+        boxShadow: '0 0 60px var(--accent-glow-06)',
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '20px' }}>
           <div>
             <span className="tag" style={{ marginBottom: '8px', display: 'inline-block' }}>Settings</span>
-            <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 900, color: '#fff', letterSpacing: '-.02em', fontFamily: 'Inter, sans-serif' }}>
+            <h2 style={{ margin: 0, fontSize: '22px', fontWeight: 900, color: 'var(--text-primary)', letterSpacing: '-.02em', fontFamily: 'Inter, sans-serif' }}>
               Account & Security
             </h2>
-            <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#444', letterSpacing: '.1em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
+            <p style={{ margin: '4px 0 0', fontSize: '11px', color: 'var(--text-faint)', letterSpacing: '.1em', textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace' }}>
               {userEmail}
             </p>
           </div>
           <button onClick={onClose} aria-label="Close settings"
             style={{
-              background: 'none', border: '1px solid #1e1e1e', borderRadius: '8px',
-              padding: '6px 12px', cursor: 'pointer', color: '#666', fontSize: '14px',
+              background: 'none', border: '1px solid var(--border)', borderRadius: '8px',
+              padding: '6px 12px', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '14px',
             }}>
             ✕
           </button>

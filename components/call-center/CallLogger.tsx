@@ -129,21 +129,21 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
   const showBooking = selected.includes('booked_call');
 
   return (
-    <div style={{marginTop:'14px', padding:'16px', background:'rgba(0,240,255,.03)', border:'1px solid rgba(0,240,255,.15)', borderRadius:'10px'}} className="fadein">
-      <p style={{margin:'0 0 12px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'#00F0FF'}}>Log Call</p>
+    <div style={{marginTop:'14px', padding:'16px', background:'rgba(0,240,255,.03)', border:'1px solid var(--accent-glow-15)', borderRadius:'10px'}} className="fadein">
+      <p style={{margin:'0 0 12px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'var(--accent-ink)'}}>Log Call</p>
       {aiSuggestion && (
         <div style={{marginBottom:'12px', padding:'10px 12px', background:'rgba(59,130,246,.06)', border:'1px solid rgba(59,130,246,.25)', borderRadius:'8px'}}>
           <div style={{display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap'}}>
             <span style={{fontSize:'9px', fontWeight:800, letterSpacing:'.15em', textTransform:'uppercase', color:'#3B82F6'}}>AI suggests</span>
-            <span style={{fontSize:'12px', fontWeight:700, color: OUTCOME_COLORS[aiSuggestion.outcome] || '#fff'}}>{OUTCOME_LABELS[aiSuggestion.outcome] || aiSuggestion.outcome}</span>
-            <span style={{fontSize:'10px', color:'#888', fontFamily:'JetBrains Mono,monospace'}}>{Math.round(aiSuggestion.confidence * 100)}% confidence</span>
+            <span style={{fontSize:'12px', fontWeight:700, color: OUTCOME_COLORS[aiSuggestion.outcome] || 'var(--text-primary)'}}>{OUTCOME_LABELS[aiSuggestion.outcome] || aiSuggestion.outcome}</span>
+            <span style={{fontSize:'10px', color:'var(--text-tertiary)', fontFamily:'JetBrains Mono,monospace'}}>{Math.round(aiSuggestion.confidence * 100)}% confidence</span>
           </div>
           {aiSuggestion.reasoning && (
-            <p style={{margin:'6px 0 0', fontSize:'11px', color:'#888', fontStyle:'italic', lineHeight:1.4}}>{aiSuggestion.reasoning}</p>
+            <p style={{margin:'6px 0 0', fontSize:'11px', color:'var(--text-tertiary)', fontStyle:'italic', lineHeight:1.4}}>{aiSuggestion.reasoning}</p>
           )}
         </div>
       )}
-      <p style={{margin:'0 0 8px', fontSize:'9px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'#444'}}>
+      <p style={{margin:'0 0 8px', fontSize:'9px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'var(--text-faint)'}}>
         Outcome — tap to select. First pick is primary; add more if needed.
       </p>
       <div style={{display:'flex', gap:'10px', flexWrap:'wrap', marginBottom:'12px'}}>
@@ -160,8 +160,8 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
                 fontFamily:'Inter,sans-serif', transition:'all .15s',
                 display:'inline-flex', alignItems:'center', gap:'6px',
                 background: isPrimary ? `${color}28` : isSecondary ? `${color}12` : 'transparent',
-                border: `1px solid ${isPrimary ? color : isSecondary ? color + '55' : '#1e1e1e'}`,
-                color: isSelected ? color : '#555',
+                border: `1px solid ${isPrimary ? color : isSecondary ? color + '55' : 'var(--border)'}`,
+                color: isSelected ? color : 'var(--text-muted)',
                 boxShadow: isPrimary ? `0 0 0 1px ${color}44 inset` : 'none',
               }}>
               {isSelected && (
@@ -169,7 +169,7 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
                   fontSize:'9px', fontWeight:800, padding:'1px 5px', borderRadius:'4px',
                   background: isPrimary ? `${color}44` : 'transparent',
                   border: isPrimary ? 'none' : `1px solid ${color}66`,
-                  color: isPrimary ? '#fff' : color,
+                  color: isPrimary ? 'var(--text-primary)' : color,
                   fontFamily:'JetBrains Mono,monospace', letterSpacing:'.05em',
                 }}>{isPrimary ? 'PRIMARY' : `+${idx}`}</span>
               )}
@@ -182,19 +182,19 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
         <div style={{marginBottom:'12px'}}>
           <div style={{display:'flex', gap:'10px', flexWrap:'wrap'}}>
             <div>
-              <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Callback Date</label>
+              <label style={{fontSize:'10px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Callback Date</label>
               <input type="date" value={callbackDate} onChange={e=>setCallbackDate(e.target.value)}
                 className="field" style={{maxWidth:'180px', colorScheme:'dark'}}/>
             </div>
             <div>
-              <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Callback Time</label>
+              <label style={{fontSize:'10px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Callback Time</label>
               <input type="time" value={callbackTime} onChange={e=>setCallbackTime(e.target.value)}
                 className="field" style={{maxWidth:'140px', colorScheme:'dark'}}/>
             </div>
           </div>
           <div style={{marginTop:'12px'}}>
-            <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Callback Reason</label>
-            <p style={{margin:'0 0 8px', fontSize:'9px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'#444'}}>
+            <label style={{fontSize:'10px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Callback Reason</label>
+            <p style={{margin:'0 0 8px', fontSize:'9px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'var(--text-faint)'}}>
               Tap to select. First pick is primary; add more if needed.
             </p>
             <div style={{display:'flex', gap:'8px', flexWrap:'wrap'}}>
@@ -211,8 +211,8 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
                       fontFamily:'Inter,sans-serif', transition:'all .15s',
                       display:'inline-flex', alignItems:'center', gap:'6px',
                       background: isPrimary ? `${color}28` : isSecondary ? `${color}12` : 'transparent',
-                      border: `1px solid ${isPrimary ? color : isSecondary ? color + '55' : '#1e1e1e'}`,
-                      color: isSelected ? color : '#555',
+                      border: `1px solid ${isPrimary ? color : isSecondary ? color + '55' : 'var(--border)'}`,
+                      color: isSelected ? color : 'var(--text-muted)',
                       boxShadow: isPrimary ? `0 0 0 1px ${color}44 inset` : 'none',
                     }}>
                     {isSelected && (
@@ -220,7 +220,7 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
                         fontSize:'9px', fontWeight:800, padding:'1px 5px', borderRadius:'4px',
                         background: isPrimary ? `${color}44` : 'transparent',
                         border: isPrimary ? 'none' : `1px solid ${color}66`,
-                        color: isPrimary ? '#fff' : color,
+                        color: isPrimary ? 'var(--text-primary)' : color,
                         fontFamily:'JetBrains Mono,monospace', letterSpacing:'.05em',
                       }}>{isPrimary ? 'PRIMARY' : `+${idx}`}</span>
                     )}
@@ -234,7 +234,7 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
       )}
       {showBooking && (
         <div style={{marginBottom:'12px'}}>
-          <label style={{fontSize:'10px', fontWeight:700, color:'#444', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Booking Type</label>
+          <label style={{fontSize:'10px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.1em', textTransform:'uppercase', display:'block', marginBottom:'4px'}}>Booking Type</label>
           <select value={bookingType} onChange={e => setBookingType(e.target.value)} className="field" style={{maxWidth:'280px', padding:'8px 12px', fontSize:'12px'}}>
             <option value="">Select type...</option>
             <option value="sales_call">Sales Call (Video/Phone)</option>
@@ -247,7 +247,7 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
         className="field" style={{minHeight:'60px', resize:'vertical', marginBottom:'12px'}} rows={2}/>
       <button onClick={handleSubmit} disabled={!primary || saving}
         style={{padding:'10px 24px', borderRadius:'8px', cursor: (!primary||saving)?'not-allowed':'pointer', border:'none',
-          background: primary ? '#00F0FF' : '#1e1e1e', color: primary ? '#000' : '#444',
+          background: primary ? 'var(--accent-ink)' : 'var(--border)', color: primary ? 'var(--bg-app)' : 'var(--text-faint)',
           fontWeight:800, fontSize:'12px', fontFamily:'Inter,sans-serif', letterSpacing:'.06em', textTransform:'uppercase',
           opacity: saving ? .6 : 1, transition:'all .15s',
         }}>{saving ? 'Saving...' : 'Log Call'}</button>

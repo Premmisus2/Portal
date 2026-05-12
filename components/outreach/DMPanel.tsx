@@ -17,18 +17,18 @@ const DMPanel = () => {
   return (
     <div>
       <div style={{ marginBottom: '6px' }}><span className="tag">10</span></div>
-      <h2 style={{ fontSize: '26px', fontWeight: 900, color: '#fff', margin: '8px 0 4px' }}>DM Scripts</h2>
+      <h2 style={{ fontSize: '26px', fontWeight: 900, color: 'var(--text-primary)', margin: '8px 0 4px' }}>DM Scripts</h2>
       <Body>Research every prospect before messaging. Reference something real and specific — never generic copy-paste.</Body>
       <div className="divider" style={{ margin: '16px 0' }} />
       <OutreachRule title="Rule — Touch 1 Goal">The only goal of Touch 1 is a reply. Do not mention pricing, services, or retainers. One question, then stop.</OutreachRule>
       <OutreachRule title="Rule — Preview Unlocks Your Best Opener">Once a preview exists for a niche, switch to the Preview scripts immediately. They convert faster.</OutreachRule>
-      <div style={{ display: 'flex', gap: '6px', margin: '16px 0 20px', borderBottom: '1px solid #1a1a1a', paddingBottom: '12px' }}>
+      <div style={{ display: 'flex', gap: '6px', margin: '16px 0 20px', borderBottom: '1px solid var(--border-soft)', paddingBottom: '12px' }}>
         {DM_TABS.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
             style={{ padding: '7px 16px', borderRadius: '7px', cursor: 'pointer', border: '1px solid', fontSize: '12px', fontWeight: 700, fontFamily: 'Inter,sans-serif', transition: 'all .15s', outline: 'none',
-              background: activeTab === tab.id ? 'rgba(0,240,255,.08)' : 'transparent',
-              borderColor: activeTab === tab.id ? 'rgba(0,240,255,.4)' : '#1e1e1e',
-              color: activeTab === tab.id ? '#00F0FF' : '#555',
+              background: activeTab === tab.id ? 'var(--accent-glow-08)' : 'transparent',
+              borderColor: activeTab === tab.id ? 'var(--accent-glow-40)' : 'var(--border)',
+              color: activeTab === tab.id ? 'var(--accent-ink)' : 'var(--text-muted)',
             }}>
             <span style={{ fontSize: '9px', fontWeight: 800, letterSpacing: '.15em', marginRight: '6px', opacity: .6 }}>{tab.num}</span>
             {tab.label}

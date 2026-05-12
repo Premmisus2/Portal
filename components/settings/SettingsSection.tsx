@@ -11,8 +11,8 @@ interface Props {
 }
 
 const wrapStyle: CSSProperties = {
-  background: '#0a0a0a',
-  border: '1px solid #1a1a1a',
+  background: 'var(--bg-elev-pill)',
+  border: '1px solid var(--border-soft)',
   borderRadius: '10px',
   padding: '18px 20px',
 };
@@ -23,12 +23,12 @@ const headerStyle: CSSProperties = {
 };
 
 const titleStyle: CSSProperties = {
-  margin: 0, fontSize: '14px', fontWeight: 800, color: '#fff',
+  margin: 0, fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)',
   fontFamily: 'Inter, sans-serif', letterSpacing: '-.005em',
 };
 
 const descStyle: CSSProperties = {
-  margin: '3px 0 0', fontSize: '11px', color: '#555', lineHeight: 1.55,
+  margin: '3px 0 0', fontSize: '11px', color: 'var(--text-muted)', lineHeight: 1.55,
   fontFamily: 'Roboto, sans-serif',
 };
 

@@ -188,12 +188,12 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
           const batchLeads = leads.filter(l => l.batch_id === batch.id);
           const calledCount = batchLeads.filter(l => l.status !== 'new').length;
           return (
-            <div style={{display:'flex', alignItems:'center', gap:'12px', padding:'8px 14px', marginBottom:'12px', borderRadius:'8px', background:'rgba(0,240,255,.04)', border:'1px solid rgba(0,240,255,.12)', fontSize:'12px', color:'#888'}}>
-              <span style={{fontWeight:700, color:'#00F0FF'}}>{batch.label || `Batch ${batch.id.slice(0,6)}`}</span>
+            <div style={{display:'flex', alignItems:'center', gap:'12px', padding:'8px 14px', marginBottom:'12px', borderRadius:'8px', background:'var(--accent-glow-04)', border:'1px solid var(--accent-glow-12)', fontSize:'12px', color:'var(--text-tertiary)'}}>
+              <span style={{fontWeight:700, color:'var(--accent-ink)'}}>{batch.label || `Batch ${batch.id.slice(0,6)}`}</span>
               <span>{new Date(batch.created_at).toLocaleDateString('en-US', { month:'short', day:'numeric', timeZone: 'America/Toronto' })}</span>
-              <span style={{color:'#555'}}>|</span>
+              <span style={{color:'var(--text-muted)'}}>|</span>
               <span>{batchLeads.length} leads</span>
-              <span style={{color:'#555'}}>|</span>
+              <span style={{color:'var(--text-muted)'}}>|</span>
               <span>{calledCount} called</span>
             </div>
           );
@@ -205,9 +205,9 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
   const renderSearchBar = () => (
     <div style={{position:'relative', marginBottom:'14px'}}>
       <input value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Search leads — name, city, phone, niche..."
-        className="field" style={{width:'100%', padding:'12px 16px 12px 40px', fontSize:'14px', background:'rgba(255,255,255,.03)', border:'1px solid #1e1e1e', borderRadius:'10px', color:'#fff', fontFamily:'Inter,sans-serif'}}/>
-      <span style={{position:'absolute', left:'14px', top:'50%', transform:'translateY(-50%)', fontSize:'16px', color:'#333', pointerEvents:'none'}}>🔍</span>
-      {searchQuery && <button onClick={()=>setSearchQuery('')} style={{position:'absolute', right:'12px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'#555', cursor:'pointer', fontSize:'14px', fontFamily:'Inter'}}>✕</button>}
+        className="field" style={{width:'100%', padding:'12px 16px 12px 40px', fontSize:'14px', background:'rgba(255,255,255,.03)', border:'1px solid var(--border)', borderRadius:'10px', color:'var(--text-primary)', fontFamily:'Inter,sans-serif'}}/>
+      <span style={{position:'absolute', left:'14px', top:'50%', transform:'translateY(-50%)', fontSize:'16px', color:'var(--text-faint)', pointerEvents:'none'}}>🔍</span>
+      {searchQuery && <button onClick={()=>setSearchQuery('')} style={{position:'absolute', right:'12px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', fontSize:'14px', fontFamily:'Inter'}}>✕</button>}
     </div>
   );
 
@@ -233,7 +233,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
         <option value="no_show">No Show</option>
         <option value="not_interested">Not Interested</option>
       </select>
-      <span style={{marginLeft:'auto', fontSize:'12px', color:'#444', alignSelf:'center'}}>{filteredLeads.length} leads</span>
+      <span style={{marginLeft:'auto', fontSize:'12px', color:'var(--text-faint)', alignSelf:'center'}}>{filteredLeads.length} leads</span>
     </div>
   );
 
@@ -256,21 +256,21 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
 
   const renderEmptyState = () => (
     <div className="card" style={{padding:'40px', textAlign:'center'}}>
-      <p style={{color:'#444', fontSize:'14px', margin:0}}>
+      <p style={{color:'var(--text-faint)', fontSize:'14px', margin:0}}>
         {leads.length === 0 ? 'No leads assigned yet. Ask your director to assign leads.' : 'No leads match your filters.'}
       </p>
     </div>
   );
 
   return (
-    <div style={{display:'flex', flexDirection:'column', height:'100vh', background:'#000', paddingTop: shadowMode ? '40px' : 0}}>
+    <div style={{display:'flex', flexDirection:'column', height:'100vh', background:'var(--bg-app)', paddingTop: shadowMode ? '40px' : 0}}>
       <TopBar title="Call Center" subtitle="Your calling command center"
         userName={userName} userEmail={userEmail} onHome={onHome} onLogout={onLogout}
         totalCloses={totalCloses} totalPoints={totalPoints} addClose={addClose} undoClose={undoClose}/>
       {toast && (
         <div style={{
           position:'fixed', top: shadowMode ? '76px' : '36px', left:'50%', transform:'translateX(-50%)',
-          background: toast.type === 'error' ? '#ff4444' : '#22c55e', color:'#000', padding:'10px 24px', borderRadius:'8px',
+          background: toast.type === 'error' ? '#ff4444' : '#22c55e', color:'var(--bg-app)', padding:'10px 24px', borderRadius:'8px',
           fontFamily:'Inter, sans-serif', fontWeight:600, fontSize:'13px',
           zIndex:450, boxShadow:'0 4px 12px rgba(0,0,0,.3)',
           animation:'fadein .3s'
@@ -280,8 +280,8 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
       )}
       <main className="section-main" style={{flex:1, overflowY:'auto', padding:'28px 32px', maxWidth:'1100px', width:'100%', margin:'0 auto'}}>
         <div style={{marginBottom:'6px'}}><span className="tag">Command Center</span></div>
-        <h2 style={{fontSize:'26px', fontWeight:900, color:'#fff', margin:'8px 0 4px'}}>Call Center</h2>
-        <p style={{color:'#555', fontSize:'13px', margin:'0 0 16px'}}>Your leads, your calls, your numbers. All in one place.</p>
+        <h2 style={{fontSize:'26px', fontWeight:900, color:'var(--text-primary)', margin:'8px 0 4px'}}>Call Center</h2>
+        <p style={{color:'var(--text-muted)', fontSize:'13px', margin:'0 0 16px'}}>Your leads, your calls, your numbers. All in one place.</p>
         <div className="divider" style={{margin:'16px 0'}}/>
 
         {/* No-phone warning — Twilio calling disabled */}
@@ -303,21 +303,21 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
               <button key={key} className={`call-tab${tab===key?' active':''}`} onClick={()=>setTab(key)}>
                 {label}
                 {badge > 0 && (
-                  <span style={{marginLeft:'6px', background: key === 'followup' ? '#ff6060' : key === 'booked' ? '#22c55e' : '#00F0FF', color: key === 'list' ? '#000' : '#fff', borderRadius:'10px', padding:'1px 6px', fontSize:'10px', fontWeight:800}}>{badge}</span>
+                  <span style={{marginLeft:'6px', background: key === 'followup' ? '#ff6060' : key === 'booked' ? '#22c55e' : 'var(--accent-ink)', color: key === 'list' ? 'var(--bg-app)' : 'var(--text-primary)', borderRadius:'10px', padding:'1px 6px', fontSize:'10px', fontWeight:800}}>{badge}</span>
                 )}
               </button>
             );
           })}
-          <button onClick={()=>{ loadLeads(); loadStats(); loadCalendar(); }} style={{marginLeft:'auto', padding:'8px 14px', borderRadius:'7px', cursor:'pointer', border:'1px solid #1e1e1e', background:'transparent', color:'#444', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif', transition:'all .15s'}}
-            onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor='rgba(0,240,255,.3)';(e.currentTarget as HTMLElement).style.color='#00F0FF';}}
-            onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='#1e1e1e';(e.currentTarget as HTMLElement).style.color='#444';}}>
+          <button onClick={()=>{ loadLeads(); loadStats(); loadCalendar(); }} style={{marginLeft:'auto', padding:'8px 14px', borderRadius:'7px', cursor:'pointer', border:'1px solid var(--border)', background:'transparent', color:'var(--text-faint)', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif', transition:'all .15s'}}
+            onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor='var(--accent-glow-30)';(e.currentTarget as HTMLElement).style.color='var(--accent-ink)';}}
+            onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='var(--border)';(e.currentTarget as HTMLElement).style.color='var(--text-faint)';}}>
             Refresh
           </button>
         </div>
 
         {loading ? (
           <div style={{display:'flex', alignItems:'center', justifyContent:'center', padding:'60px 0'}}>
-            <svg style={{animation:'spin 1s linear infinite'}} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00F0FF" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+            <svg style={{animation:'spin 1s linear infinite'}} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-ink)" strokeWidth="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
           </div>
         ) : (
           <>
@@ -332,7 +332,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                   {[['all','All'],['HOT','HOT'],['HIGH','HIGH'],['MEDIUM','MEDIUM'],['callbacks','Callbacks']].map(([key, label]) => {
                     const isActive = quickFilter === key;
                     const colors: Record<string, string> = { HOT:'#ff6060', HIGH:'#F59E0B', MEDIUM:'#3B82F6', callbacks:'#A855F7' };
-                    const accentColor = colors[key] || '#00F0FF';
+                    const accentColor = colors[key] || 'var(--accent-ink)';
                     const toCallBase = leads.filter(l => l.status === 'new');
                     const count = key === 'all' ? toCallBase.length
                       : key === 'HOT' ? toCallBase.filter(l=>l.priority==='HOT').length
@@ -343,8 +343,8 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                       <button key={key} onClick={()=>setQuickFilter(key)}
                         style={{padding:'7px 16px', borderRadius:'8px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif', transition:'all .15s',
                           background: isActive ? `${accentColor}15` : 'transparent',
-                          border: `1px solid ${isActive ? accentColor+'55' : '#1e1e1e'}`,
-                          color: isActive ? accentColor : '#555',
+                          border: `1px solid ${isActive ? accentColor+'55' : 'var(--border)'}`,
+                          color: isActive ? accentColor : 'var(--text-muted)',
                         }}>
                         {label}
                         <span style={{marginLeft:'6px', fontSize:'10px', opacity:0.7}}>{count}</span>
@@ -366,7 +366,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                   const allMyLogs = Object.values(callLogs).flat().filter((log: any) => log.rep_id === repId || !isDirector).sort((a: any,b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
                   if (allMyLogs.length === 0) return (
                     <div className="card" style={{padding:'40px', textAlign:'center'}}>
-                      <p style={{color:'#444', fontSize:'14px', margin:0}}>No calls logged yet. Start dialing.</p>
+                      <p style={{color:'var(--text-faint)', fontSize:'14px', margin:0}}>No calls logged yet. Start dialing.</p>
                     </div>
                   );
                   const now = new Date();
@@ -386,14 +386,14 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                     const bizName = log.business_name || (logLead ? logLead.business_name : 'Unknown');
                     const duration = log.duration ? `${Math.floor(log.duration / 60)}m ${log.duration % 60}s` : null;
                     return (
-                      <div key={log.id} style={{padding:'14px 18px', background:'#0a0a0a', border:'1px solid #1a1a1a', borderRadius:'8px'}}>
+                      <div key={log.id} style={{padding:'14px 18px', background:'var(--bg-elev-pill)', border:'1px solid var(--border-soft)', borderRadius:'8px'}}>
                         <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', marginBottom: (log.notes || log.recording_url || log.transcript) ? '8px' : '0'}}>
-                          <span style={{fontSize:'10px', color:'#333', fontFamily:'JetBrains Mono,monospace', fontWeight:600, minWidth:'28px'}}>#{totalLogs - allMyLogs.indexOf(log)}</span>
-                          <div style={{width:'8px', height:'8px', borderRadius:'50%', background: OUTCOME_COLORS[log.outcome] || '#555', flexShrink:0}}/>
-                          <span style={{fontSize:'13px', fontWeight:700, color:'#fff'}}>{bizName}</span>
-                          <span style={{fontSize:'10px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:`${OUTCOME_COLORS[log.outcome] || '#555'}15`, color: OUTCOME_COLORS[log.outcome] || '#555', letterSpacing:'.05em', textTransform:'uppercase'}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
-                          {duration && <span style={{fontSize:'10px', color:'#666', fontFamily:'monospace'}}>{duration}</span>}
-                          <span style={{fontSize:'11px', color:'#444', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString(undefined, { timeZone: 'America/Toronto' })} {new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', timeZone: 'America/Toronto'})}</span>
+                          <span style={{fontSize:'10px', color:'var(--text-faint)', fontFamily:'JetBrains Mono,monospace', fontWeight:600, minWidth:'28px'}}>#{totalLogs - allMyLogs.indexOf(log)}</span>
+                          <div style={{width:'8px', height:'8px', borderRadius:'50%', background: OUTCOME_COLORS[log.outcome] || 'var(--text-muted)', flexShrink:0}}/>
+                          <span style={{fontSize:'13px', fontWeight:700, color:'var(--text-primary)'}}>{bizName}</span>
+                          <span style={{fontSize:'10px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:`${OUTCOME_COLORS[log.outcome] || 'var(--text-muted)'}15`, color: OUTCOME_COLORS[log.outcome] || 'var(--text-muted)', letterSpacing:'.05em', textTransform:'uppercase'}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
+                          {duration && <span style={{fontSize:'10px', color:'var(--text-muted)', fontFamily:'monospace'}}>{duration}</span>}
+                          <span style={{fontSize:'11px', color:'var(--text-faint)', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString(undefined, { timeZone: 'America/Toronto' })} {new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', timeZone: 'America/Toronto'})}</span>
                           {log.callback_date && <span style={{fontSize:'10px', color:'#F59E0B', fontWeight:600}}>CB: {log.callback_date}</span>}
                           {!shadowMode && log.rep_id === repId && (
                             <button
@@ -401,17 +401,17 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                               title="Edit call log"
                               aria-label="Edit call log"
                               style={{
-                                background: 'transparent', border: '1px solid #1e1e1e',
+                                background: 'transparent', border: '1px solid var(--border)',
                                 borderRadius: '6px', padding: '4px 8px', cursor: 'pointer',
-                                color: '#666', fontSize: '12px', lineHeight: 1,
+                                color: 'var(--text-muted)', fontSize: '12px', lineHeight: 1,
                                 transition: 'all .15s',
                               }}
-                              onMouseEnter={e => { e.currentTarget.style.color = '#00F0FF'; e.currentTarget.style.borderColor = '#00F0FF55'; }}
-                              onMouseLeave={e => { e.currentTarget.style.color = '#666'; e.currentTarget.style.borderColor = '#1e1e1e'; }}
+                              onMouseEnter={e => { e.currentTarget.style.color = 'var(--accent-ink)'; e.currentTarget.style.borderColor = 'var(--accent-ink)55'; }}
+                              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-muted)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
                             >✎</button>
                           )}
                         </div>
-                        {log.notes && <p style={{margin:'0 0 6px', fontSize:'12px', color:'#aaa', lineHeight:'1.5', wordBreak:'break-word'}}>{log.notes}</p>}
+                        {log.notes && <p style={{margin:'0 0 6px', fontSize:'12px', color:'var(--text-secondary)', lineHeight:'1.5', wordBreak:'break-word'}}>{log.notes}</p>}
                         {(() => { const src = recordingProxySrc(log); return src ? (
                           <div style={{marginTop:'6px'}}>
                             <audio controls src={src} style={{width:'100%', height:'32px', borderRadius:'6px'}}/>
@@ -425,9 +425,9 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                   };
                   const sectionHeader = (title: string, count: number) => (
                     <div style={{display:'flex', alignItems:'center', gap:'10px', margin:'18px 0 10px'}}>
-                      <span style={{fontSize:'10px', fontWeight:800, letterSpacing:'.18em', textTransform:'uppercase', color:'#00F0FF', whiteSpace:'nowrap'}}>{title}</span>
-                      <span style={{fontSize:'10px', color:'#333'}}>({count})</span>
-                      <div style={{flex:1, height:'1px', background:'linear-gradient(90deg,rgba(0,240,255,.35),transparent)'}}/>
+                      <span style={{fontSize:'10px', fontWeight:800, letterSpacing:'.18em', textTransform:'uppercase', color:'var(--accent-ink)', whiteSpace:'nowrap'}}>{title}</span>
+                      <span style={{fontSize:'10px', color:'var(--text-faint)'}}>({count})</span>
+                      <div style={{flex:1, height:'1px', background:'linear-gradient(90deg,var(--accent-glow-35),transparent)'}}/>
                     </div>
                   );
                   return (
@@ -448,7 +448,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
             {tab === 'quicklog' && shadowMode && (
               <div className="card" style={{padding:'40px', textAlign:'center'}}>
                 <p style={{color:'#F59E0B', fontSize:'14px', margin:0, fontWeight:700}}>Read Only — Shadow Mode</p>
-                <p style={{color:'#444', fontSize:'12px', margin:'6px 0 0'}}>Cannot log calls while shadowing a rep.</p>
+                <p style={{color:'var(--text-faint)', fontSize:'12px', margin:'6px 0 0'}}>Cannot log calls while shadowing a rep.</p>
               </div>
             )}
 
@@ -463,7 +463,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                   {[['all','All'],['HOT','HOT'],['HIGH','HIGH'],['MEDIUM','MEDIUM'],['callbacks','Callbacks'],['new','Not Called']].map(([key, label]) => {
                     const isActive = quickFilter === key;
                     const colors: Record<string, string> = { HOT:'#ff6060', HIGH:'#F59E0B', MEDIUM:'#3B82F6', callbacks:'#A855F7', new:'#22c55e' };
-                    const accentColor = colors[key] || '#00F0FF';
+                    const accentColor = colors[key] || 'var(--accent-ink)';
                     const count = key === 'all' ? leads.length
                       : key === 'HOT' ? leads.filter(l=>l.priority==='HOT').length
                       : key === 'HIGH' ? leads.filter(l=>l.priority==='HIGH').length
@@ -474,8 +474,8 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                       <button key={key} onClick={()=>setQuickFilter(key)}
                         style={{padding:'7px 16px', borderRadius:'8px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif', transition:'all .15s',
                           background: isActive ? `${accentColor}15` : 'transparent',
-                          border: `1px solid ${isActive ? accentColor+'55' : '#1e1e1e'}`,
-                          color: isActive ? accentColor : '#555',
+                          border: `1px solid ${isActive ? accentColor+'55' : 'var(--border)'}`,
+                          color: isActive ? accentColor : 'var(--text-muted)',
                         }}>
                         {label}
                         <span style={{marginLeft:'6px', fontSize:'10px', opacity:0.7}}>{count}</span>
@@ -493,7 +493,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                     <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
                       {uncalled.length > 0 && (
                         <>
-                          <div style={{padding:'8px 0', borderBottom:'1px solid #1a1a1a', marginBottom:'4px'}}>
+                          <div style={{padding:'8px 0', borderBottom:'1px solid var(--border-soft)', marginBottom:'4px'}}>
                             <span style={{fontSize:'11px', fontWeight:800, color:'#22c55e', letterSpacing:'.1em', textTransform:'uppercase'}}>TO CALL — {uncalled.length} leads</span>
                           </div>
                           {uncalled.map((lead, idx) => (
@@ -512,8 +512,8 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                       )}
                       {called.length > 0 && (
                         <>
-                          <div style={{padding:'12px 0 8px', borderBottom:'1px solid #1a1a1a', marginTop:'12px', marginBottom:'4px'}}>
-                            <span style={{fontSize:'11px', fontWeight:800, color:'#555', letterSpacing:'.1em', textTransform:'uppercase'}}>CALLED — {called.length} leads</span>
+                          <div style={{padding:'12px 0 8px', borderBottom:'1px solid var(--border-soft)', marginTop:'12px', marginBottom:'4px'}}>
+                            <span style={{fontSize:'11px', fontWeight:800, color:'var(--text-muted)', letterSpacing:'.1em', textTransform:'uppercase'}}>CALLED — {called.length} leads</span>
                           </div>
                           {called.map((lead, idx) => (
                             <LeadRow key={lead.id} lead={lead} repId={repId}
@@ -554,16 +554,16 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                   const upcoming = followUpLeads.filter(l => !l._cbDate || l._cbDate > todayStr).sort((a,b) => (a._cbDate || 'z').localeCompare(b._cbDate || 'z'));
                   if (followUpLeads.length === 0) return (
                     <div className="card" style={{padding:'40px', textAlign:'center'}}>
-                      <p style={{color:'#444', fontSize:'14px', margin:0}}>No follow-ups pending. Keep dialing.</p>
+                      <p style={{color:'var(--text-faint)', fontSize:'14px', margin:0}}>No follow-ups pending. Keep dialing.</p>
                     </div>
                   );
                   const renderFollowUpCard = (lead: any) => {
-                    const borderColor = lead._cbDate && lead._cbDate < todayStr ? '#ff6060' : lead._cbDate === todayStr ? '#F59E0B' : '#1a1a1a';
+                    const borderColor = lead._cbDate && lead._cbDate < todayStr ? '#ff6060' : lead._cbDate === todayStr ? '#F59E0B' : 'var(--border-soft)';
                     return (
-                      <div key={lead.id} style={{padding:'16px 18px', background:'#0a0a0a', border:`1px solid ${borderColor}`, borderRadius:'10px', borderLeftWidth:'3px'}}>
+                      <div key={lead.id} style={{padding:'16px 18px', background:'var(--bg-elev-pill)', border:`1px solid ${borderColor}`, borderRadius:'10px', borderLeftWidth:'3px'}}>
                         <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', marginBottom:'8px'}}>
-                          <span style={{fontSize:'14px', fontWeight:700, color:'#fff'}}>{lead.business_name}</span>
-                          {lead._cbDate && <span style={{fontSize:'11px', color: lead._cbDate < todayStr ? '#ff6060' : lead._cbDate === todayStr ? '#F59E0B' : '#666', fontWeight:600, fontFamily:'monospace'}}>{lead._cbDate}</span>}
+                          <span style={{fontSize:'14px', fontWeight:700, color:'var(--text-primary)'}}>{lead.business_name}</span>
+                          {lead._cbDate && <span style={{fontSize:'11px', color: lead._cbDate < todayStr ? '#ff6060' : lead._cbDate === todayStr ? '#F59E0B' : 'var(--text-muted)', fontWeight:600, fontFamily:'monospace'}}>{lead._cbDate}</span>}
                           <span style={{fontSize:'9px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:'rgba(245,158,11,.08)', border:'1px solid rgba(245,158,11,.25)', color:'#F59E0B', letterSpacing:'.05em', textTransform:'uppercase'}}>
                             {lead._cbReason ? (CALLBACK_REASON_LABELS[lead._cbReason] || lead._cbReason) : 'No reason given'}
                           </span>
@@ -588,30 +588,30 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                               ) : null}
                               <button onClick={()=>{ setTab('allleads'); setQuickFilter('all'); setFilterStatus('all'); setSelectedBatch('all'); setSearchQuery(''); setExpandedLead(lead.id); }}
                                 style={{padding:'9px 12px', minHeight:'40px', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif',
-                                  background:'transparent', border:'1px solid rgba(0,240,255,.3)', color:'#00F0FF', transition:'all .15s'}}
-                                onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(0,240,255,.08)';}}
+                                  background:'transparent', border:'1px solid var(--accent-glow-30)', color:'var(--accent-ink)', transition:'all .15s'}}
+                                onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='var(--accent-glow-08)';}}
                                 onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='transparent';}}>
                                 Open
                               </button>
                             </div>
                           )}
                         </div>
-                        {lead._cbNotes && <p style={{margin:0, fontSize:'12px', color:'#aaa', lineHeight:'1.5'}}>{lead._cbNotes}</p>}
+                        {lead._cbNotes && <p style={{margin:0, fontSize:'12px', color:'var(--text-secondary)', lineHeight:'1.5'}}>{lead._cbNotes}</p>}
                       </div>
                     );
                   };
                   const sectionHeader = (title: string, count: number, color: string) => (
                     <div style={{display:'flex', alignItems:'center', gap:'10px', margin:'16px 0 8px'}}>
-                      <span style={{fontSize:'10px', fontWeight:800, letterSpacing:'.18em', textTransform:'uppercase', color: color || '#00F0FF', whiteSpace:'nowrap'}}>{title}</span>
-                      <span style={{fontSize:'10px', color:'#333'}}>({count})</span>
-                      <div style={{flex:1, height:'1px', background:`linear-gradient(90deg,${color || 'rgba(0,240,255,.35)'},transparent)`}}/>
+                      <span style={{fontSize:'10px', fontWeight:800, letterSpacing:'.18em', textTransform:'uppercase', color: color || 'var(--accent-ink)', whiteSpace:'nowrap'}}>{title}</span>
+                      <span style={{fontSize:'10px', color:'var(--text-faint)'}}>({count})</span>
+                      <div style={{flex:1, height:'1px', background:`linear-gradient(90deg,${color || 'var(--accent-glow-35)'},transparent)`}}/>
                     </div>
                   );
                   return (
                     <div>
                       {overdue.length > 0 && <>{sectionHeader('Overdue', overdue.length, '#ff6060')}<div style={{display:'flex', flexDirection:'column', gap:'6px'}}>{overdue.map(renderFollowUpCard)}</div></>}
                       {dueToday.length > 0 && <>{sectionHeader('Today', dueToday.length, '#F59E0B')}<div style={{display:'flex', flexDirection:'column', gap:'6px'}}>{dueToday.map(renderFollowUpCard)}</div></>}
-                      {upcoming.length > 0 && <>{sectionHeader('Upcoming', upcoming.length, '#00F0FF')}<div style={{display:'flex', flexDirection:'column', gap:'6px'}}>{upcoming.map(renderFollowUpCard)}</div></>}
+                      {upcoming.length > 0 && <>{sectionHeader('Upcoming', upcoming.length, 'var(--accent-ink)')}<div style={{display:'flex', flexDirection:'column', gap:'6px'}}>{upcoming.map(renderFollowUpCard)}</div></>}
                     </div>
                   );
                 })()}
@@ -630,29 +630,29 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                   }).sort((a,b) => (a._bookingDate || '').localeCompare(b._bookingDate || ''));
                   if (bookedList.length === 0) return (
                     <div className="card" style={{padding:'40px', textAlign:'center'}}>
-                      <p style={{color:'#444', fontSize:'14px', margin:0}}>No bookings yet. Keep dialing.</p>
+                      <p style={{color:'var(--text-faint)', fontSize:'14px', margin:0}}>No bookings yet. Keep dialing.</p>
                     </div>
                   );
                   return (
                     <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
                       {bookedList.map(lead => (
-                        <div key={lead.id} style={{padding:'16px 18px', background:'#0a0a0a', border:'1px solid rgba(34,197,94,.25)', borderRadius:'10px', borderLeftWidth:'3px', borderLeftColor:'#22c55e'}}>
+                        <div key={lead.id} style={{padding:'16px 18px', background:'var(--bg-elev-pill)', border:'1px solid rgba(34,197,94,.25)', borderRadius:'10px', borderLeftWidth:'3px', borderLeftColor:'#22c55e'}}>
                           <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', marginBottom: lead._bookingNotes ? '8px' : '0'}}>
-                            <span style={{fontSize:'14px', fontWeight:700, color:'#fff'}}>{lead.business_name}</span>
+                            <span style={{fontSize:'14px', fontWeight:700, color:'var(--text-primary)'}}>{lead.business_name}</span>
                             <span style={{fontSize:'9px', fontWeight:700, padding:'2px 8px', borderRadius:'4px',
-                              background: lead.status === 'discovery_completed' ? 'rgba(0,240,255,.08)' : 'rgba(34,197,94,.08)',
-                              border: `1px solid ${lead.status === 'discovery_completed' ? 'rgba(0,240,255,.25)' : 'rgba(34,197,94,.25)'}`,
-                              color: lead.status === 'discovery_completed' ? '#00F0FF' : '#22c55e',
+                              background: lead.status === 'discovery_completed' ? 'var(--accent-glow-08)' : 'rgba(34,197,94,.08)',
+                              border: `1px solid ${lead.status === 'discovery_completed' ? 'var(--accent-glow-25)' : 'rgba(34,197,94,.25)'}`,
+                              color: lead.status === 'discovery_completed' ? 'var(--accent-ink)' : '#22c55e',
                               letterSpacing:'.05em', textTransform:'uppercase'}}>
                               {lead.status === 'discovery_completed' ? 'Discovery Booked' : 'Booked'}
                             </span>
                             {lead._bookingType && (
-                              <span style={{fontSize:'9px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:'rgba(255,255,255,.04)', border:'1px solid #1e1e1e', color:'#888', letterSpacing:'.05em'}}>
+                              <span style={{fontSize:'9px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:'rgba(255,255,255,.04)', border:'1px solid var(--border)', color:'var(--text-tertiary)', letterSpacing:'.05em'}}>
                                 {BOOKING_TYPE_LABELS[lead._bookingType] || lead._bookingType}
                               </span>
                             )}
                             {lead._bookingDate && (
-                              <span style={{fontSize:'11px', color:'#666', fontFamily:'monospace', marginLeft:'auto'}}>
+                              <span style={{fontSize:'11px', color:'var(--text-muted)', fontFamily:'monospace', marginLeft:'auto'}}>
                                 {new Date(lead._bookingDate).toLocaleDateString(undefined, { timeZone: 'America/Toronto' })} {new Date(lead._bookingDate).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', timeZone: 'America/Toronto'})}
                               </span>
                             )}
@@ -676,7 +676,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                               )
                             )}
                           </div>
-                          {lead._bookingNotes && <p style={{margin:0, fontSize:'12px', color:'#aaa', lineHeight:'1.5'}}>{lead._bookingNotes}</p>}
+                          {lead._bookingNotes && <p style={{margin:0, fontSize:'12px', color:'var(--text-secondary)', lineHeight:'1.5'}}>{lead._bookingNotes}</p>}
                         </div>
                       ))}
                     </div>
@@ -702,8 +702,8 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                   todayLogs.forEach((l: any) => { todayOutcomeCounts[l.outcome] = (todayOutcomeCounts[l.outcome] || 0) + 1; });
 
                   const statCards = [
-                    { key:'today', label:'Calls Today', value: stats.today, color:'#fff', logs: todayLogs },
-                    { key:'week', label:'Calls This Week', value: stats.week, color:'#fff', logs: weekLogs },
+                    { key:'today', label:'Calls Today', value: stats.today, color:'var(--text-primary)', logs: todayLogs },
+                    { key:'week', label:'Calls This Week', value: stats.week, color:'var(--text-primary)', logs: weekLogs },
                     { key:'booked', label:'Total Bookings', value: stats.booked, color:'#22c55e', logs: allMyLogs.filter((l: any) => l.outcome === 'booked_call') },
                     { key:'pending', label:'Callbacks Pending', value: stats.pending, color:'#F59E0B', logs: allMyLogs.filter((l: any) => l.outcome === 'callback_requested') },
                   ];
@@ -712,7 +712,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                     <>
                       <div className="cc-stats-grid" style={{display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'12px', marginBottom:'24px'}}>
                         {statCards.map(sc => (
-                          <div key={sc.key} className="stat-card" style={{cursor:'pointer', transition:'all .15s', borderColor: expandedStat === sc.key ? 'rgba(0,240,255,.5)' : 'rgba(0,240,255,.22)'}}
+                          <div key={sc.key} className="stat-card" style={{cursor:'pointer', transition:'all .15s', borderColor: expandedStat === sc.key ? 'var(--accent-glow-50)' : 'var(--accent-glow-22)'}}
                             onClick={() => setExpandedStat(expandedStat === sc.key ? null : sc.key)}>
                             <p className="stat-label">{sc.label}</p>
                             <p className="stat-number" style={{color: sc.color}}>{sc.value}</p>
@@ -723,20 +723,20 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                         const card = statCards.find(s => s.key === expandedStat);
                         if (!card || card.logs.length === 0) return (
                           <div className="card" style={{padding:'20px', marginBottom:'16px', textAlign:'center'}}>
-                            <p style={{color:'#444', fontSize:'13px', margin:0}}>No calls in this category.</p>
+                            <p style={{color:'var(--text-faint)', fontSize:'13px', margin:0}}>No calls in this category.</p>
                           </div>
                         );
                         return (
                           <div className="card" style={{padding:'16px', marginBottom:'16px', maxHeight:'300px', overflowY:'auto'}}>
-                            <p style={{margin:'0 0 10px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'#00F0FF'}}>{card.label} — Detail</p>
+                            <p style={{margin:'0 0 10px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'var(--accent-ink)'}}>{card.label} — Detail</p>
                             {card.logs.slice(0, 50).map((log: any) => {
                               const logLead = leads.find(l => l.id === log.lead_id);
                               return (
                                 <div key={log.id} style={{display:'flex', alignItems:'center', gap:'8px', padding:'6px 0', borderBottom:'1px solid #111'}}>
-                                  <div style={{width:'6px', height:'6px', borderRadius:'50%', background: OUTCOME_COLORS[log.outcome] || '#555'}}/>
-                                  <span style={{fontSize:'12px', color:'#fff', fontWeight:600}}>{log.business_name || logLead?.business_name || 'Unknown'}</span>
-                                  <span style={{fontSize:'10px', color: OUTCOME_COLORS[log.outcome] || '#555', fontWeight:600}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
-                                  <span style={{fontSize:'10px', color:'#333', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', timeZone: 'America/Toronto'})}</span>
+                                  <div style={{width:'6px', height:'6px', borderRadius:'50%', background: OUTCOME_COLORS[log.outcome] || 'var(--text-muted)'}}/>
+                                  <span style={{fontSize:'12px', color:'var(--text-primary)', fontWeight:600}}>{log.business_name || logLead?.business_name || 'Unknown'}</span>
+                                  <span style={{fontSize:'10px', color: OUTCOME_COLORS[log.outcome] || 'var(--text-muted)', fontWeight:600}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
+                                  <span style={{fontSize:'10px', color:'var(--text-faint)', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', timeZone: 'America/Toronto'})}</span>
                                 </div>
                               );
                             })}
@@ -748,17 +748,17 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                         <div style={{display:'flex', alignItems:'center', gap:'16px'}}>
                           <p style={{fontSize:'36px', fontWeight:900, color:'#22c55e', margin:0, fontFamily:'monospace'}}>{bookingRate}%</p>
                           <div style={{flex:1}}>
-                            <div style={{height:'8px', background:'#1a1a1a', borderRadius:'4px', overflow:'hidden'}}>
+                            <div style={{height:'8px', background:'var(--border-soft)', borderRadius:'4px', overflow:'hidden'}}>
                               <div style={{height:'100%', background:'#22c55e', width:`${Math.min(bookingRate, 100)}%`, borderRadius:'4px', transition:'width .5s ease'}}/>
                             </div>
-                            <p style={{margin:'6px 0 0', fontSize:'11px', color:'#444'}}>{stats.booked} bookings / {stats.week} calls this week</p>
+                            <p style={{margin:'6px 0 0', fontSize:'11px', color:'var(--text-faint)'}}>{stats.booked} bookings / {stats.week} calls this week</p>
                           </div>
                         </div>
                       </div>
                       {/* Outcome Breakdown */}
                       {totalLogs > 0 && (
                         <div className="card" style={{padding:'20px', marginBottom:'20px'}}>
-                          <p style={{margin:'0 0 14px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'#00F0FF'}}>Outcome Breakdown</p>
+                          <p style={{margin:'0 0 14px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'var(--accent-ink)'}}>Outcome Breakdown</p>
                           <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
                             {Object.entries(OUTCOME_LABELS).map(([key, label]) => {
                               const cnt = outcomeCounts[key] || 0;
@@ -767,11 +767,11 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                               return (
                                 <div key={key}>
                                   <div style={{display:'flex', justifyContent:'space-between', marginBottom:'4px'}}>
-                                    <span style={{fontSize:'11px', fontWeight:600, color:'#ccc'}}>{label}</span>
-                                    <span style={{fontSize:'11px', fontWeight:700, color: OUTCOME_COLORS[key] || '#555', fontFamily:'monospace'}}>{cnt} ({pct}%)</span>
+                                    <span style={{fontSize:'11px', fontWeight:600, color:'var(--text-secondary)'}}>{label}</span>
+                                    <span style={{fontSize:'11px', fontWeight:700, color: OUTCOME_COLORS[key] || 'var(--text-muted)', fontFamily:'monospace'}}>{cnt} ({pct}%)</span>
                                   </div>
-                                  <div style={{height:'6px', background:'#1a1a1a', borderRadius:'3px', overflow:'hidden'}}>
-                                    <div style={{height:'100%', background: OUTCOME_COLORS[key] || '#555', width:`${pct}%`, borderRadius:'3px', transition:'width .4s ease'}}/>
+                                  <div style={{height:'6px', background:'var(--border-soft)', borderRadius:'3px', overflow:'hidden'}}>
+                                    <div style={{height:'100%', background: OUTCOME_COLORS[key] || 'var(--text-muted)', width:`${pct}%`, borderRadius:'3px', transition:'width .4s ease'}}/>
                                   </div>
                                 </div>
                               );
@@ -783,13 +783,13 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                       {(todayOutcomeCounts.not_interested || 0) >= 2 && (
                         <div style={{padding:'16px 18px', background:'rgba(245,158,11,.05)', border:'1px solid rgba(245,158,11,.2)', borderRadius:'10px', marginBottom:'16px'}}>
                           <p style={{margin:'0 0 6px', fontSize:'10px', fontWeight:800, letterSpacing:'.15em', textTransform:'uppercase', color:'#F59E0B'}}>Coaching Tip</p>
-                          <p style={{margin:0, fontSize:'13px', color:'#ccc', lineHeight:'1.5'}}>You've had {todayOutcomeCounts.not_interested} "Not Interested" outcomes today. Review the Objection Handling scripts in section 04 to sharpen your responses.</p>
+                          <p style={{margin:0, fontSize:'13px', color:'var(--text-secondary)', lineHeight:'1.5'}}>You've had {todayOutcomeCounts.not_interested} "Not Interested" outcomes today. Review the Objection Handling scripts in section 04 to sharpen your responses.</p>
                         </div>
                       )}
                       {(todayOutcomeCounts.no_answer || 0) >= 5 && (
-                        <div style={{padding:'16px 18px', background:'rgba(0,240,255,.03)', border:'1px solid rgba(0,240,255,.15)', borderRadius:'10px', marginBottom:'16px'}}>
-                          <p style={{margin:'0 0 6px', fontSize:'10px', fontWeight:800, letterSpacing:'.15em', textTransform:'uppercase', color:'#00F0FF'}}>Coaching Tip</p>
-                          <p style={{margin:0, fontSize:'13px', color:'#ccc', lineHeight:'1.5'}}>High no-answer rate today ({todayOutcomeCounts.no_answer} calls). Consider trying different call times or switching to voicemail-first strategy.</p>
+                        <div style={{padding:'16px 18px', background:'rgba(0,240,255,.03)', border:'1px solid var(--accent-glow-15)', borderRadius:'10px', marginBottom:'16px'}}>
+                          <p style={{margin:'0 0 6px', fontSize:'10px', fontWeight:800, letterSpacing:'.15em', textTransform:'uppercase', color:'var(--accent-ink)'}}>Coaching Tip</p>
+                          <p style={{margin:0, fontSize:'13px', color:'var(--text-secondary)', lineHeight:'1.5'}}>High no-answer rate today ({todayOutcomeCounts.no_answer} calls). Consider trying different call times or switching to voicemail-first strategy.</p>
                         </div>
                       )}
 
@@ -826,11 +826,11 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                         return (
                           <div className="card-glow" style={{padding:'24px', marginTop:'8px'}}>
                             <p style={{margin:'0 0 4px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'#F59E0B'}}>Daily Debrief</p>
-                            <p style={{margin:'0 0 16px', fontSize:'12px', color:'#555'}}>Fill this out before you close for the day.</p>
+                            <p style={{margin:'0 0 16px', fontSize:'12px', color:'var(--text-muted)'}}>Fill this out before you close for the day.</p>
                             <div style={{display:'flex', flexDirection:'column', gap:'16px'}}>
                               {debriefFields.map(f => (
                                 <div key={f.id}>
-                                  <label style={{display:'block', fontSize:'12px', fontWeight:700, color:'#ccc', marginBottom:'6px'}}>{f.label}</label>
+                                  <label style={{display:'block', fontSize:'12px', fontWeight:700, color:'var(--text-secondary)', marginBottom:'6px'}}>{f.label}</label>
                                   <textarea
                                     defaultValue={savedDebrief[f.id] || ''}
                                     onBlur={e => saveDebrief(f.id, e.target.value)}
@@ -841,19 +841,19 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                                 </div>
                               ))}
                             </div>
-                            <p style={{margin:'12px 0 0', fontSize:'10px', color:'#333', fontStyle:'italic'}}>Auto-saved to your browser. Key: {debriefKey}</p>
+                            <p style={{margin:'12px 0 0', fontSize:'10px', color:'var(--text-faint)', fontStyle:'italic'}}>Auto-saved to your browser. Key: {debriefKey}</p>
 
                             {pastDebriefs.length > 0 && (
                               <div style={{marginTop:'24px'}}>
                                 <div className="divider" style={{marginBottom:'18px'}}/>
-                                <p style={{margin:'0 0 14px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'#444'}}>Previous Debriefs</p>
+                                <p style={{margin:'0 0 14px', fontSize:'10px', fontWeight:800, letterSpacing:'.2em', textTransform:'uppercase', color:'var(--text-faint)'}}>Previous Debriefs</p>
                                 {pastDebriefs.map(pd => (
                                   <div key={pd.date} className="card" style={{padding:'16px 18px', marginBottom:'10px'}}>
-                                    <p style={{margin:'0 0 10px', fontSize:'11px', fontWeight:700, color:'#00F0FF', fontFamily:'monospace'}}>{pd.date}</p>
+                                    <p style={{margin:'0 0 10px', fontSize:'11px', fontWeight:700, color:'var(--accent-ink)', fontFamily:'monospace'}}>{pd.date}</p>
                                     {debriefFields.map(f => pd.data[f.id] ? (
                                       <div key={f.id} style={{marginBottom:'8px'}}>
-                                        <p style={{margin:0, fontSize:'10px', fontWeight:700, color:'#555', textTransform:'uppercase', letterSpacing:'.1em'}}>{f.label}</p>
-                                        <p style={{margin:'2px 0 0', fontSize:'12px', color:'#999', lineHeight:'1.5'}}>{pd.data[f.id]}</p>
+                                        <p style={{margin:0, fontSize:'10px', fontWeight:700, color:'var(--text-muted)', textTransform:'uppercase', letterSpacing:'.1em'}}>{f.label}</p>
+                                        <p style={{margin:'2px 0 0', fontSize:'12px', color:'var(--text-tertiary)', lineHeight:'1.5'}}>{pd.data[f.id]}</p>
                                       </div>
                                     ) : null)}
                                   </div>
@@ -882,18 +882,18 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                   }) : allMyLogs;
                   if (allMyLogs.length === 0) return (
                     <div className="card" style={{padding:'40px', textAlign:'center'}}>
-                      <p style={{color:'#444', fontSize:'14px', margin:0}}>No recorded calls yet. Twilio recordings will appear here.</p>
+                      <p style={{color:'var(--text-faint)', fontSize:'14px', margin:0}}>No recorded calls yet. Twilio recordings will appear here.</p>
                     </div>
                   );
                   return (
                     <div>
                       <div style={{position:'relative', marginBottom:'16px'}}>
                         <input value={playbackSearch} onChange={e=>setPlaybackSearch(e.target.value)} placeholder="Search recordings and transcripts..."
-                          className="field" style={{width:'100%', padding:'12px 16px 12px 40px', fontSize:'14px', background:'rgba(255,255,255,.03)', border:'1px solid #1e1e1e', borderRadius:'10px', color:'#fff', fontFamily:'Inter,sans-serif'}}/>
-                        <span style={{position:'absolute', left:'14px', top:'50%', transform:'translateY(-50%)', fontSize:'16px', color:'#333', pointerEvents:'none'}}>🔍</span>
-                        {playbackSearch && <button onClick={()=>setPlaybackSearch('')} style={{position:'absolute', right:'12px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'#555', cursor:'pointer', fontSize:'14px', fontFamily:'Inter'}}>✕</button>}
+                          className="field" style={{width:'100%', padding:'12px 16px 12px 40px', fontSize:'14px', background:'rgba(255,255,255,.03)', border:'1px solid var(--border)', borderRadius:'10px', color:'var(--text-primary)', fontFamily:'Inter,sans-serif'}}/>
+                        <span style={{position:'absolute', left:'14px', top:'50%', transform:'translateY(-50%)', fontSize:'16px', color:'var(--text-faint)', pointerEvents:'none'}}>🔍</span>
+                        {playbackSearch && <button onClick={()=>setPlaybackSearch('')} style={{position:'absolute', right:'12px', top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'var(--text-muted)', cursor:'pointer', fontSize:'14px', fontFamily:'Inter'}}>✕</button>}
                       </div>
-                      <p style={{fontSize:'11px', color:'#444', marginBottom:'12px'}}>{filteredPlayback.length} recording{filteredPlayback.length !== 1 ? 's' : ''}</p>
+                      <p style={{fontSize:'11px', color:'var(--text-faint)', marginBottom:'12px'}}>{filteredPlayback.length} recording{filteredPlayback.length !== 1 ? 's' : ''}</p>
                       <div style={{display:'flex', flexDirection:'column', gap:'8px'}}>
                         {filteredPlayback.map((log: any) => {
                           const logLead = leads.find(l => l.id === log.lead_id);
@@ -901,13 +901,13 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                           const duration = log.duration ? `${Math.floor(log.duration / 60)}m ${log.duration % 60}s` : null;
                           const isExpanded = expandedPlayback === log.id;
                           return (
-                            <div key={log.id} style={{padding:'14px 18px', background:'#0a0a0a', border:'1px solid #1a1a1a', borderRadius:'10px', cursor:'pointer', transition:'all .15s', borderColor: isExpanded ? 'rgba(0,240,255,.3)' : '#1a1a1a'}}
+                            <div key={log.id} style={{padding:'14px 18px', background:'var(--bg-elev-pill)', border:'1px solid var(--border-soft)', borderRadius:'10px', cursor:'pointer', transition:'all .15s', borderColor: isExpanded ? 'var(--accent-glow-30)' : 'var(--border-soft)'}}
                               onClick={()=>setExpandedPlayback(isExpanded ? null : log.id)}>
                               <div style={{display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap'}}>
-                                <span style={{fontSize:'14px', fontWeight:700, color:'#fff'}}>{bizName}</span>
-                                <span style={{fontSize:'10px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:`${OUTCOME_COLORS[log.outcome] || '#555'}15`, color: OUTCOME_COLORS[log.outcome] || '#555', letterSpacing:'.05em', textTransform:'uppercase'}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
-                                {duration && <span style={{fontSize:'11px', color:'#666', fontFamily:'monospace'}}>{duration}</span>}
-                                <span style={{fontSize:'11px', color:'#444', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString(undefined, { timeZone: 'America/Toronto' })} {new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', timeZone: 'America/Toronto'})}</span>
+                                <span style={{fontSize:'14px', fontWeight:700, color:'var(--text-primary)'}}>{bizName}</span>
+                                <span style={{fontSize:'10px', fontWeight:700, padding:'2px 8px', borderRadius:'4px', background:`${OUTCOME_COLORS[log.outcome] || 'var(--text-muted)'}15`, color: OUTCOME_COLORS[log.outcome] || 'var(--text-muted)', letterSpacing:'.05em', textTransform:'uppercase'}}>{OUTCOME_LABELS[log.outcome] || log.outcome}</span>
+                                {duration && <span style={{fontSize:'11px', color:'var(--text-muted)', fontFamily:'monospace'}}>{duration}</span>}
+                                <span style={{fontSize:'11px', color:'var(--text-faint)', marginLeft:'auto', fontFamily:'monospace'}}>{new Date(log.created_at).toLocaleDateString(undefined, { timeZone: 'America/Toronto' })} {new Date(log.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', timeZone: 'America/Toronto'})}</span>
                               </div>
                               {isExpanded && (
                                 <div style={{marginTop:'12px'}} onClick={e=>e.stopPropagation()}>
@@ -916,15 +916,15 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                                   ) : null; })()}
                                   {log.transcript_status === 'completed' && log.transcript ? (
                                     <div style={{marginTop:'8px'}}>
-                                      <p style={{margin:'0 0 6px', fontSize:'10px', fontWeight:700, color:'#00F0FF', letterSpacing:'.1em', textTransform:'uppercase'}}>Transcript</p>
-                                      <div style={{padding:'12px', background:'rgba(255,255,255,.02)', border:'1px solid #1e1e1e', borderRadius:'8px', maxHeight:'300px', overflowY:'auto'}}>
-                                        <p style={{margin:0, fontSize:'12px', color:'#aaa', lineHeight:'1.6', whiteSpace:'pre-wrap'}}>{log.transcript}</p>
+                                      <p style={{margin:'0 0 6px', fontSize:'10px', fontWeight:700, color:'var(--accent-ink)', letterSpacing:'.1em', textTransform:'uppercase'}}>Transcript</p>
+                                      <div style={{padding:'12px', background:'rgba(255,255,255,.02)', border:'1px solid var(--border)', borderRadius:'8px', maxHeight:'300px', overflowY:'auto'}}>
+                                        <p style={{margin:0, fontSize:'12px', color:'var(--text-secondary)', lineHeight:'1.6', whiteSpace:'pre-wrap'}}>{log.transcript}</p>
                                       </div>
                                     </div>
                                   ) : log.transcript_status === 'pending' ? (
                                     <p style={{margin:'8px 0 0', fontSize:'11px', color:'#F59E0B', fontStyle:'italic'}}>Transcribing...</p>
                                   ) : (
-                                    <p style={{margin:'8px 0 0', fontSize:'11px', color:'#444', fontStyle:'italic'}}>No transcript</p>
+                                    <p style={{margin:'8px 0 0', fontSize:'11px', color:'var(--text-faint)', fontStyle:'italic'}}>No transcript</p>
                                   )}
                                 </div>
                               )}

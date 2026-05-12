@@ -33,13 +33,13 @@ type Draft = {
 };
 
 const inputStyle: CSSProperties = {
-  width: '100%', padding: '7px 10px', background: '#0a0a0a', border: '1px solid #1f1f1f',
-  borderRadius: '5px', color: '#fff', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace',
+  width: '100%', padding: '7px 10px', background: 'var(--bg-elev-pill)', border: '1px solid #1f1f1f',
+  borderRadius: '5px', color: 'var(--text-primary)', fontSize: '12px', fontFamily: 'JetBrains Mono, monospace',
   outline: 'none',
 };
 
 const cellHeader: CSSProperties = {
-  fontSize: '9px', fontWeight: 800, color: '#555', letterSpacing: '.12em',
+  fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '.12em',
   textTransform: 'uppercase', fontFamily: 'JetBrains Mono, monospace',
   padding: '6px 8px', textAlign: 'left',
 };
@@ -171,8 +171,8 @@ export default function NotificationRoutingCard() {
       title="Notification routing"
       description="Per-alert-type Telegram routing. Rows here override the default chat. Unset alert types fall back to TELEGRAM_CHAT_ID."
       badge={data
-        ? (data.table_missing ? { label: 'MIGRATION', color: '#F59E0B' } : { label: `${data.routes.length} ROUTES`, color: '#00F0FF' })
-        : (loading ? { label: 'LOADING', color: '#666' } : { label: '—', color: '#666' })}
+        ? (data.table_missing ? { label: 'MIGRATION', color: '#F59E0B' } : { label: `${data.routes.length} ROUTES`, color: 'var(--accent-ink)' })
+        : (loading ? { label: 'LOADING', color: 'var(--text-muted)' } : { label: '—', color: 'var(--text-muted)' })}
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         {errMsg && (
@@ -188,7 +188,7 @@ export default function NotificationRoutingCard() {
             fontSize: '11px', color: '#F59E0B', lineHeight: 1.55, fontFamily: 'Roboto, sans-serif',
           }}>
             {data.hint ?? 'notification_routes table not found.'}
-            <div style={{ marginTop: '4px', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: '#aaa' }}>
+            <div style={{ marginTop: '4px', fontFamily: 'JetBrains Mono, monospace', fontSize: '10px', color: 'var(--text-secondary)' }}>
               Apply: <code style={{ color: '#F59E0B' }}>supabase/migrations/20260503_notification_routes.sql</code>
             </div>
           </div>
@@ -205,7 +205,7 @@ export default function NotificationRoutingCard() {
         )}
 
         {data && !data.table_missing && data.routes.length === 0 && (
-          <p style={{ margin: '4px 0', fontSize: '11px', color: '#666', fontFamily: 'Roboto, sans-serif' }}>
+          <p style={{ margin: '4px 0', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'Roboto, sans-serif' }}>
             No routes configured. Every alert is going to the default chat from the env var.
           </p>
         )}
@@ -213,7 +213,7 @@ export default function NotificationRoutingCard() {
         {data && data.routes.length > 0 && (
           <div style={{ overflow: 'auto', border: '1px solid #141414', borderRadius: '6px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '640px' }}>
-              <thead style={{ background: '#0a0a0a' }}>
+              <thead style={{ background: 'var(--bg-elev-pill)' }}>
                 <tr>
                   <th style={cellHeader}>Alert type</th>
                   <th style={cellHeader}>Chat ID</th>
@@ -231,7 +231,7 @@ export default function NotificationRoutingCard() {
                       <td style={{ ...cell, fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: '#9be7ff' }}>
                         {r.alert_type}
                       </td>
-                      <td style={{ ...cell, fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: '#bbb' }}>
+                      <td style={{ ...cell, fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: 'var(--text-secondary)' }}>
                         <input
                           defaultValue={r.telegram_chat_id}
                           onBlur={(e) => {
@@ -242,7 +242,7 @@ export default function NotificationRoutingCard() {
                           disabled={busy}
                         />
                       </td>
-                      <td style={{ ...cell, fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: '#bbb' }}>
+                      <td style={{ ...cell, fontFamily: 'JetBrains Mono, monospace', fontSize: '11px', color: 'var(--text-secondary)' }}>
                         <input
                           defaultValue={r.telegram_topic_id ?? ''}
                           placeholder="—"
@@ -255,7 +255,7 @@ export default function NotificationRoutingCard() {
                           disabled={busy}
                         />
                       </td>
-                      <td style={{ ...cell, fontSize: '11px', color: '#888', fontFamily: 'Roboto, sans-serif' }}>
+                      <td style={{ ...cell, fontSize: '11px', color: 'var(--text-tertiary)', fontFamily: 'Roboto, sans-serif' }}>
                         <input
                           defaultValue={r.description ?? ''}
                           placeholder="optional"
@@ -274,7 +274,7 @@ export default function NotificationRoutingCard() {
                             padding: '4px 10px', borderRadius: '4px',
                             border: r.enabled ? '1px solid rgba(34,197,94,.4)' : '1px solid #2a2a2a',
                             background: r.enabled ? 'rgba(34,197,94,.1)' : '#0e0e0e',
-                            color: r.enabled ? '#22c55e' : '#666',
+                            color: r.enabled ? '#22c55e' : 'var(--text-muted)',
                             fontSize: '10px', fontWeight: 800, fontFamily: 'JetBrains Mono, monospace',
                             cursor: busy ? 'wait' : 'pointer', letterSpacing: '.04em',
                           }}>
@@ -307,22 +307,22 @@ export default function NotificationRoutingCard() {
               <button onClick={() => setShowAdd(true)} disabled={loading}
                 style={{
                   alignSelf: 'flex-start', padding: '7px 14px', borderRadius: '5px',
-                  border: '1px solid rgba(0,240,255,.3)', background: 'rgba(0,240,255,.08)',
-                  color: '#00F0FF', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+                  border: '1px solid var(--accent-glow-30)', background: 'var(--accent-glow-08)',
+                  color: 'var(--accent-ink)', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
                   fontFamily: 'Inter, sans-serif',
                 }}>
                 + Add route
               </button>
             )}
             {!showAdd && availableTypes.length === 0 && data.routes.length > 0 && (
-              <p style={{ margin: '4px 0', fontSize: '10px', color: '#555', fontFamily: 'JetBrains Mono, monospace' }}>
+              <p style={{ margin: '4px 0', fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono, monospace' }}>
                 Every alert type already has a route.
               </p>
             )}
 
             {showAdd && (
               <div style={{
-                background: '#0a0a0a', border: '1px solid #1f1f1f', borderRadius: '6px',
+                background: 'var(--bg-elev-pill)', border: '1px solid #1f1f1f', borderRadius: '6px',
                 padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px',
               }}>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '8px' }}>
@@ -343,7 +343,7 @@ export default function NotificationRoutingCard() {
                     style={{
                       padding: '6px 14px', borderRadius: '5px',
                       border: '1px solid #2a2a2a', background: 'transparent',
-                      color: '#888', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+                      color: 'var(--text-tertiary)', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
                       fontFamily: 'Inter, sans-serif',
                     }}>
                     Cancel
@@ -351,8 +351,8 @@ export default function NotificationRoutingCard() {
                   <button onClick={create} disabled={busyId === 'new'}
                     style={{
                       padding: '6px 14px', borderRadius: '5px',
-                      border: '1px solid rgba(0,240,255,.3)', background: 'rgba(0,240,255,.08)',
-                      color: '#00F0FF', fontSize: '11px', fontWeight: 700,
+                      border: '1px solid var(--accent-glow-30)', background: 'var(--accent-glow-08)',
+                      color: 'var(--accent-ink)', fontSize: '11px', fontWeight: 700,
                       cursor: busyId === 'new' ? 'wait' : 'pointer', fontFamily: 'Inter, sans-serif',
                       opacity: busyId === 'new' ? 0.5 : 1,
                     }}>

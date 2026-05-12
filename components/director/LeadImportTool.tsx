@@ -209,8 +209,8 @@ export default function LeadImportTool() {
     loadBatches();
   };
 
-  const inputStyle = { width: '100%', background: '#1a1a1a', border: '1px solid #333', borderRadius: '4px', padding: '10px 12px', color: '#fff', fontSize: '13px', fontFamily: 'Inter,sans-serif', outline: 'none' as const };
-  const labelStyle = { display: 'block' as const, fontSize: '10px', color: '#888', fontWeight: 700, marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '.06em' };
+  const inputStyle = { width: '100%', background: 'var(--border-soft)', border: '1px solid #333', borderRadius: '4px', padding: '10px 12px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'Inter,sans-serif', outline: 'none' as const };
+  const labelStyle = { display: 'block' as const, fontSize: '10px', color: 'var(--text-tertiary)', fontWeight: 700, marginBottom: '4px', textTransform: 'uppercase' as const, letterSpacing: '.06em' };
 
   return (
     <div className="fadein">
@@ -229,7 +229,7 @@ export default function LeadImportTool() {
         <div>
           <label style={labelStyle}>Source Tag</label>
           <input value={sourceTag} onChange={e => setSourceTag(e.target.value)} placeholder="Auto-detected from CSV niches" style={inputStyle} />
-          <p style={{ margin: '4px 0 0', fontSize: '10px', color: '#444' }}>Used for filtering -- e.g. &quot;Cleaning&quot;, &quot;Hamilton No-Website&quot;, &quot;Isaiah Warm&quot;</p>
+          <p style={{ margin: '4px 0 0', fontSize: '10px', color: 'var(--text-faint)' }}>Used for filtering -- e.g. &quot;Cleaning&quot;, &quot;Hamilton No-Website&quot;, &quot;Isaiah Warm&quot;</p>
         </div>
         <div>
           <label style={labelStyle}>Notes (optional)</label>
@@ -247,28 +247,28 @@ export default function LeadImportTool() {
       >
         {file ? (
           <div>
-            <p style={{ color: '#00F0FF', fontSize: '14px', fontWeight: 700, margin: '0 0 4px' }}>{file.name}</p>
-            <p style={{ color: '#444', fontSize: '12px', margin: 0 }}>{progress.total} rows detected -- Click to change file</p>
+            <p style={{ color: 'var(--accent-ink)', fontSize: '14px', fontWeight: 700, margin: '0 0 4px' }}>{file.name}</p>
+            <p style={{ color: 'var(--text-faint)', fontSize: '12px', margin: 0 }}>{progress.total} rows detected -- Click to change file</p>
           </div>
         ) : (
           <div>
-            <p style={{ color: '#666', fontSize: '14px', fontWeight: 600, margin: '0 0 4px' }}>Drop a CSV file here or click to browse</p>
-            <p style={{ color: '#333', fontSize: '11px', margin: 0 }}>Supports cold lead CSVs and warm lead CSVs</p>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', fontWeight: 600, margin: '0 0 4px' }}>Drop a CSV file here or click to browse</p>
+            <p style={{ color: 'var(--text-faint)', fontSize: '11px', margin: 0 }}>Supports cold lead CSVs and warm lead CSVs</p>
           </div>
         )}
       </div>
 
       {preview.length > 0 && (
         <div style={{ marginTop: '16px' }}>
-          <p style={{ fontSize: '10px', fontWeight: 700, color: '#444', letterSpacing: '.12em', textTransform: 'uppercase', margin: '0 0 8px' }}>Preview (first 5 rows)</p>
-          <div style={{ overflowX: 'auto', border: '1px solid #1e1e1e', borderRadius: '8px' }}>
+          <p style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '.12em', textTransform: 'uppercase', margin: '0 0 8px' }}>Preview (first 5 rows)</p>
+          <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: '8px' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px' }}>
               <thead>
-                <tr>{Object.keys(preview[0]).map(h => <th key={h} style={{ padding: '8px 10px', background: '#0a0a0a', color: '#00F0FF', fontWeight: 700, textAlign: 'left', borderBottom: '1px solid #1e1e1e', whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
+                <tr>{Object.keys(preview[0]).map(h => <th key={h} style={{ padding: '8px 10px', background: 'var(--bg-elev-pill)', color: 'var(--accent-ink)', fontWeight: 700, textAlign: 'left', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }}>{h}</th>)}</tr>
               </thead>
               <tbody>
                 {preview.map((row, i) => (
-                  <tr key={i}>{Object.values(row).map((v, j) => <td key={j} style={{ padding: '6px 10px', color: '#888', borderBottom: '1px solid #111', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v}</td>)}</tr>
+                  <tr key={i}>{Object.values(row).map((v, j) => <td key={j} style={{ padding: '6px 10px', color: 'var(--text-tertiary)', borderBottom: '1px solid #111', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{v}</td>)}</tr>
                 ))}
               </tbody>
             </table>
@@ -279,17 +279,17 @@ export default function LeadImportTool() {
       {dupeCheck && (dupeCheck.checking || dupeCheck.dupes.length > 0) && (
         <div style={{ marginTop: '16px', padding: '14px 18px', background: dupeCheck.dncCount > 0 ? 'rgba(255,96,96,.06)' : 'rgba(245,158,11,.06)', border: `1px solid ${dupeCheck.dncCount > 0 ? 'rgba(255,96,96,.3)' : 'rgba(245,158,11,.3)'}`, borderRadius: '8px' }}>
           {dupeCheck.checking ? (
-            <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>Checking for cross-niche duplicates...</p>
+            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-tertiary)' }}>Checking for cross-niche duplicates...</p>
           ) : (
             <>
               <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 700, color: dupeCheck.dncCount > 0 ? '#ff6060' : '#F59E0B' }}>
                 ⚠ {dupeCheck.dupes.length} duplicate phone{dupeCheck.dupes.length === 1 ? '' : 's'} already in DB
                 {dupeCheck.dncCount > 0 && ` — ${dupeCheck.dncCount} marked DEAD`}
               </p>
-              <p style={{ margin: '0 0 10px', fontSize: '11px', color: '#888' }}>
+              <p style={{ margin: '0 0 10px', fontSize: '11px', color: 'var(--text-tertiary)' }}>
                 These phone numbers exist in `leads` under another niche or this same niche. {dupeCheck.dncCount > 0 ? 'Some are flagged as DNC — re-importing them would resurrect dead leads.' : 'Re-importing creates duplicate records.'}
               </p>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', color: '#fff' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px', color: 'var(--text-primary)' }}>
                 <input type="checkbox" checked={skipDupes} onChange={e => setSkipDupes(e.target.checked)} style={{ cursor: 'pointer' }} />
                 <span>Skip duplicates ({skipDupes ? `${dupeCheck.dupes.length} will be skipped, ${progress.total - dupeCheck.dupes.length} imported` : 'all rows will be imported'})</span>
               </label>
@@ -306,8 +306,8 @@ export default function LeadImportTool() {
           </button>
           {importing && (
             <div style={{ flex: 1 }}>
-              <div style={{ height: '6px', background: '#1a1a1a', borderRadius: '3px', overflow: 'hidden' }}>
-                <div style={{ height: '100%', background: '#00F0FF', width: `${(progress.done / progress.total) * 100}%`, borderRadius: '3px', transition: 'width .3s' }} />
+              <div style={{ height: '6px', background: 'var(--border-soft)', borderRadius: '3px', overflow: 'hidden' }}>
+                <div style={{ height: '100%', background: 'var(--accent-ink)', width: `${(progress.done / progress.total) * 100}%`, borderRadius: '3px', transition: 'width .3s' }} />
               </div>
             </div>
           )}
@@ -317,31 +317,31 @@ export default function LeadImportTool() {
       {done && (
         <div className="card-glow fadein" style={{ marginTop: '16px', padding: '16px 20px' }}>
           <p style={{ color: '#22c55e', fontSize: '14px', fontWeight: 700, margin: '0 0 4px' }}>Import Complete -- Batch: {batchLabel}</p>
-          <p style={{ color: '#888', fontSize: '12px', margin: 0 }}>{progress.done} imported -- {progress.errors} errors -- {progress.total} total -- Tagged: {sourceTag || batchLabel}</p>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: '12px', margin: 0 }}>{progress.done} imported -- {progress.errors} errors -- {progress.total} total -- Tagged: {sourceTag || batchLabel}</p>
         </div>
       )}
 
       {/* Recent Batches */}
       {recentBatches.length > 0 && (
         <div style={{ marginTop: '28px' }}>
-          <p style={{ fontSize: '10px', fontWeight: 700, color: '#444', letterSpacing: '.12em', textTransform: 'uppercase', margin: '0 0 12px' }}>Recent Import Batches</p>
-          <div style={{ border: '1px solid #1e1e1e', borderRadius: '8px', overflow: 'hidden' }}>
+          <p style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-faint)', letterSpacing: '.12em', textTransform: 'uppercase', margin: '0 0 12px' }}>Recent Import Batches</p>
+          <div style={{ border: '1px solid var(--border)', borderRadius: '8px', overflow: 'hidden' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
               <thead>
                 <tr>
                   {['Batch', 'Source', 'File', 'Leads', 'Date', 'Actions'].map(h => (
-                    <th key={h} style={{ padding: '8px 12px', background: '#111', color: '#888', fontWeight: 700, textAlign: h === 'Leads' || h === 'Actions' ? 'center' : 'left', borderBottom: '2px solid #333', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '.04em' }}>{h}</th>
+                    <th key={h} style={{ padding: '8px 12px', background: 'var(--bg-sidebar-line)', color: 'var(--text-tertiary)', fontWeight: 700, textAlign: h === 'Leads' || h === 'Actions' ? 'center' : 'left', borderBottom: '2px solid #333', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '.04em' }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {recentBatches.map(b => (
-                  <tr key={b.id} style={{ borderBottom: '1px solid #1a1a1a' }}>
-                    <td style={{ padding: '8px 12px', color: '#fff', fontWeight: 600 }}>{b.label}</td>
-                    <td style={{ padding: '8px 12px' }}><span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px', background: 'rgba(0,240,255,.1)', color: '#00F0FF', fontWeight: 700 }}>{SOURCE_TYPES.find(s => s.value === b.source_type)?.label || b.source_type}</span></td>
-                    <td style={{ padding: '8px 12px', color: '#666', fontSize: '11px' }}>{b.filename || '\u2014'}</td>
-                    <td style={{ padding: '8px 12px', textAlign: 'center', color: '#fff', fontFamily: 'monospace', fontWeight: 700 }}>{b.lead_count}</td>
-                    <td style={{ padding: '8px 12px', color: '#666', fontSize: '11px' }}>{new Date(b.created_at).toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}</td>
+                  <tr key={b.id} style={{ borderBottom: '1px solid var(--border-soft)' }}>
+                    <td style={{ padding: '8px 12px', color: 'var(--text-primary)', fontWeight: 600 }}>{b.label}</td>
+                    <td style={{ padding: '8px 12px' }}><span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px', background: 'var(--accent-glow-10)', color: 'var(--accent-ink)', fontWeight: 700 }}>{SOURCE_TYPES.find(s => s.value === b.source_type)?.label || b.source_type}</span></td>
+                    <td style={{ padding: '8px 12px', color: 'var(--text-muted)', fontSize: '11px' }}>{b.filename || '\u2014'}</td>
+                    <td style={{ padding: '8px 12px', textAlign: 'center', color: 'var(--text-primary)', fontFamily: 'monospace', fontWeight: 700 }}>{b.lead_count}</td>
+                    <td style={{ padding: '8px 12px', color: 'var(--text-muted)', fontSize: '11px' }}>{new Date(b.created_at).toLocaleDateString('en-CA', { timeZone: 'America/Toronto' })}</td>
                     <td style={{ padding: '8px 12px', textAlign: 'center' }}>
                       <button onClick={() => deleteBatch(b)} style={{ background: 'none', border: 'none', color: '#ff4444', cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}>Delete Batch</button>
                     </td>

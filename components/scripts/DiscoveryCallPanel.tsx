@@ -44,7 +44,7 @@ const DiscoveryCallPanel = () => (
       <SubH>Question 1 — Current Lead Gen</SubH>
       <Rep>How are you currently getting new customers? Word of mouth, ads, Google — what's working for you right now?</Rep>
       <div style={{marginTop:'4px'}}>
-        <Body><strong style={{color:'#fff'}}>Listen for:</strong> "Just word of mouth" = massive opportunity. "We tried ads" = dig into what went wrong.</Body>
+        <Body><strong style={{color:'var(--text-primary)'}}>Listen for:</strong> "Just word of mouth" = massive opportunity. "We tried ads" = dig into what went wrong.</Body>
       </div>
     </div>
 
@@ -52,7 +52,7 @@ const DiscoveryCallPanel = () => (
       <SubH>Question 2 — Job Value</SubH>
       <Rep>What's your average job worth? Like a typical residential job — what does that look like revenue-wise?</Rep>
       <div style={{marginTop:'4px'}}>
-        <Body><strong style={{color:'#fff'}}>Why:</strong> You need this number to calculate ROI later. "If each job is $500 and we bring you 20 leads a month..."</Body>
+        <Body><strong style={{color:'var(--text-primary)'}}>Why:</strong> You need this number to calculate ROI later. "If each job is $500 and we bring you 20 leads a month..."</Body>
       </div>
     </div>
 
@@ -60,7 +60,7 @@ const DiscoveryCallPanel = () => (
       <SubH>Question 3 — Lead Volume</SubH>
       <Rep>How many leads are you getting per month right now? Roughly — doesn't have to be exact.</Rep>
       <div style={{marginTop:'4px'}}>
-        <Body><strong style={{color:'#fff'}}>Listen for:</strong> Low numbers = they need Foundation 1.0. High numbers but poor conversion = they need Authority 2.0.</Body>
+        <Body><strong style={{color:'var(--text-primary)'}}>Listen for:</strong> Low numbers = they need Foundation 1.0. High numbers but poor conversion = they need Authority 2.0.</Body>
       </div>
     </div>
 
@@ -68,7 +68,7 @@ const DiscoveryCallPanel = () => (
       <SubH>Question 4 — The Missed Call Problem</SubH>
       <Rep>What happens when a lead comes in while you're on a job site? Like somebody fills out a form or calls — who handles that?</Rep>
       <div style={{marginTop:'4px'}}>
-        <Body><strong style={{color:'#fff'}}>This is the Vapi opener.</strong> If they say "I try to call back later" or "my wife handles it" — they're losing leads. Seed the AI receptionist here.</Body>
+        <Body><strong style={{color:'var(--text-primary)'}}>This is the Vapi opener.</strong> If they say "I try to call back later" or "my wife handles it" — they're losing leads. Seed the AI receptionist here.</Body>
       </div>
     </div>
 
@@ -76,7 +76,7 @@ const DiscoveryCallPanel = () => (
       <SubH>Question 5 — Past Agency Experience</SubH>
       <Rep>Have you worked with a marketing agency before? What happened?</Rep>
       <div style={{marginTop:'4px'}}>
-        <Body><strong style={{color:'#fff'}}>Listen for:</strong> "They locked me into a contract" = hit the ownership hook hard. "It didn't work" = ask what specifically didn't work. "Never" = clean slate, easier close.</Body>
+        <Body><strong style={{color:'var(--text-primary)'}}>Listen for:</strong> "They locked me into a contract" = hit the ownership hook hard. "It didn't work" = ask what specifically didn't work. "Never" = clean slate, easier close.</Body>
       </div>
     </div>
 
@@ -84,7 +84,7 @@ const DiscoveryCallPanel = () => (
       <SubH>Question 6 — The Value Question</SubH>
       <Rep>If I could guarantee you X qualified leads per month — people actively looking for [their service] in [their city] — what would that be worth to your business?</Rep>
       <div style={{marginTop:'4px'}}>
-        <Body><strong style={{color:'#fff'}}>This anchors them to a dollar value before you show pricing.</strong> If they say "that'd be huge" — you've already won. Tie back to this answer in Phase 4.</Body>
+        <Body><strong style={{color:'var(--text-primary)'}}>This anchors them to a dollar value before you show pricing.</strong> If they say "that'd be huge" — you've already won. Tie back to this answer in Phase 4.</Body>
       </div>
     </div>
 
@@ -130,10 +130,10 @@ const DiscoveryCallPanel = () => (
     <div className="card-glow" style={{padding:'18px 20px',marginTop:'12px'}}>
       <SubH>Decision Tree</SubH>
       <ul style={{padding:0,margin:0}}>
-        <Li><strong style={{color:'#fff'}}>No website at all</strong> → Website Package (Offer 0.5) — $1,500 CAD ($500 down, $1,000 on delivery). "Let's get you online first. You can't run ads to something that doesn't exist."</Li>
-        <Li><strong style={{color:'#fff'}}>Has website, no leads</strong> → Foundation 1.0 — $1,599/mo. "You've got the foundation, but nobody's finding you. We fix that with ads, SEO, and our AI follow-up system."</Li>
-        <Li><strong style={{color:'#fff'}}>Has some marketing, poor quality</strong> → Authority System 2.0 — $2,999/mo. "You're spending money but not seeing results. We rebuild the pipeline — ads, CRM, nurturing, the works."</Li>
-        <Li><strong style={{color:'#fff'}}>Wants everything / ready to dominate</strong> → Market Domination 3.0 — $5,999/mo. "This is a full marketing department for a fraction of the cost. Social media, content, reputation management — we run it all."</Li>
+        <Li><strong style={{color:'var(--text-primary)'}}>No website at all</strong> → Website Package (Offer 0.5) — $1,500 CAD ($500 down, $1,000 on delivery). "Let's get you online first. You can't run ads to something that doesn't exist."</Li>
+        <Li><strong style={{color:'var(--text-primary)'}}>Has website, no leads</strong> → Foundation 1.0 — $1,599/mo. "You've got the foundation, but nobody's finding you. We fix that with ads, SEO, and our AI follow-up system."</Li>
+        <Li><strong style={{color:'var(--text-primary)'}}>Has some marketing, poor quality</strong> → Authority System 2.0 — $2,999/mo. "You're spending money but not seeing results. We rebuild the pipeline — ads, CRM, nurturing, the works."</Li>
+        <Li><strong style={{color:'var(--text-primary)'}}>Wants everything / ready to dominate</strong> → Market Domination 3.0 — $5,999/mo. "This is a full marketing department for a fraction of the cost. Social media, content, reputation management — we run it all."</Li>
       </ul>
     </div>
 
@@ -196,10 +196,10 @@ const DiscoveryCallPanel = () => (
 
     <SecH>Transition Phrases Between Phases</SecH>
     <ul style={{padding:0,margin:0}}>
-      <Li><strong style={{color:'#fff'}}>Warm-Up → Discovery:</strong> "Alright, let me ask you a few quick questions so I can figure out what actually makes sense for you."</Li>
-      <Li><strong style={{color:'#fff'}}>Discovery → Demo:</strong> "Okay, I've got a solid picture. Let me show you what we've already started building."</Li>
-      <Li><strong style={{color:'#fff'}}>Demo → Recommendation:</strong> "So based on what you told me and what you just saw — here's what I'd recommend."</Li>
-      <Li><strong style={{color:'#fff'}}>Recommendation → Close:</strong> "The ROI math is pretty clear. Want to get this started?"</Li>
+      <Li><strong style={{color:'var(--text-primary)'}}>Warm-Up → Discovery:</strong> "Alright, let me ask you a few quick questions so I can figure out what actually makes sense for you."</Li>
+      <Li><strong style={{color:'var(--text-primary)'}}>Discovery → Demo:</strong> "Okay, I've got a solid picture. Let me show you what we've already started building."</Li>
+      <Li><strong style={{color:'var(--text-primary)'}}>Demo → Recommendation:</strong> "So based on what you told me and what you just saw — here's what I'd recommend."</Li>
+      <Li><strong style={{color:'var(--text-primary)'}}>Recommendation → Close:</strong> "The ROI math is pretty clear. Want to get this started?"</Li>
     </ul>
 
     <NotesPad storageKey="notes_discovery_call" />

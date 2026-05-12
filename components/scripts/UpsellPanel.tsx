@@ -39,7 +39,7 @@ const UpsellPanel = () => (
       I've been monitoring your site's performance and I noticed something interesting. You're getting [X] visitors per month, your [specific page] is getting the most traffic, and your Google ranking for "[keyword]" has already moved up [X] spots. Let me share what I'm seeing.
     </Rep>
     <div style={{marginTop:'6px'}}>
-      <Body><strong style={{color:'#fff'}}>Prep required:</strong> Pull actual analytics before this call — Vercel Analytics, Google Search Console, or whatever tracking is live. Never fake numbers.</Body>
+      <Body><strong style={{color:'var(--text-primary)'}}>Prep required:</strong> Pull actual analytics before this call — Vercel Analytics, Google Search Console, or whatever tracking is live. Never fake numbers.</Body>
     </div>
 
     <div style={{height:'16px'}} />
@@ -50,7 +50,7 @@ const UpsellPanel = () => (
       Your website is pulling in about [X] visitors a month, which is solid. But right now, you're only capturing about [Y]% of them — meaning [Z]% are leaving without ever contacting you. If your average job is worth $[amount], that's roughly $[dollar figure] in potential revenue walking away every single month.
     </Rep>
     <div style={{marginTop:'6px'}}>
-      <Body><strong style={{color:'#fff'}}>Math example:</strong> 200 visitors, 3% conversion = 6 leads. 97% leaving = 194 visitors lost. At $400/job average and 30% close rate, that's ~23 potential jobs = $9,200/month walking away. Use their real numbers.</Body>
+      <Body><strong style={{color:'var(--text-primary)'}}>Math example:</strong> 200 visitors, 3% conversion = 6 leads. 97% leaving = 194 visitors lost. At $400/job average and 30% close rate, that's ~23 potential jobs = $9,200/month walking away. Use their real numbers.</Body>
     </div>
 
     <div style={{height:'16px'}} />

@@ -78,13 +78,13 @@ Next Step: ${form.nextStep}${form.notes ? `\nNotes: ${form.notes}` : ''}`;
   const handleReset = () => { setForm(empty); setSubmitted(false); setCopied(false); };
 
   const fieldLabel = (txt: string) => (
-    <label style={{display:'block', fontSize:'10px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'#555', marginBottom:'6px'}}>{txt}</label>
+    <label style={{display:'block', fontSize:'10px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'var(--text-muted)', marginBottom:'6px'}}>{txt}</label>
   );
 
   return (
     <div>
       <div style={{marginBottom:'6px'}}><span className="tag">09</span></div>
-      <h2 style={{fontSize:'26px', fontWeight:900, color:'#fff', margin:'8px 0 4px'}}>Director Handoff</h2>
+      <h2 style={{fontSize:'26px', fontWeight:900, color:'var(--text-primary)', margin:'8px 0 4px'}}>Director Handoff</h2>
       <Body>Fill this out after every close or booked meet. Ping Elliott with the formatted output.</Body>
       <div className="divider" style={{margin:'16px 0'}}/>
 
@@ -141,7 +141,7 @@ Next Step: ${form.nextStep}${form.notes ? `\nNotes: ${form.notes}` : ''}`;
             </div>
             <pre style={{
               margin:0, fontFamily:'monospace', fontSize:'13px', lineHeight:1.7,
-              color:'#ccc', background:'rgba(0,240,255,.03)', border:'1px solid rgba(0,240,255,.12)',
+              color:'var(--text-secondary)', background:'rgba(0,240,255,.03)', border:'1px solid var(--accent-glow-12)',
               borderRadius:'8px', padding:'16px', whiteSpace:'pre-wrap', wordBreak:'break-word',
             }}>{pingText}</pre>
           </div>
@@ -150,7 +150,7 @@ Next Step: ${form.nextStep}${form.notes ? `\nNotes: ${form.notes}` : ''}`;
               <Icon name={copied ? 'check' : 'copy'} size={13}/>
               {copied ? 'Copied!' : 'Copy Ping'}
             </button>
-            <button onClick={handleReset} className="btn-back" style={{flex:1, justifyContent:'center', color: '#555'}}>
+            <button onClick={handleReset} className="btn-back" style={{flex:1, justifyContent:'center', color: 'var(--text-muted)'}}>
               New Handoff
             </button>
           </div>

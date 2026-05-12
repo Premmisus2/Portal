@@ -12,12 +12,12 @@ interface Props {
 
 const inputStyle: React.CSSProperties = {
   width: '100%', padding: '9px 12px', background: '#0e0e0e', border: '1px solid #1f1f1f',
-  borderRadius: '6px', color: '#fff', fontSize: '13px', fontFamily: 'JetBrains Mono, monospace',
+  borderRadius: '6px', color: 'var(--text-primary)', fontSize: '13px', fontFamily: 'JetBrains Mono, monospace',
   outline: 'none',
 };
 
 const labelStyle: React.CSSProperties = {
-  display: 'block', fontSize: '10px', fontWeight: 700, color: '#444',
+  display: 'block', fontSize: '10px', fontWeight: 700, color: 'var(--text-faint)',
   letterSpacing: '.12em', textTransform: 'uppercase', marginBottom: '6px',
 };
 
@@ -106,8 +106,8 @@ export default function ChangePasswordCard({ userEmail }: Props) {
           <button onClick={submit} disabled={busy || !current || !next || !confirm}
             style={{
               padding: '9px 18px', borderRadius: '6px',
-              border: '1px solid rgba(0,240,255,.3)', background: 'rgba(0,240,255,.08)',
-              color: '#00F0FF', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
+              border: '1px solid var(--accent-glow-30)', background: 'var(--accent-glow-08)',
+              color: 'var(--accent-ink)', fontSize: '11px', fontWeight: 700, cursor: 'pointer',
               fontFamily: 'Inter, sans-serif',
               opacity: (busy || !current || !next || !confirm) ? 0.5 : 1,
             }}>
