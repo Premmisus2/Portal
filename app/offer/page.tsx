@@ -781,16 +781,20 @@ export default function OfferPage() {
           .offer-nav-row { gap: 10px !important; }
         }
         @media print {
+          /* Print rules use LITERAL light hex values, not theme vars — they
+             must always produce a clean light official document regardless
+             of which theme the rendering scope (body / #offer-root) sets
+             the vars to. */
           @page { size: A4; margin: 14mm; }
           .no-print { display: none !important; }
-          html, body { background: var(--text-primary) !important; color: #111 !important; }
-          #offer-root { background: var(--text-primary) !important; color: #111 !important; }
+          html, body { background: #ffffff !important; color: #111111 !important; }
+          #offer-root { background: #ffffff !important; color: #111111 !important; }
           .print-area, .print-area > section, .print-area > section > div,
           .print-area main, .print-area > div { background: transparent !important; }
-          .print-area p, .print-area li, .print-area span, .print-area strong, .print-area em { color: #222 !important; }
-          .print-area h1, .print-area h2, .print-area h3, .print-area [role=heading] { color: var(--bg-app) !important; }
+          .print-area p, .print-area li, .print-area span, .print-area strong, .print-area em { color: #222222 !important; }
+          .print-area h1, .print-area h2, .print-area h3, .print-area [role=heading] { color: #000000 !important; }
           .print-area article, .print-area .card, .print-area .card-glow {
-            background: var(--text-primary) !important;
+            background: #ffffff !important;
             border: 1px solid #d0d0d0 !important;
             box-shadow: none !important;
             page-break-inside: avoid;
@@ -802,7 +806,7 @@ export default function OfferPage() {
           .print-area [style*="color: rgb(0, 240, 255)"],
           .print-area [style*="color:#00F0FF"] { color: #006d75 !important; }
           .print-area article > div[style*="rgba(0,240,255"] {
-            background: var(--text-primary) !important;
+            background: #ffffff !important;
             border-color: #006d75 !important;
             color: #006d75 !important;
           }
