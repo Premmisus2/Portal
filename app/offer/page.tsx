@@ -1077,17 +1077,21 @@ export default function OfferPage() {
 function PremmisusWordmark({ height = 20 }: { height?: number }) {
   const fontSize = height;
   const svgSize = Math.round(height * 1.1);
+  // Text + middle chevron inherit `currentColor` from the wrapper, which is
+  // set via inline style on the div. The outer color resolves through the
+  // theme — in light mode the wordmark goes dark; in dark mode it stays
+  // bright. Top/bottom chevrons keep their cyan brand color in both themes.
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 4, userSelect: 'none', flexShrink: 0 }} aria-label="Premmisus">
-      <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize, letterSpacing: '0.18em', color: '#fff', lineHeight: 1 }}>PREMM</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 4, userSelect: 'none', flexShrink: 0, color: 'var(--text-primary)' }} aria-label="Premmisus">
+      <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize, letterSpacing: '0.18em', lineHeight: 1 }}>PREMM</span>
       <svg width={svgSize} height={svgSize} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ margin: '0 2px' }}>
         <g strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2.5} fill="none">
           <path d="M5 8 L12 3 L19 8" stroke="#00F0FF" />
-          <path d="M5 14 L12 9 L19 14" stroke="#ffffff" />
+          <path d="M5 14 L12 9 L19 14" stroke="currentColor" />
           <path d="M5 20 L12 15 L19 20" stroke="#00F0FF" />
         </g>
       </svg>
-      <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize, letterSpacing: '0.18em', color: '#fff', lineHeight: 1 }}>SUS</span>
+      <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize, letterSpacing: '0.18em', lineHeight: 1 }}>SUS</span>
     </div>
   );
 }

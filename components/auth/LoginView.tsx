@@ -162,9 +162,9 @@ export default function LoginView({ onLogin }: { onLogin: any }) {
             {([['signin','Sign In'],['register','Register']] as const).map(([key, label]) => (
               <button key={key} type="button" onClick={() => { setTab(key); setError(''); }}
                 style={{flex:1, padding:'8px 0', borderRadius:'6px', border:'none', cursor:'pointer', fontFamily:'Inter, sans-serif', fontSize:'13px', fontWeight:700, transition:'all .2s',
-                  background: tab===key ? 'var(--border-soft)' : 'transparent',
-                  color: tab===key ? 'var(--text-primary)' : 'var(--text-faint)',
-                  boxShadow: tab===key ? '0 0 0 1px var(--border-strong)' : 'none',
+                  background: tab===key ? 'var(--accent-glow-10)' : 'transparent',
+                  color: tab===key ? 'var(--accent-ink)' : 'var(--text-tertiary)',
+                  boxShadow: tab===key ? '0 0 0 1px var(--accent-glow-30)' : 'none',
                 }}>{label}</button>
             ))}
           </div>

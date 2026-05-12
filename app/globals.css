@@ -68,6 +68,15 @@
   --red-border:       rgba(255,68,68,.15);
 }
 
+/* Light-mode logo inversion. The columnar P-with-arrows at /logo.png is a
+   white/cyan-on-transparent raster image. In light mode it goes near-
+   invisible on white surfaces, so we invert luminance while preserving
+   hue (so cyan stays cyan, white flips to dark). */
+body.theme-light img[alt="Premmisus"],
+body.theme-light img[src="/logo.png"] {
+  filter: invert(1) hue-rotate(180deg) saturate(.95) brightness(.92);
+}
+
 body.theme-light {
   /* surfaces flipped to clean document tones */
   --bg-app:           #ffffff;
