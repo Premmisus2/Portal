@@ -820,12 +820,7 @@ export default function OfferPage() {
         backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(0,240,255,.15)',
       }}>
         <div className="offer-nav-row" style={{ maxWidth: 1100, margin: '0 auto', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Premmisus" style={{ height: 26, width: 'auto', objectFit: 'contain', flexShrink: 0 }} />
-            <span style={{ fontWeight: 800, color: '#fff', fontSize: 15, letterSpacing: '.04em' }}>PREMMISUS</span>
-            <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, color: '#666', letterSpacing: '.15em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{t.offerBadge}</span>
-          </div>
+          <PremmisusWordmark height={18} />
           <div className="offer-nav-links">
             {navSections.map(s => (
               <a key={s.id} href={`#${s.id}`} style={{ color: '#aaa', fontSize: 13, textDecoration: 'none' }}
@@ -1071,6 +1066,28 @@ export default function OfferPage() {
           <p style={{ color: '#666', fontSize: 12, margin: 0, fontFamily: "'JetBrains Mono',monospace" }}>v1 · 2026-05-11</p>
         </footer>
       </main>
+    </div>
+  );
+}
+
+/* Official Premmisus wordmark — "PREMM" + 3 stacked chevrons + "SUS".
+   Mirrors the public-site logo at premmisus.ca/components/Logo.tsx so the
+   portal and the website read as one brand. The chevrons replace the "I"
+   in PREMMISUS. */
+function PremmisusWordmark({ height = 20 }: { height?: number }) {
+  const fontSize = height;
+  const svgSize = Math.round(height * 1.1);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 4, userSelect: 'none', flexShrink: 0 }} aria-label="Premmisus">
+      <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize, letterSpacing: '0.18em', color: '#fff', lineHeight: 1 }}>PREMM</span>
+      <svg width={svgSize} height={svgSize} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ margin: '0 2px' }}>
+        <g strokeLinecap="square" strokeLinejoin="miter" strokeWidth={2.5} fill="none">
+          <path d="M5 8 L12 3 L19 8" stroke="#00F0FF" />
+          <path d="M5 14 L12 9 L19 14" stroke="#ffffff" />
+          <path d="M5 20 L12 15 L19 20" stroke="#00F0FF" />
+        </g>
+      </svg>
+      <span style={{ fontFamily: "'Inter',sans-serif", fontWeight: 500, fontSize, letterSpacing: '0.18em', color: '#fff', lineHeight: 1 }}>SUS</span>
     </div>
   );
 }
