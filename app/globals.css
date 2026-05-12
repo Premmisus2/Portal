@@ -77,6 +77,67 @@ body.theme-light img[src="/logo.png"] {
   filter: invert(1) hue-rotate(180deg) saturate(.95) brightness(.92);
 }
 
+/* /offer route is ALWAYS light, regardless of the user's portal theme.
+   It's an official prospect-facing document — Balen and every future rep
+   prospect should see the clean light document look on first visit, not
+   the operator dark theme. Scoping to #offer-root keeps the body theme
+   class untouched, so navigating back to the portal preserves preference. */
+#offer-root {
+  --bg-app: #ffffff;
+  --bg-elev-1: #ffffff;
+  --bg-elev-2: #fafafa;
+  --bg-elev-pill: #f4f4f4;
+  --bg-nav: #ffffff;
+  --bg-sidebar-line: #e5e5e5;
+  --bg-overlay: rgba(0,0,0,.35);
+  --bg-strong-overlay: rgba(0,0,0,.45);
+  --shadow-sidebar: 4px 0 18px rgba(0,0,0,.08);
+
+  --text-primary: #0a0a0a;
+  --text-secondary: #333;
+  --text-tertiary: #666;
+  --text-muted: #999;
+  --text-faint: #bbb;
+
+  --border: #e1e1e1;
+  --border-soft: #ebebeb;
+  --border-strong: #c8c8c8;
+
+  --accent: #00F0FF;
+  --accent-ink: #006d75;
+  --accent-deep: #00838f;
+  --on-accent: #000;
+  --accent-glow-04: rgba(0,109,117,.05);
+  --accent-glow-05: rgba(0,109,117,.06);
+  --accent-glow-06: rgba(0,109,117,.07);
+  --accent-glow-08: rgba(0,109,117,.09);
+  --accent-glow-10: rgba(0,109,117,.1);
+  --accent-glow-12: rgba(0,109,117,.12);
+  --accent-glow-15: rgba(0,109,117,.15);
+  --accent-glow-22: rgba(0,109,117,.22);
+  --accent-glow-25: rgba(0,109,117,.28);
+  --accent-glow-30: rgba(0,109,117,.32);
+  --accent-glow-35: rgba(0,109,117,.38);
+  --accent-glow-40: rgba(0,109,117,.4);
+  --accent-glow-50: rgba(0,109,117,.5);
+  --accent-glow-80: rgba(0,109,117,.85);
+
+  --green: #16a34a;
+  --green-soft: rgba(22,163,74,.06);
+  --green-border: rgba(22,163,74,.2);
+  --amber: #d97706;
+  --red: #dc2626;
+  --red-strong: #b91c1c;
+  --red-soft: rgba(220,38,38,.06);
+  --red-border: rgba(220,38,38,.2);
+
+  /* Inline-style backgrounds in the offer page wrapper use #000 — override
+     them via the universal page-bg variable. The wrapper sets background
+     via inline style, so we override it through a direct rule. */
+  background: #ffffff !important;
+  color: #0a0a0a !important;
+}
+
 body.theme-light {
   /* surfaces flipped to clean document tones */
   --bg-app:           #ffffff;

@@ -772,7 +772,7 @@ export default function OfferPage() {
   ];
 
   return (
-    <div id="offer-root" style={{ background: '#000', color: '#e5e5e5', minHeight: '100vh', fontFamily: "'Inter','Roboto',system-ui,sans-serif" }}>
+    <div id="offer-root" style={{ background: 'var(--bg-app)', color: 'var(--text-primary)', minHeight: '100vh', fontFamily: "'Inter','Roboto',system-ui,sans-serif" }}>
       <style>{`
         html { scroll-padding-top: 72px; }
         .offer-nav-links { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
@@ -783,14 +783,14 @@ export default function OfferPage() {
         @media print {
           @page { size: A4; margin: 14mm; }
           .no-print { display: none !important; }
-          html, body { background: #fff !important; color: #111 !important; }
-          #offer-root { background: #fff !important; color: #111 !important; }
+          html, body { background: var(--text-primary) !important; color: #111 !important; }
+          #offer-root { background: var(--text-primary) !important; color: #111 !important; }
           .print-area, .print-area > section, .print-area > section > div,
           .print-area main, .print-area > div { background: transparent !important; }
           .print-area p, .print-area li, .print-area span, .print-area strong, .print-area em { color: #222 !important; }
-          .print-area h1, .print-area h2, .print-area h3, .print-area [role=heading] { color: #000 !important; }
+          .print-area h1, .print-area h2, .print-area h3, .print-area [role=heading] { color: var(--bg-app) !important; }
           .print-area article, .print-area .card, .print-area .card-glow {
-            background: #fff !important;
+            background: var(--text-primary) !important;
             border: 1px solid #d0d0d0 !important;
             box-shadow: none !important;
             page-break-inside: avoid;
@@ -802,7 +802,7 @@ export default function OfferPage() {
           .print-area [style*="color: rgb(0, 240, 255)"],
           .print-area [style*="color:#00F0FF"] { color: #006d75 !important; }
           .print-area article > div[style*="rgba(0,240,255"] {
-            background: #fff !important;
+            background: var(--text-primary) !important;
             border-color: #006d75 !important;
             color: #006d75 !important;
           }
@@ -816,16 +816,18 @@ export default function OfferPage() {
       `}</style>
 
       <nav className="no-print" style={{
-        position: 'sticky', top: 0, zIndex: 50, background: 'rgba(0,0,0,.85)',
-        backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(0,240,255,.15)',
+        position: 'sticky', top: 0, zIndex: 50,
+        background: 'var(--bg-nav)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid var(--bg-sidebar-line)',
       }}>
         <div className="offer-nav-row" style={{ maxWidth: 1100, margin: '0 auto', padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
           <PremmisusWordmark height={18} />
           <div className="offer-nav-links">
             {navSections.map(s => (
-              <a key={s.id} href={`#${s.id}`} style={{ color: '#aaa', fontSize: 13, textDecoration: 'none' }}
-                 onMouseEnter={e => (e.currentTarget.style.color = ACCENT)}
-                 onMouseLeave={e => (e.currentTarget.style.color = '#aaa')}>{s.label}</a>
+              <a key={s.id} href={`#${s.id}`} style={{ color: 'var(--text-tertiary)', fontSize: 13, textDecoration: 'none' }}
+                 onMouseEnter={e => (e.currentTarget.style.color = 'var(--accent-ink)')}
+                 onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-tertiary)')}>{s.label}</a>
             ))}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -844,18 +846,18 @@ export default function OfferPage() {
           <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, letterSpacing: '.2em', textTransform: 'uppercase', color: ACCENT, margin: '0 0 12px' }}>
             {t.forProspectiveReps}
           </p>
-          <div role="heading" aria-level={1} style={{ fontSize: 44, fontWeight: 900, color: '#fff', margin: '0 0 14px', lineHeight: 1.1 }}>
+          <div role="heading" aria-level={1} style={{ fontSize: 44, fontWeight: 900, color: 'var(--text-primary)', margin: '0 0 14px', lineHeight: 1.1 }}>
             {t.heroTitle}
           </div>
-          <p style={{ fontSize: 17, color: '#bbb', lineHeight: 1.6, maxWidth: 760, margin: '0 0 28px' }}>
+          <p style={{ fontSize: 17, color: 'var(--text-secondary)', lineHeight: 1.6, maxWidth: 760, margin: '0 0 28px' }}>
             {t.heroBody}
           </p>
           <div className="card-glow" style={{ padding: '20px 24px', maxWidth: 760 }}>
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: ACCENT, margin: '0 0 10px', fontFamily: "'JetBrains Mono',monospace" }}>
               {t.pitchKicker}
             </p>
-            <p style={{ fontSize: 16, color: '#eee', lineHeight: 1.6, margin: 0 }}>
-              <em style={{ color: '#fff' }}>{t.pitchQuote}</em> {t.pitchBody}
+            <p style={{ fontSize: 16, color: 'var(--text-primary)', lineHeight: 1.6, margin: 0 }}>
+              <em style={{ color: 'var(--text-primary)' }}>{t.pitchQuote}</em> {t.pitchBody}
             </p>
           </div>
         </section>
@@ -863,7 +865,7 @@ export default function OfferPage() {
         {/* MARKETING */}
         <section id="marketing" style={{ marginBottom: 56 }}>
           <SectionHeading kicker={t.marketingKicker} title={t.marketingTitle} />
-          <p style={{ color: '#999', fontSize: 14, lineHeight: 1.6, marginBottom: 28, maxWidth: 760 }}>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: 14, lineHeight: 1.6, marginBottom: 28, maxWidth: 760 }}>
             {t.marketingIntro}
           </p>
 
@@ -875,35 +877,35 @@ export default function OfferPage() {
               }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 6 }}>
                   <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: ACCENT, letterSpacing: '.2em' }}>{tier.id}</span>
-                  <h3 style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: 0 }}>{tier.name}</h3>
+                  <h3 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{tier.name}</h3>
                 </div>
-                <p style={{ color: '#aaa', fontSize: 13, lineHeight: 1.5, margin: '0 0 16px' }}>{tier.tagline}</p>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.5, margin: '0 0 16px' }}>{tier.tagline}</p>
 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
-                  <span style={{ fontSize: 32, fontWeight: 900, color: '#fff' }}>{tier.priceOutbound}</span>
-                  <span style={{ color: '#888', fontSize: 13 }}>{tier.priceSuffix}</span>
+                  <span style={{ fontSize: 32, fontWeight: 900, color: 'var(--text-primary)' }}>{tier.priceOutbound}</span>
+                  <span style={{ color: 'var(--text-tertiary)', fontSize: 13 }}>{tier.priceSuffix}</span>
                 </div>
                 {tier.priceInbound && (
-                  <p style={{ color: '#888', fontSize: 12, margin: '0 0 4px' }}>
+                  <p style={{ color: 'var(--text-tertiary)', fontSize: 12, margin: '0 0 4px' }}>
                     <span style={{ color: ACCENT, fontFamily: "'JetBrains Mono',monospace" }}>{t.inboundPrefix}</span>{' '}
-                    <span style={{ color: '#fff', fontWeight: 700 }}>{tier.priceInbound}</span>{tier.priceSuffix}
+                    <span style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{tier.priceInbound}</span>{tier.priceSuffix}
                   </p>
                 )}
 
                 <ul style={{ padding: 0, margin: '18px 0', listStyle: 'none' }}>
                   {tier.features.map((f, i) => (
-                    <li key={i} style={{ position: 'relative', paddingLeft: 18, color: '#ccc', fontSize: 13, lineHeight: 1.7 }}>
+                    <li key={i} style={{ position: 'relative', paddingLeft: 18, color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.7 }}>
                       <span style={{ position: 'absolute', left: 0, color: ACCENT }}>›</span>{f}
                     </li>
                   ))}
                 </ul>
 
-                <div style={{ borderTop: '1px solid rgba(255,255,255,.06)', paddingTop: 14, marginTop: 14 }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: '#888', margin: '0 0 6px', fontFamily: "'JetBrains Mono',monospace" }}>
+                <div style={{ borderTop: '1px solid var(--accent-glow-04)', paddingTop: 14, marginTop: 14 }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: 'var(--text-tertiary)', margin: '0 0 6px', fontFamily: "'JetBrains Mono',monospace" }}>
                     {t.whatYouEarn}
                   </p>
-                  <p style={{ color: '#fff', fontSize: 13, lineHeight: 1.5, margin: '0 0 10px' }}>{tier.repInfo}</p>
-                  <p style={{ color: '#999', fontSize: 12, lineHeight: 1.5, fontStyle: 'italic', margin: 0 }}>{tier.pitch}</p>
+                  <p style={{ color: 'var(--text-primary)', fontSize: 13, lineHeight: 1.5, margin: '0 0 10px' }}>{tier.repInfo}</p>
+                  <p style={{ color: 'var(--text-tertiary)', fontSize: 12, lineHeight: 1.5, fontStyle: 'italic', margin: 0 }}>{tier.pitch}</p>
                 </div>
               </article>
             ))}
@@ -913,11 +915,11 @@ export default function OfferPage() {
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: ACCENT, margin: '0 0 10px', fontFamily: "'JetBrains Mono',monospace" }}>
               {t.whyTwoPricesKicker}
             </p>
-            <p style={{ color: '#ccc', fontSize: 14, lineHeight: 1.6, margin: '0 0 8px' }}>
-              <strong style={{ color: '#fff' }}>{t.outboundLabel}</strong> {t.outboundBody}
+            <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6, margin: '0 0 8px' }}>
+              <strong style={{ color: 'var(--text-primary)' }}>{t.outboundLabel}</strong> {t.outboundBody}
             </p>
-            <p style={{ color: '#ccc', fontSize: 14, lineHeight: 1.6, margin: 0 }}>
-              <strong style={{ color: '#fff' }}>{t.inboundLabel}</strong> {t.inboundBody}
+            <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6, margin: 0 }}>
+              <strong style={{ color: 'var(--text-primary)' }}>{t.inboundLabel}</strong> {t.inboundBody}
             </p>
           </div>
         </section>
@@ -925,37 +927,37 @@ export default function OfferPage() {
         {/* AI SERVICES */}
         <section id="ai" style={{ marginBottom: 56 }}>
           <SectionHeading kicker={t.aiKicker} title={t.aiTitle} />
-          <p style={{ color: '#999', fontSize: 14, lineHeight: 1.6, marginBottom: 28, maxWidth: 760 }}>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: 14, lineHeight: 1.6, marginBottom: 28, maxWidth: 760 }}>
             {t.aiIntro}
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
             {t.AI_SERVICES.map(svc => (
               <article key={svc.id} className="card" style={{ padding: '20px 22px' }}>
-                <h3 style={{ fontSize: 17, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>{svc.name}</h3>
-                <p style={{ color: '#999', fontSize: 12, lineHeight: 1.5, margin: '0 0 14px', minHeight: 36 }}>{svc.tagline}</p>
+                <h3 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text-primary)', margin: '0 0 4px' }}>{svc.name}</h3>
+                <p style={{ color: 'var(--text-tertiary)', fontSize: 12, lineHeight: 1.5, margin: '0 0 14px', minHeight: 36 }}>{svc.tagline}</p>
 
-                <div style={{ display: 'flex', gap: 18, marginBottom: 14, padding: '10px 0', borderTop: '1px solid rgba(255,255,255,.05)', borderBottom: '1px solid rgba(255,255,255,.05)' }}>
+                <div style={{ display: 'flex', gap: 18, marginBottom: 14, padding: '10px 0', borderTop: '1px solid var(--accent-glow-04)', borderBottom: '1px solid var(--accent-glow-04)' }}>
                   <div>
-                    <p style={{ fontSize: 10, color: '#666', letterSpacing: '.15em', textTransform: 'uppercase', fontFamily: "'JetBrains Mono',monospace", margin: '0 0 2px' }}>{t.setupLabel}</p>
-                    <p style={{ fontSize: 16, color: '#fff', fontWeight: 700, margin: 0 }}>{svc.setup}</p>
+                    <p style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '.15em', textTransform: 'uppercase', fontFamily: "'JetBrains Mono',monospace", margin: '0 0 2px' }}>{t.setupLabel}</p>
+                    <p style={{ fontSize: 16, color: 'var(--text-primary)', fontWeight: 700, margin: 0 }}>{svc.setup}</p>
                   </div>
                   <div>
-                    <p style={{ fontSize: 10, color: '#666', letterSpacing: '.15em', textTransform: 'uppercase', fontFamily: "'JetBrains Mono',monospace", margin: '0 0 2px' }}>{t.monthlyLabel}</p>
+                    <p style={{ fontSize: 10, color: 'var(--text-muted)', letterSpacing: '.15em', textTransform: 'uppercase', fontFamily: "'JetBrains Mono',monospace", margin: '0 0 2px' }}>{t.monthlyLabel}</p>
                     <p style={{ fontSize: 16, color: ACCENT, fontWeight: 700, margin: 0 }}>{svc.monthly}</p>
                   </div>
                 </div>
 
                 <ul style={{ padding: 0, margin: '0 0 14px', listStyle: 'none' }}>
                   {svc.features.map((f, i) => (
-                    <li key={i} style={{ position: 'relative', paddingLeft: 14, color: '#ccc', fontSize: 12, lineHeight: 1.7 }}>
+                    <li key={i} style={{ position: 'relative', paddingLeft: 14, color: 'var(--text-secondary)', fontSize: 12, lineHeight: 1.7 }}>
                       <span style={{ position: 'absolute', left: 0, color: ACCENT }}>›</span>{f}
                     </li>
                   ))}
                 </ul>
 
-                <p style={{ fontSize: 11, color: '#888', margin: 0, lineHeight: 1.5, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,.05)' }}>
-                  <strong style={{ color: '#fff' }}>{t.youEarnPrefix}</strong> {svc.repInfo}
+                <p style={{ fontSize: 11, color: 'var(--text-tertiary)', margin: 0, lineHeight: 1.5, paddingTop: 10, borderTop: '1px solid var(--accent-glow-04)' }}>
+                  <strong style={{ color: 'var(--text-primary)' }}>{t.youEarnPrefix}</strong> {svc.repInfo}
                 </p>
               </article>
             ))}
@@ -976,20 +978,20 @@ export default function OfferPage() {
             <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.15em', textTransform: 'uppercase', color: ACCENT, margin: '0 0 10px', fontFamily: "'JetBrains Mono',monospace" }}>
               {t.clawbackKicker}
             </p>
-            <p style={{ color: '#ddd', fontSize: 14, lineHeight: 1.6, margin: '0 0 12px' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.6, margin: '0 0 12px' }}>
               {t.clawbackIntro}
             </p>
             <ul style={{ padding: 0, margin: '0 0 14px', listStyle: 'none' }}>
-              <li style={{ position: 'relative', paddingLeft: 16, color: '#ddd', fontSize: 14, lineHeight: 1.7 }}>
+              <li style={{ position: 'relative', paddingLeft: 16, color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.7 }}>
                 <span style={{ position: 'absolute', left: 0, color: '#4ade80' }}>✓</span>
                 {t.clawbackSetupBullet}
               </li>
-              <li style={{ position: 'relative', paddingLeft: 16, color: '#ddd', fontSize: 14, lineHeight: 1.7 }}>
+              <li style={{ position: 'relative', paddingLeft: 16, color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.7 }}>
                 <span style={{ position: 'absolute', left: 0, color: '#fbbf24' }}>○</span>
                 {t.clawbackRecurringBullet}
               </li>
             </ul>
-            <p style={{ color: '#aaa', fontSize: 13, lineHeight: 1.6, margin: 0 }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.6, margin: 0 }}>
               {t.clawbackException}
             </p>
           </div>
@@ -998,7 +1000,7 @@ export default function OfferPage() {
         {/* CAREER LADDER */}
         <section id="ladder" style={{ marginBottom: 56 }}>
           <SectionHeading kicker={t.ladderKicker} title={t.ladderTitle} />
-          <p style={{ color: '#999', fontSize: 14, lineHeight: 1.6, marginBottom: 28, maxWidth: 760 }}>
+          <p style={{ color: 'var(--text-tertiary)', fontSize: 14, lineHeight: 1.6, marginBottom: 28, maxWidth: 760 }}>
             {t.ladderIntro}
           </p>
 
@@ -1013,7 +1015,7 @@ export default function OfferPage() {
               }}>
                 <div style={{
                   width: 60, height: 60, borderRadius: '50%',
-                  background: 'rgba(0,240,255,.08)',
+                  background: 'var(--accent-glow-08)',
                   border: `1.5px solid ${ACCENT}`,
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontFamily: "'JetBrains Mono',monospace", fontWeight: 800, fontSize: 22,
@@ -1023,18 +1025,18 @@ export default function OfferPage() {
                 </div>
                 <div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: 12, marginBottom: 6 }}>
-                    <h3 style={{ fontSize: 20, fontWeight: 800, color: '#fff', margin: 0 }}>{rung.role}</h3>
-                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: '#888', letterSpacing: '.15em', textTransform: 'uppercase' }}>
+                    <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>{rung.role}</h3>
+                    <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: 'var(--text-tertiary)', letterSpacing: '.15em', textTransform: 'uppercase' }}>
                       {rung.unlock}
                     </span>
                   </div>
-                  <p style={{ color: '#bbb', fontSize: 13, lineHeight: 1.6, margin: '0 0 14px' }}>{rung.authority}</p>
-                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.18em', textTransform: 'uppercase', color: '#888', margin: '0 0 8px', fontFamily: "'JetBrains Mono',monospace" }}>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.6, margin: '0 0 14px' }}>{rung.authority}</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--text-tertiary)', margin: '0 0 8px', fontFamily: "'JetBrains Mono',monospace" }}>
                     {t.earningsAtTier}
                   </p>
                   <ul style={{ padding: 0, margin: 0, listStyle: 'none' }}>
                     {rung.earns.map((e, k) => (
-                      <li key={k} style={{ position: 'relative', paddingLeft: 16, color: '#ddd', fontSize: 13, lineHeight: 1.7 }}>
+                      <li key={k} style={{ position: 'relative', paddingLeft: 16, color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.7 }}>
                         <span style={{ position: 'absolute', left: 0, color: ACCENT }}>›</span>{e}
                       </li>
                     ))}
@@ -1050,20 +1052,20 @@ export default function OfferPage() {
           <SectionHeading kicker={t.onboardingKicker} title={t.onboardingTitle} />
           <ol style={{ padding: 0, margin: 0, listStyle: 'none', counterReset: 'step' }}>
             {t.ONBOARDING.map((s, i) => (
-              <li key={i} style={{ display: 'flex', gap: 16, padding: '14px 0', borderBottom: '1px solid rgba(255,255,255,.06)' }}>
-                <span style={{ flex: '0 0 36px', height: 36, borderRadius: '50%', background: 'rgba(0,240,255,.1)', border: `1px solid ${ACCENT}`, color: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'JetBrains Mono',monospace", fontWeight: 700 }}>{i + 1}</span>
+              <li key={i} style={{ display: 'flex', gap: 16, padding: '14px 0', borderBottom: '1px solid var(--accent-glow-04)' }}>
+                <span style={{ flex: '0 0 36px', height: 36, borderRadius: '50%', background: 'var(--accent-glow-10)', border: `1px solid ${ACCENT}`, color: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'JetBrains Mono',monospace", fontWeight: 700 }}>{i + 1}</span>
                 <div>
-                  <p style={{ color: '#fff', fontWeight: 700, fontSize: 15, margin: '0 0 4px' }}>{s.t}</p>
-                  <p style={{ color: '#aaa', fontSize: 13, lineHeight: 1.6, margin: 0 }}>{s.d}</p>
+                  <p style={{ color: 'var(--text-primary)', fontWeight: 700, fontSize: 15, margin: '0 0 4px' }}>{s.t}</p>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.6, margin: 0 }}>{s.d}</p>
                 </div>
               </li>
             ))}
           </ol>
         </section>
 
-        <footer style={{ marginTop: 40, paddingTop: 24, borderTop: '1px solid rgba(255,255,255,.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <p style={{ color: '#666', fontSize: 12, margin: 0, fontFamily: "'JetBrains Mono',monospace" }}>premmisus.ca</p>
-          <p style={{ color: '#666', fontSize: 12, margin: 0, fontFamily: "'JetBrains Mono',monospace" }}>v1 · 2026-05-11</p>
+        <footer style={{ marginTop: 40, paddingTop: 24, borderTop: '1px solid var(--accent-glow-04)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+          <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: 0, fontFamily: "'JetBrains Mono',monospace" }}>premmisus.ca</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: 12, margin: 0, fontFamily: "'JetBrains Mono',monospace" }}>v1 · 2026-05-11</p>
         </footer>
       </main>
     </div>
@@ -1103,9 +1105,9 @@ function LangToggle({ lang, setLang }: { lang: Lang; setLang: (l: Lang) => void 
     fontWeight: 700,
     fontFamily: "'JetBrains Mono',monospace",
     letterSpacing: '.1em',
-    background: active ? 'rgba(0,240,255,.12)' : 'transparent',
-    color: active ? ACCENT : '#666',
-    border: `1px solid ${active ? ACCENT : '#222'}`,
+    background: active ? 'var(--accent-glow-12)' : 'transparent',
+    color: active ? ACCENT : 'var(--text-muted)',
+    border: `1px solid ${active ? ACCENT : 'var(--border)'}`,
     borderRadius: 4,
     cursor: 'pointer',
     transition: 'all .15s',
@@ -1122,7 +1124,7 @@ function SectionHeading({ kicker, title }: { kicker: string; title: string }) {
   return (
     <div style={{ marginBottom: 16 }}>
       <p style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 11, color: ACCENT, letterSpacing: '.2em', textTransform: 'uppercase', margin: '0 0 8px' }}>{kicker}</p>
-      <div role="heading" aria-level={2} style={{ fontSize: 32, fontWeight: 900, color: '#fff', margin: 0, lineHeight: 1.15 }}>{title}</div>
+      <div role="heading" aria-level={2} style={{ fontSize: 32, fontWeight: 900, color: 'var(--text-primary)', margin: 0, lineHeight: 1.15 }}>{title}</div>
     </div>
   );
 }
@@ -1130,9 +1132,9 @@ function SectionHeading({ kicker, title }: { kicker: string; title: string }) {
 function CommissionStat({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
     <div className="card" style={{ padding: '20px 22px' }}>
-      <p style={{ fontSize: 10, color: '#888', letterSpacing: '.18em', textTransform: 'uppercase', fontFamily: "'JetBrains Mono',monospace", margin: '0 0 8px' }}>{label}</p>
+      <p style={{ fontSize: 10, color: 'var(--text-tertiary)', letterSpacing: '.18em', textTransform: 'uppercase', fontFamily: "'JetBrains Mono',monospace", margin: '0 0 8px' }}>{label}</p>
       <p style={{ fontSize: 36, fontWeight: 900, color: ACCENT, margin: '0 0 8px', lineHeight: 1 }}>{value}</p>
-      <p style={{ color: '#aaa', fontSize: 12, lineHeight: 1.5, margin: 0 }}>{sub}</p>
+      <p style={{ color: 'var(--text-secondary)', fontSize: 12, lineHeight: 1.5, margin: 0 }}>{sub}</p>
     </div>
   );
 }
