@@ -64,7 +64,7 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
         <div style={{display:'flex', alignItems:'center', gap:'10px', flexShrink:0}}>
           {lead.city && <span style={{fontSize:'11px', color:'var(--text-faint)'}}>{lead.city}</span>}
           {repPhone && !shadowMode ? (
-            <button onClick={e=>{e.stopPropagation(); setShowCallModal(true);}}
+            <button onClick={e=>{e.stopPropagation(); setShowCallModal(true);}} className="lr-action-btn"
               style={{display:'flex', alignItems:'center', gap:'5px', padding:'4px 10px', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'JetBrains Mono,monospace',
                 background:'transparent', border:'1px solid var(--accent-glow-30)', color:'var(--accent-ink)', transition:'all .15s'}}
               onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='var(--accent-glow-08)'; (e.currentTarget as HTMLElement).style.borderColor='var(--accent-glow-50)';}}
@@ -89,14 +89,14 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
             </span>
           )}
           <button onClick={e=>{e.stopPropagation(); if(!shadowMode) setShowQuickLog(!showQuickLog);}}
-            disabled={shadowMode}
+            disabled={shadowMode} className="lr-action-btn"
             style={{padding:'5px 12px', borderRadius:'6px', cursor: shadowMode ? 'not-allowed' : 'pointer', fontSize:'10px', fontWeight:800, fontFamily:'Inter,sans-serif', letterSpacing:'.06em', textTransform:'uppercase', transition:'all .15s',
               background: shadowMode ? 'rgba(255,255,255,.03)' : showQuickLog ? 'var(--accent-glow-15)' : 'var(--accent-glow-06)',
               border: `1px solid ${shadowMode ? 'var(--border)' : showQuickLog ? 'var(--accent-glow-40)' : 'var(--accent-glow-15)'}`,
               color: shadowMode ? 'var(--text-faint)' : 'var(--accent-ink)', opacity: shadowMode ? .5 : 1,
             }}>{shadowMode ? 'Read Only' : 'Log Call'}</button>
           {!shadowMode && !isDnc && (
-            <button onClick={e=>{e.stopPropagation(); handleMarkDead();}} title="Mark dead — never call again"
+            <button onClick={e=>{e.stopPropagation(); handleMarkDead();}} title="Mark dead — never call again" className="lr-action-btn lr-action-btn--dnc"
               style={{padding:'5px 9px', borderRadius:'6px', cursor:'pointer', fontSize:'12px', fontWeight:700, lineHeight:1, transition:'all .15s',
                 background:'transparent', border:'1px solid rgba(255,96,96,.25)', color:'var(--red)'}}
               onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(255,96,96,.1)'; (e.currentTarget as HTMLElement).style.borderColor='rgba(255,96,96,.5)';}}

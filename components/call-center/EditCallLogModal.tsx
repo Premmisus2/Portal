@@ -79,10 +79,10 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
         callback_reason: isCallback ? (primaryReason || null) : null,
         business_name: businessName || null,
       };
-      if (additional.length > 0) updates.additional_outcomes = additional;
-      if (isCallback && additionalReasons.length > 0) {
-        updates.additional_callback_reasons = additionalReasons;
-      }
+      // Always write these fields so removing secondaries clears the stored array
+      // instead of leaving stale tags from a prior save.
+      updates.additional_outcomes = additional.length > 0 ? additional : null;
+      updates.additional_callback_reasons = isCallback && additionalReasons.length > 0 ? additionalReasons : null;
       const { error: logErr } = await supabase.from('call_logs').update(updates).eq('id', log.id);
       if (logErr) throw logErr;
 
@@ -171,6 +171,7 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
           </p>
           <button
             onClick={onClose}
+            className="modal-close-btn"
             style={{
               background: 'transparent', border: 'none', color: 'var(--text-muted)',
               fontSize: '20px', cursor: 'pointer', padding: '0 6px', lineHeight: 1,
@@ -205,6 +206,7 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
                 <button
                   key={key}
                   onClick={() => toggleOutcome(key)}
+                  className="outcome-chip"
                   style={{
                     padding: '7px 14px', borderRadius: '7px', cursor: 'pointer',
                     fontSize: '11px', fontWeight: 700, fontFamily: 'Inter,sans-serif',
@@ -271,6 +273,7 @@ const EditCallLogModal = ({ log, onClose, onSaved }: EditCallLogModalProps) => {
                   <button
                     key={key}
                     onClick={() => toggleReason(key)}
+                    className="reason-chip"
                     style={{
                       padding: '6px 12px', borderRadius: '7px', cursor: 'pointer',
                       fontSize: '11px', fontWeight: 700, fontFamily: 'Inter,sans-serif',

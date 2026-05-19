@@ -803,6 +803,17 @@ input[type=range]::-moz-range-thumb {
     min-height: 44px;
     padding: 10px 18px;
   }
+  /* WCAG 44px tap targets on the call-row + log surfaces Isaiah taps live during calls */
+  .lr-action-btn,
+  .outcome-chip,
+  .reason-chip {
+    min-height: 44px;
+  }
+  .lr-action-btn--dnc,
+  .modal-close-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
   .closes-tracker-mini button,
   .undo-close-btn {
     min-width: 36px;

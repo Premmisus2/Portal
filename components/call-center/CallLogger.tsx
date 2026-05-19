@@ -154,7 +154,7 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
           const isSelected = idx >= 0;
           const color = OUTCOME_COLORS[key];
           return (
-            <button key={key} onClick={()=>toggleOutcome(key)}
+            <button key={key} onClick={()=>toggleOutcome(key)} className="outcome-chip"
               style={{
                 padding:'7px 14px', borderRadius:'7px', cursor:'pointer', fontSize:'11px', fontWeight:700,
                 fontFamily:'Inter,sans-serif', transition:'all .15s',
@@ -205,7 +205,7 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
                 const isSelected = idx >= 0;
                 const color = CALLBACK_REASON_COLORS[key];
                 return (
-                  <button key={key} onClick={()=>toggleReason(key)}
+                  <button key={key} onClick={()=>toggleReason(key)} className="reason-chip"
                     style={{
                       padding:'6px 12px', borderRadius:'7px', cursor:'pointer', fontSize:'11px', fontWeight:700,
                       fontFamily:'Inter,sans-serif', transition:'all .15s',

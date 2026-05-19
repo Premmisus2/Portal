@@ -37,7 +37,7 @@ export async function GET(request: Request) {
 
     // Find call logs with callback_date <= today
     const logsRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/call_logs?select=id,lead_id,business_name,callback_date,rep_id,notes&outcome=eq.callback_requested&callback_date=lte.${today}&order=callback_date.asc`,
+      `${SUPABASE_URL}/rest/v1/call_logs?select=id,lead_id,business_name,callback_date,callback_time,rep_id,notes&outcome=eq.callback_requested&callback_date=lte.${today}&order=callback_date.asc`,
       { headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` } }
     );
     const logs = await logsRes.json();
@@ -62,6 +62,7 @@ export async function GET(request: Request) {
         overdue.push({
           business: leads[0].business_name || log?.business_name || 'Unknown',
           callbackDate: log?.callback_date,
+          callbackTime: log?.callback_time,
           notes: log?.notes,
         });
       }
@@ -75,7 +76,8 @@ export async function GET(request: Request) {
     // Build SMS message
     let smsMsg = `[Premmisus] ${overdue.length} overdue callback${overdue.length > 1 ? 's' : ''}:\n`;
     overdue.slice(0, 5).forEach((cb: any) => {
-      smsMsg += `• ${cb.business} (${cb.callbackDate})${cb.notes ? ' — ' + cb.notes.slice(0, 40) : ''}\n`;
+      const when = cb.callbackTime ? `${cb.callbackDate} ${cb.callbackTime}` : cb.callbackDate;
+      smsMsg += `• ${cb.business} (${when})${cb.notes ? ' — ' + cb.notes.slice(0, 40) : ''}\n`;
     });
     if (overdue.length > 5) smsMsg += `...and ${overdue.length - 5} more`;
     smsMsg += `\nCheck portal.premmisus.ca`;
