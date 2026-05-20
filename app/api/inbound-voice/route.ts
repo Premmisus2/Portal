@@ -18,6 +18,8 @@
 // not_interested, booked_call, wrong_number, discovery_completed, no_show,
 // ai_receptionist).
 
+import { verifyTwilioSignature } from '@/lib/twilio-signature';
+
 const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 const ELLIOTT_EMAIL = 'elliott@premmisus.com';
 
@@ -65,13 +67,27 @@ export async function POST(request: Request) {
   const VAPI_KEY = (process.env.VAPI_API_KEY || '').trim();
   const VAPI_ASSISTANT_ID = (process.env.VAPI_SARAH_ASSISTANT_ID || '').trim();
 
-  let fromRaw = '';
-  let callSid = '';
+  // Parse the form-encoded body ONCE into a plain object — used for both Twilio
+  // signature verification and the existing From/CallSid extraction below.
+  // Re-reading request.formData() after it's been consumed will throw.
+  let formParams: Record<string, string> = {};
   try {
     const formData = await request.formData();
-    fromRaw = String(formData.get('From') || '');
-    callSid = String(formData.get('CallSid') || '');
+    formData.forEach((v, k) => { formParams[k] = String(v); });
   } catch {}
+
+  // Verify Twilio signature. Fail-open if TWILIO_AUTH_TOKEN missing (matches
+  // inbound-sms behavior — env outage shouldn't brick all inbound calls).
+  // Fail-closed if token is present but signature mismatches (real protection).
+  const signatureHeader = request.headers.get('x-twilio-signature') || '';
+  const fullUrl = BASE ? `${BASE}/api/inbound-voice` : new URL(request.url).toString().split('?')[0];
+  if (TOKEN && !verifyTwilioSignature(fullUrl, formParams, signatureHeader, TOKEN)) {
+    console.error('inbound-voice: signature verification failed', { url: fullUrl, hasSig: !!signatureHeader });
+    return new Response('Forbidden', { status: 403 });
+  }
+
+  const fromRaw = String(formParams.From || '');
+  const callSid = String(formParams.CallSid || '');
 
   const fromDigits = fromRaw.replace(/\D/g, '').slice(-10);
 
@@ -159,7 +175,7 @@ export async function POST(request: Request) {
           rep_id: routeRepId,
           call_sid: callSid,
           call_type: 'twilio_inbound',
-          outcome: 'no_answer',
+          outcome: 'inbound_callback',
           twilio_status: 'initiated',
           business_name: leadName || null,
           notes: `Inbound callback from ${fromRaw}`,

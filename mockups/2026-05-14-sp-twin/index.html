@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SP Simplified-Twin Mockups · 2026-05-14</title>
+<link rel="stylesheet" href="_sp.css">
+<style>
+.wrap { max-width: 880px; margin: 60px auto; padding: 24px; }
+h1 { font-size: 28px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; }
+.tag { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--accent); padding: 3px 8px; border: 1px solid var(--accent-glow-06); border-radius: 3px; margin-bottom: 16px; }
+.intro { color: var(--text-secondary); font-size: 14px; line-height: 1.65; margin-bottom: 32px; }
+.intro b { color: var(--text-primary); }
+
+.card-list { display: grid; gap: 12px; }
+.entry {
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 18px;
+  background: var(--bg-elev-1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-decoration: none;
+}
+.entry:hover { border-color: var(--accent-deep); background: var(--bg-elev-2); }
+.entry .num { font-family: 'JetBrains Mono', monospace; font-size: 24px; color: var(--accent); font-weight: 500; text-align: center; }
+.entry h2 { font-size: 16px; color: var(--text-primary); font-weight: 500; }
+.entry .path { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.15em; margin-top: 2px; }
+.entry .desc { font-size: 13px; color: var(--text-secondary); margin-top: 6px; line-height: 1.55; }
+.entry .arrow { font-family: 'JetBrains Mono', monospace; font-size: 18px; color: var(--text-muted); }
+.entry:hover .arrow { color: var(--accent); }
+
+.doctrine {
+  margin-top: 40px;
+  padding: 20px;
+  border-top: 1px dashed var(--border);
+}
+.doctrine h3 { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--text-tertiary); margin-bottom: 10px; }
+.doctrine p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 10px; }
+.doctrine b { color: var(--text-primary); }
+.doctrine .accent { color: var(--accent); }
+.doctrine .cc { color: #d8b4fe; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="tag">Mockups · 2026-05-14 · SP simplified twin</div>
+  <h1>Sales Portal — simplified twin of the CRM</h1>
+  <p class="intro">
+    Two clickable mockups for the SP side of the build. Companion to the CC <b>/outreach</b> mockups at <a href="../../../../../command-center/command-center 2/mockups/2026-05-14-outreach-crm/" style="color: var(--accent);">command-center/mockups/2026-05-14-outreach-crm</a>.
+    Same operating model, simpler surface — built for the <b>reps on the dialer</b> and for <b>Elliott's quick-glance manager check</b>.
+  </p>
+
+  <div class="card-list">
+
+    <a class="entry" href="01-coldcall-with-stats-ribbon.html">
+      <div class="num">01</div>
+      <div>
+        <h2>Cold-call dialer + live team-stats ribbon</h2>
+        <div class="path">view === 'coldcall' · what Isaiah/Senay/Josh see while dialing</div>
+        <div class="desc">Adds the missing piece: a sticky live ribbon at top showing all 5 reps' dials/conn/booked + rank badge + idle warnings. Updates every 15s. Reuses LeaderboardView's existing aggregation. Below: My counter · Next-up lead card (system-picked, no queue management) · Big DIAL button · Outcome grid for post-call.</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+
+    <a class="entry" href="02-director-team.html">
+      <div class="num">02</div>
+      <div>
+        <h2>Director /team quick-glance</h2>
+        <div class="path">view === 'team' · Elliott's manager dashboard</div>
+        <div class="desc">5-row rep table with day scrub (Today / yesterday / N days / pick). Dials · Conn · Booked · Avg duration · Last call · Nudge buttons (SMS/TG). Each row has a "Drill →" cell that deep-links directly into CC /outreach/[rep]. No audio, no impersonation, no lead drill-down — those all live in CC.</div>
+      </div>
+      <span class="arrow">→</span>
+    </a>
+
+  </div>
+
+  <div class="doctrine">
+    <h3>Doctrine — locked alongside the CC mockups</h3>
+    <p><b class="accent">SP is the simplified twin</b>. Reps see the next-up lead and their own counter while dialing — plus, now, the live team ribbon so peer pressure shows up in the moment. Director gets a 5-row quick-glance with deep-link buttons into CC.</p>
+    <p><b class="cc">CC /outreach is the master record</b>. Audio playback, post-day fill-in, "Send as [rep]" impersonation, reassign, lead timeline drill-down — all CC-only. SP's job is volume and rhythm; CC's job is depth and review.</p>
+    <p><b>The missing piece SP needed</b> was the live ribbon on the dialer. The standalone Leaderboard already exists but reps had to navigate away from the dialer to see it. The ribbon makes peer stats visible <i>during</i> the dial — that's the unlock.</p>
+    <p style="color: var(--text-muted); font-size: 12px; margin-top: 14px;">↗ purple in CC = SP-sourced. Here in SP, ↗ purple = CC-sourced (lead roster, callback notes, recommended-next).</p>
+  </div>
+</div>
+</body>
+</html>

@@ -81,6 +81,29 @@ export async function POST(request: Request) {
     );
   }
 
+  // Fire missed-call SMS auto-reply on Twilio terminal dead-dial statuses.
+  // The auto-reply route is idempotent (auto_reply_sent_at guard) so it's safe
+  // if Twilio retries this webhook or the rep manually logs the outcome later.
+  if (callStatus === 'no-answer' || callStatus === 'busy' || callStatus === 'failed') {
+    const BASE = (process.env.BASE_URL || '').trim();
+    if (BASE) {
+      try {
+        const lookup = await fetch(`${SUPABASE_URL}/rest/v1/call_logs?call_sid=eq.${encodeURIComponent(callSid)}&select=id&limit=1`, {
+          headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` },
+        });
+        const rows = await lookup.json().catch(() => []);
+        const callLogId = Array.isArray(rows) && rows.length > 0 ? rows[0].id : null;
+        if (callLogId) {
+          fetch(`${BASE}/api/missed-call-autoreply`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ call_log_id: callLogId }),
+          }).catch(() => {});
+        }
+      } catch {}
+    }
+  }
+
   // Twilio expects 200 regardless of internal failure to avoid retry storms.
   return new Response('OK', { status: 200 });
 }

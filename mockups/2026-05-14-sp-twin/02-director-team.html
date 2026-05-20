@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SP · Director /team Quick Glance · Mockup 2/2</title>
+<link rel="stylesheet" href="_sp.css">
+<style>
+.page-dir { padding: 20px 24px 100px; max-width: 1200px; margin: 0 auto; }
+
+.dir-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 18px;
+}
+.dir-head h1 { font-size: 24px; color: var(--text-primary); font-weight: 500; }
+.dir-head .label-row { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.18em; }
+
+.day-scrub {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.day-pill {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+.day-pill.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.day-pill:hover:not(.active) { color: var(--text-secondary); border-color: var(--border-strong); }
+
+/* Top totals */
+.totals-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.total-cell {
+  padding: 14px 16px;
+  background: var(--bg-elev-1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.total-cell .l {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--text-tertiary);
+}
+.total-cell .v {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 28px;
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-top: 6px;
+}
+.total-cell .v.accent { color: var(--accent); }
+.total-cell .v.green { color: var(--green); }
+.total-cell .delta { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
+.total-cell .delta.up { color: var(--green); }
+
+/* Rep table */
+.rep-table {
+  background: var(--bg-elev-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.rep-table-head {
+  display: grid;
+  grid-template-columns: 1.8fr 70px 70px 70px 90px 110px 100px 100px;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-elev-2);
+  border-bottom: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--text-tertiary);
+}
+.rep-row {
+  display: grid;
+  grid-template-columns: 1.8fr 70px 70px 70px 90px 110px 100px 100px;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.rep-row:last-child { border-bottom: none; }
+.rep-row:hover { background: var(--bg-elev-2); }
+
+.rep-row .id {
+  display: flex; align-items: center; gap: 12px;
+}
+.rep-row .avatar {
+  width: 36px; height: 36px;
+  border-radius: 6px;
+  background: var(--accent-glow-06);
+  border: 1px solid var(--border-strong);
+  display: grid; place-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.rep-row .name { font-size: 14px; color: var(--text-primary); font-weight: 500; }
+.rep-row .role { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.15em; margin-top: 2px; }
+.rep-row .stat {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.rep-row .stat.green { color: var(--green); }
+.rep-row .stat.muted { color: var(--text-muted); }
+.rep-row .last {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.rep-row .last.amber { color: var(--amber); }
+.rep-row .last.green { color: var(--green); }
+.rep-row .last.muted { color: var(--text-muted); }
+.rep-row .duration {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.rep-row .actions { display: flex; gap: 4px; }
+.rep-row .actions .a {
+  padding: 4px 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+.rep-row .actions .a:hover { color: var(--text-primary); border-color: var(--accent-deep); }
+.rep-row .ccdeep {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--cc-purple);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+}
+.rep-row .ccdeep:hover { color: #d8b4fe; }
+
+.deep-link-row {
+  margin-top: 24px;
+  padding: 14px 18px;
+  background: rgba(192,132,252,0.03);
+  border: 1px solid rgba(192,132,252,0.18);
+  border-radius: 6px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.deep-link-row .l {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--cc-purple);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+.deep-link-row .body {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  line-height: 1.55;
+}
+.deep-link-row .body b { color: var(--text-primary); }
+.deep-link-row .cta {
+  padding: 10px 16px;
+  background: rgba(192,132,252,0.08);
+  border: 1px solid rgba(192,132,252,0.3);
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #d8b4fe;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+}
+
+.doctrine-foot {
+  margin-top: 28px;
+  padding: 16px;
+  border-top: 1px dashed var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  line-height: 1.7;
+}
+.doctrine-foot b { color: var(--accent); }
+.doctrine-foot .cc { color: var(--cc-purple); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="logo">P</div>
+    <div class="title">Premmisus · Sales Portal · /team</div>
+  </div>
+  <div class="user">
+    <span>Elliott Cuthbert</span>
+    <span class="badge" style="background: rgba(255,200,0,0.08); color: var(--gold); border: 1px solid rgba(255,200,0,0.3);">DIRECTOR</span>
+  </div>
+</div>
+
+<div class="page-dir">
+
+  <div class="dir-head">
+    <div>
+      <div class="label-row">/team · quick-glance</div>
+      <h1>Team activity</h1>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button class="btn muted" style="padding: 8px 14px; font-size: 11px;">⟳ Refresh</button>
+      <a href="#" class="btn" style="padding: 8px 14px; font-size: 11px; color: var(--cc-purple); border-color: rgba(192,132,252,0.3);">↗ Open in CC /outreach</a>
+    </div>
+  </div>
+
+  <!-- DAY SCRUB -->
+  <div class="day-scrub">
+    <div class="day-pill active">Today</div>
+    <div class="day-pill">Tue May 13</div>
+    <div class="day-pill">Mon May 12</div>
+    <div class="day-pill">Sun May 11</div>
+    <div class="day-pill">Sat May 10</div>
+    <div class="day-pill">Fri May 9</div>
+    <div class="day-pill">Thu May 8</div>
+    <div class="day-pill">📅 Pick</div>
+    <div class="day-pill">▣ Week</div>
+  </div>
+
+  <!-- TOTALS -->
+  <div class="totals-strip">
+    <div class="total-cell">
+      <div class="l">Dials today</div>
+      <div class="v accent">78</div>
+      <div class="delta up">↑ +14% vs yesterday</div>
+    </div>
+    <div class="total-cell">
+      <div class="l">Connected</div>
+      <div class="v green">23</div>
+      <div class="delta">29.5% rate</div>
+    </div>
+    <div class="total-cell">
+      <div class="l">Booked</div>
+      <div class="v green">6</div>
+      <div class="delta">target 8 / day</div>
+    </div>
+    <div class="total-cell">
+      <div class="l">Dials this week</div>
+      <div class="v">312</div>
+      <div class="delta up">↑ +22% vs last week</div>
+    </div>
+  </div>
+
+  <!-- REP TABLE -->
+  <div class="section-label">Per-rep · today</div>
+  <div class="rep-table">
+
+    <div class="rep-table-head">
+      <span>Rep</span>
+      <span>Dials</span>
+      <span>Conn</span>
+      <span>Booked</span>
+      <span>Avg dur</span>
+      <span>Last call</span>
+      <span>Nudge</span>
+      <span>CC</span>
+    </div>
+
+    <div class="rep-row">
+      <div class="id">
+        <div class="avatar">IS</div>
+        <div><div class="name">Isaiah Romanow</div><div class="role">Rep · 1st today</div></div>
+      </div>
+      <span class="stat">42</span>
+      <span class="stat green">11</span>
+      <span class="stat green">3</span>
+      <span class="duration">2:47</span>
+      <span class="last green">3m ago</span>
+      <div class="actions"><span class="a">SMS</span><span class="a">TG</span></div>
+      <a href="../../../command-center/command-center 2/mockups/2026-05-14-outreach-crm/02-rep-drilldown.html" class="ccdeep">Drill →</a>
+    </div>
+
+    <div class="rep-row">
+      <div class="id">
+        <div class="avatar">EL</div>
+        <div><div class="name">Elliott Cuthbert</div><div class="role">Director · you</div></div>
+      </div>
+      <span class="stat">18</span>
+      <span class="stat green">7</span>
+      <span class="stat green">2</span>
+      <span class="duration">3:21</span>
+      <span class="last">12m ago</span>
+      <div class="actions"><span class="a muted">—</span></div>
+      <a href="../../../command-center/command-center 2/mockups/2026-05-14-outreach-crm/02-rep-drilldown.html" class="ccdeep">Drill →</a>
+    </div>
+
+    <div class="rep-row" style="background: rgba(245,158,11,0.04);">
+      <div class="id">
+        <div class="avatar">SE</div>
+        <div><div class="name">Senay Haile</div><div class="role">Rep · new · 2 wks</div></div>
+      </div>
+      <span class="stat">12</span>
+      <span class="stat">2</span>
+      <span class="stat muted">0</span>
+      <span class="duration">1:54</span>
+      <span class="last amber">⚠ idle 52m</span>
+      <div class="actions"><span class="a">SMS</span><span class="a">TG</span></div>
+      <a href="../../../command-center/command-center 2/mockups/2026-05-14-outreach-crm/02-rep-drilldown.html" class="ccdeep">Drill →</a>
+    </div>
+
+    <div class="rep-row">
+      <div class="id">
+        <div class="avatar">ME</div>
+        <div><div class="name">Melvin Bürgerhoff</div><div class="role">Co-founder · DACH</div></div>
+      </div>
+      <span class="stat">6</span>
+      <span class="stat green">3</span>
+      <span class="stat green">1</span>
+      <span class="duration">4:08</span>
+      <span class="last muted">4h ago · EU</span>
+      <div class="actions"><span class="a">SMS</span><span class="a">TG</span></div>
+      <a href="../../../command-center/command-center 2/mockups/2026-05-14-outreach-crm/02-rep-drilldown.html" class="ccdeep">Drill →</a>
+    </div>
+
+    <div class="rep-row">
+      <div class="id">
+        <div class="avatar">JO</div>
+        <div><div class="name">Joshua Cuthbert</div><div class="role">Rep · onboarding</div></div>
+      </div>
+      <span class="stat muted">0</span>
+      <span class="stat muted">0</span>
+      <span class="stat muted">0</span>
+      <span class="duration">—</span>
+      <span class="last muted">never</span>
+      <div class="actions"><span class="a">SMS</span><span class="a">TG</span></div>
+      <a href="../../../command-center/command-center 2/mockups/2026-05-14-outreach-crm/02-rep-drilldown.html" class="ccdeep">Drill →</a>
+    </div>
+
+  </div>
+
+  <!-- CC DEEP-LINK CALLOUT -->
+  <div class="deep-link-row">
+    <div>
+      <div class="l">For the deep CRM →</div>
+      <div class="body">This page is the <b>quick glance</b>. To listen to calls, fill in for a rep, change lead status, review yesterday's misses, or send SMS on behalf of a rep — <b>open <span style="color: #d8b4fe;">CC /outreach</span></b>. That's the master record.</div>
+    </div>
+    <a href="../../../command-center/command-center 2/mockups/2026-05-14-outreach-crm/01-overview.html" class="cta">↗ Open CRM</a>
+  </div>
+
+  <div class="doctrine-foot">
+    <div><b>SP /team</b> = director quick-glance · no audio · no impersonation · no lead drill-down</div>
+    <div><span class="cc">↗ CC /outreach</span> = full CRM truth · same data, deeper surface</div>
+    <div>The "Drill →" cells per row deep-link straight into CC at the matching rep view</div>
+  </div>
+
+</div>
+
+<div class="bottom-nav">
+  <div class="item"><span class="icon">⌂</span><span class="label">Home</span></div>
+  <div class="item"><span class="icon">📞</span><span class="label">Cold call</span></div>
+  <div class="item"><span class="icon">🏆</span><span class="label">Board</span></div>
+  <div class="item active"><span class="icon">👥</span><span class="label">Team</span></div>
+  <div class="item"><span class="icon">⚙</span><span class="label">More</span></div>
+</div>
+
+</body>
+</html>

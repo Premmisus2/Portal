@@ -10,7 +10,20 @@ import QuickLogForm from './QuickLogForm';
 import CallTranscriptToggle from './CallTranscriptToggle';
 import EditCallLogModal from './EditCallLogModal';
 import TwilioCallModal from './TwilioCallModal';
+import SmsComposer from '@/components/inbox/SmsComposer';
 import { recordingProxySrc } from '@/lib/recording';
+
+// First-pass intro template used when a rep texts a lead they couldn't reach.
+// Rep edits before sending — gatekeeper name / call story / etc.
+function buildIntroSmsTemplate(lead: any, repName?: string) {
+  const firstWord = (s?: string) => (s || '').trim().split(/\s+/)[0] || '';
+  const leadFirst = firstWord(lead?.contact_name);
+  const greeting = leadFirst ? `Hi ${leadFirst}` : 'Hi there';
+  const rep = firstWord(repName) || 'Elliott';
+  const nicheRaw = (lead?.niche || '').toLowerCase().trim();
+  const nicheLabel = nicheRaw ? `${nicheRaw} companies` : 'small businesses';
+  return `${greeting} — my name is ${rep} from Premmisus Marketing, we build websites for ${nicheLabel}. Tried calling earlier but couldn't get through. No rush — feel free to text me back here or give me a call when you have a sec. Looking forward to chatting.`;
+}
 
 const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, totalPoints, addClose, undoClose, repId, isDirector, shadowMode, repPhone }: any) => {
   const [tab, setTab] = useState(() => { try { return localStorage.getItem('pmss_cc_tab') || 'list'; } catch { return 'list'; } });
@@ -33,6 +46,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
   const [selectedBatch, setSelectedBatch] = useState(() => { try { return localStorage.getItem('pmss_cc_batch') || 'all'; } catch { return 'all'; } });
   const [batches, setBatches] = useState<any[]>([]);
   const [callModalLead, setCallModalLead] = useState<any | null>(null);
+  const [composingSmsLeadId, setComposingSmsLeadId] = useState<string | null>(null);
 
   useEffect(() => { try { localStorage.setItem('pmss_cc_batch', selectedBatch); } catch {} }, [selectedBatch]);
   useEffect(() => { try { localStorage.setItem('pmss_cc_tab', tab); } catch {} }, [tab]);
@@ -104,6 +118,14 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
   };
 
   useEffect(() => { loadLeads(); loadStats(); loadCalendar(); }, []);
+
+  // Listen for refresh events fired by InboundDispositionModal, EditCallLogModal,
+  // and other writers that need the call_logs prop to reflect their changes.
+  useEffect(() => {
+    const onRefresh = () => { loadLeads(); loadStats(); };
+    window.addEventListener('refreshCallLogs', onRefresh);
+    return () => window.removeEventListener('refreshCallLogs', onRefresh);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLogged = (leadId: string, outcome: string, newStatus: string) => {
     const loggedLead = leads.find(l => l.id === leadId);
@@ -586,6 +608,18 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                                   Call Back
                                 </a>
                               ) : null}
+                              {lead.phone && !lead.sms_opted_out_at && (
+                                <button onClick={()=>setComposingSmsLeadId(composingSmsLeadId === lead.id ? null : lead.id)}
+                                  style={{display:'flex', alignItems:'center', gap:'5px', padding:'9px 12px', minHeight:'40px', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif',
+                                    background: composingSmsLeadId === lead.id ? 'rgba(168,85,247,.18)' : 'rgba(168,85,247,.08)',
+                                    border: `1px solid ${composingSmsLeadId === lead.id ? 'rgba(168,85,247,.6)' : 'rgba(168,85,247,.35)'}`,
+                                    color:'#A855F7', transition:'all .15s'}}
+                                  onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(168,85,247,.18)';}}
+                                  onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background = composingSmsLeadId === lead.id ? 'rgba(168,85,247,.18)' : 'rgba(168,85,247,.08)';}}>
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#A855F7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                  Text
+                                </button>
+                              )}
                               <button onClick={()=>{ setTab('allleads'); setQuickFilter('all'); setFilterStatus('all'); setSelectedBatch('all'); setSearchQuery(''); setExpandedLead(lead.id); }}
                                 style={{padding:'9px 12px', minHeight:'40px', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif',
                                   background:'transparent', border:'1px solid var(--accent-glow-30)', color:'var(--accent-ink)', transition:'all .15s'}}
@@ -597,6 +631,28 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                           )}
                         </div>
                         {lead._cbNotes && <p style={{margin:0, fontSize:'12px', color:'var(--text-secondary)', lineHeight:'1.5'}}>{lead._cbNotes}</p>}
+                        {composingSmsLeadId === lead.id && repId && lead.phone && !lead.sms_opted_out_at && (
+                          <div style={{marginTop:'12px', padding:'12px', background:'rgba(168,85,247,.04)', border:'1px solid rgba(168,85,247,.15)', borderRadius:'8px'}}>
+                            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}}>
+                              <span style={{fontSize:'10px', fontWeight:800, letterSpacing:'.12em', textTransform:'uppercase', color:'#A855F7'}}>Text {lead.phone}</span>
+                              <button onClick={()=>setComposingSmsLeadId(null)} aria-label="Close composer"
+                                style={{background:'none', border:'none', color:'var(--text-faint)', cursor:'pointer', fontSize:'14px', lineHeight:1, padding:'2px 6px'}}>✕</button>
+                            </div>
+                            <SmsComposer
+                              leadId={lead.id}
+                              leadPhone={lead.phone}
+                              repId={repId}
+                              optedOut={false}
+                              initialBody={buildIntroSmsTemplate(lead, userName)}
+                              autoFocus
+                              onSent={() => { setComposingSmsLeadId(null); setToast({ message: '✓ SMS sent to ' + lead.business_name, type: 'success' }); setTimeout(()=>setToast(null), 3000); }}
+                              setToast={setToast}
+                            />
+                            <p style={{margin:'8px 0 0', fontSize:'10px', color:'var(--text-faint)'}}>
+                              ✏ Edit before sending — add the gatekeeper's name, mention the missed call, anything personal. ⌘↵ to send.
+                            </p>
+                          </div>
+                        )}
                       </div>
                     );
                   };
@@ -675,8 +731,40 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                                 </a>
                               )
                             )}
+                            {!shadowMode && lead.phone && !lead.sms_opted_out_at && (
+                              <button onClick={()=>setComposingSmsLeadId(composingSmsLeadId === lead.id ? null : lead.id)}
+                                style={{display:'flex', alignItems:'center', gap:'5px', padding:'9px 12px', minHeight:'40px', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif',
+                                  background: composingSmsLeadId === lead.id ? 'rgba(168,85,247,.18)' : 'rgba(168,85,247,.08)',
+                                  border: `1px solid ${composingSmsLeadId === lead.id ? 'rgba(168,85,247,.6)' : 'rgba(168,85,247,.35)'}`,
+                                  color:'#A855F7', transition:'all .15s'}}>
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#A855F7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                Text
+                              </button>
+                            )}
                           </div>
                           {lead._bookingNotes && <p style={{margin:0, fontSize:'12px', color:'var(--text-secondary)', lineHeight:'1.5'}}>{lead._bookingNotes}</p>}
+                          {composingSmsLeadId === lead.id && repId && lead.phone && !lead.sms_opted_out_at && (
+                            <div style={{marginTop:'12px', padding:'12px', background:'rgba(168,85,247,.04)', border:'1px solid rgba(168,85,247,.15)', borderRadius:'8px'}}>
+                              <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'8px'}}>
+                                <span style={{fontSize:'10px', fontWeight:800, letterSpacing:'.12em', textTransform:'uppercase', color:'#A855F7'}}>Text {lead.phone}</span>
+                                <button onClick={()=>setComposingSmsLeadId(null)} aria-label="Close composer"
+                                  style={{background:'none', border:'none', color:'var(--text-faint)', cursor:'pointer', fontSize:'14px', lineHeight:1, padding:'2px 6px'}}>✕</button>
+                              </div>
+                              <SmsComposer
+                                leadId={lead.id}
+                                leadPhone={lead.phone}
+                                repId={repId}
+                                optedOut={false}
+                                initialBody={buildIntroSmsTemplate(lead, userName)}
+                                autoFocus
+                                onSent={() => { setComposingSmsLeadId(null); setToast({ message: '✓ SMS sent to ' + lead.business_name, type: 'success' }); setTimeout(()=>setToast(null), 3000); }}
+                                setToast={setToast}
+                              />
+                              <p style={{margin:'8px 0 0', fontSize:'10px', color:'var(--text-faint)'}}>
+                                ✏ Edit before sending — confirm the appointment, add the gatekeeper's name, anything personal. ⌘↵ to send.
+                              </p>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

@@ -17,6 +17,397 @@ Per-feature log of changes shipped to the Sales Portal (portal.premmisus.ca).
 ---
 
 <!-- ENTRIES BELOW -->
+## 2026-05-19 [UNTAGGED] fix(idle-cron): team-first + per-rep mutual exclusion, atomic claim, Toronto TZ
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `183671548ba7724d81f8890664284cd7032d1231` (`1836715`)
+
+**Files:**
+- `app/api/cron-idle-check/route.ts`
+- `app/api/notify-sms/route.ts`
+- `app/api/notify-telegram/route.ts`
+- `supabase/migrations/20260519_idle_alert_atomic_claim.sql`
+- `supabase/migrations/20260519_idle_alert_atomic_claim_v2.sql`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert 1836715
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-19 [UNTAGGED] fix(audit): mobile tap targets, callback time in SMS, stale arrays
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `019714319bcaed3e756a289ab0fb412ffd1ca264` (`0197143`)
+
+**Files:**
+- `app/api/cron-callback-reminder/route.ts`
+- `app/globals.css`
+- `components/call-center/CallLogger.tsx`
+- `components/call-center/EditCallLogModal.tsx`
+- `components/call-center/LeadRow.tsx`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert 0197143
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-12 [UNTAGGED] fix(offer): use literal light hex in @media print, not theme vars
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `16c382ddd851708d54d03d4df4fa89e5f0c7f9ad` (`16c382d`)
+
+**Files:**
+- `app/offer/page.tsx`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert 16c382d
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-12 [UNTAGGED] feat(offer): default /offer route to light mode (official prospect document)
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `5b80275547f88cdb0994f076745348492183d727` (`5b80275`)
+
+**Files:**
+- `app/globals.css`
+- `app/offer/page.tsx`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert 5b80275
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-11 [UNTAGGED] fix(pdf): replace html2pdf canvas pipeline with native window.print()
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `43d464cda9d382625be3f9e10f0e1950cde93af3` (`43d464c`)
+
+**Files:**
+- `lib/pdf.ts`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert 43d464c
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-11 [UNTAGGED] fix(theme): logo inversion + LoginView tabs + wordmark theme-awareness
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `f4f876c0d32bd0fcec4e595655109e185aa42b22` (`f4f876c`)
+
+**Files:**
+- `app/globals.css`
+- `app/offer/page.tsx`
+- `components/auth/LoginView.tsx`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert f4f876c
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-11 [UNTAGGED] fix(theme): full audit sweep — all gradients + missed inline colors + status colors
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `d62213347cf53a3b04e18e081c5cb0493f46a8d0` (`d622133`)
+
+**Files:**
+- `app/page.tsx`
+- `components/ai-tools/AIServicesContent.tsx`
+- `components/auth/LoginView.tsx`
+- `components/call-center/ColdCallView.tsx`
+- `components/call-center/EditCallLogModal.tsx`
+- `components/call-center/LeadRow.tsx`
+- `components/call-center/QuickLogForm.tsx`
+- `components/call-center/TwilioCallModal.tsx`
+- `components/director/AllLeadsTable.tsx`
+- `components/director/BulkAssignBar.tsx`
+- `components/director/CallLogTab.tsx`
+- `components/director/DirectorView.tsx`
+- `components/director/InviteRepModal.tsx`
+- `components/director/LeadImportTool.tsx`
+- `components/director/NotificationPopup.tsx`
+- `components/director/PipelineFunnelView.tsx`
+- `components/director/RepDetailDrawer.tsx`
+- `components/director/RepPhoneEditor.tsx`
+- `components/director/RepsTab.tsx`
+- `components/foundation/FoundationPanel.tsx`
+- `components/handoff/HandoffPanel.tsx`
+- `components/handoff/HandoffView.tsx`
+- `components/home/HomeView.tsx`
+- `components/home/RotatingHeadline.tsx`
+- `components/ladder/LadderPanel.tsx`
+- `components/layout/GlobalSidebar.tsx`
+- `components/layout/ProfileDropdown.tsx`
+- `components/layout/ShortcutsModal.tsx`
+- `components/leaderboard/LeaderboardView.tsx`
+- `components/offer-stack/OfferStackView.tsx`
+- `components/scripts/MisstepsPanel.tsx`
+- `components/scripts/NicheTracksPanel.tsx`
+- `components/scripts/ScriptsView.tsx`
+- `components/settings/ActivityLogCard.tsx`
+- `components/settings/BuildJournalCard.tsx`
+- `components/settings/ChangePasswordCard.tsx`
+- `components/settings/NotificationRoutingCard.tsx`
+- `components/settings/PortalHealthCard.tsx`
+- `components/settings/RecoverPasswordCard.tsx`
+- `components/settings/SettingsModal.tsx`
+- `components/settings/SettingsView.tsx`
+- `components/settings/SignOutAllCard.tsx`
+- `components/settings/UpdateNameCard.tsx`
+- `components/shared/ChatWidget.tsx`
+- `components/shared/ClosesTracker.tsx`
+- `components/shared/NotesPad.tsx`
+- `components/shared/ScriptBlock.tsx`
+- `components/splash/SalesPortalSplash.tsx`
+- `components/training/TrainingView.tsx`
+- `components/ui/NotesPad.tsx`
+- `components/ui/SliderInput.tsx`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert d622133
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-11 [UNTAGGED] feat(theme): full inline-style sweep + light/dark toggle in ProfileDropdown + light-only PDFs
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `220a56ed7c0ce8dd0fef3d970cb3384f0998d4e9` (`220a56e`)
+
+**Files:**
+- `app/globals.css`
+- `app/page.tsx`
+- `components/ai-tools/AIServicesContent.tsx`
+- `components/ai-tools/AIToolsView.tsx`
+- `components/auth/LoginView.tsx`
+- `components/call-center/CallLogger.tsx`
+- `components/call-center/CallTranscriptToggle.tsx`
+- `components/call-center/ColdCallView.tsx`
+- `components/call-center/EditCallLogModal.tsx`
+- `components/call-center/LeadRow.tsx`
+- `components/call-center/QuickLogForm.tsx`
+- `components/call-center/TwilioCallModal.tsx`
+- `components/director/AllLeadsTable.tsx`
+- `components/director/BulkAssignBar.tsx`
+- `components/director/CallLogTab.tsx`
+- `components/director/DirectorView.tsx`
+- `components/director/InviteRepModal.tsx`
+- `components/director/LeadImportTool.tsx`
+- `components/director/NotificationPopup.tsx`
+- `components/director/PipelineFunnelView.tsx`
+- `components/director/RepDetailDrawer.tsx`
+- `components/director/RepPhoneEditor.tsx`
+- `components/director/RepsTab.tsx`
+- `components/foundation/FoundationPanel.tsx`
+- `components/foundation/FoundationView.tsx`
+- `components/handoff/HandoffPanel.tsx`
+- `components/handoff/HandoffView.tsx`
+- `components/home/AnnouncementsBanner.tsx`
+- `components/home/HomeView.tsx`
+- `components/home/RotatingHeadline.tsx`
+- `components/ladder/LadderPanel.tsx`
+- `components/ladder/LadderView.tsx`
+- `components/layout/BottomNav.tsx`
+- `components/layout/GlobalSidebar.tsx`
+- `components/layout/ProfileDropdown.tsx`
+- `components/layout/ShortcutsModal.tsx`
+- `components/layout/TopBar.tsx`
+- `components/leaderboard/LeaderboardView.tsx`
+- `components/outreach/DMPanel.tsx`
+- `components/outreach/DMView.tsx`
+- `components/outreach/EmailPanel.tsx`
+- `components/outreach/EmailView.tsx`
+- `components/outreach/SMSPanel.tsx`
+- `components/outreach/SMSView.tsx`
+- `components/postcall/BookingKit.tsx`
+- `components/postcall/PostCallPanel.tsx`
+- `components/postcall/PostCallView.tsx`
+- `components/scripts/ClosePanel.tsx`
+- `components/scripts/DiscoveryCallPanel.tsx`
+- `components/scripts/HooksPanel.tsx`
+- `components/scripts/MisstepsPanel.tsx`
+- `components/scripts/NicheTracksPanel.tsx`
+- `components/scripts/NoShowPanel.tsx`
+- `components/scripts/ObjectionsPanel.tsx`
+- `components/scripts/OpenersPanel.tsx`
+- `components/scripts/ProofPointsPanel.tsx`
+- `components/scripts/ScriptsView.tsx`
+- `components/scripts/UpsellPanel.tsx`
+- `components/scripts/VoicemailPanel.tsx`
+- `components/settings/ActivityLogCard.tsx`
+- `components/settings/BuildJournalCard.tsx`
+- `components/settings/ChangePasswordCard.tsx`
+- `components/settings/NotificationRoutingCard.tsx`
+- `components/settings/PortalHealthCard.tsx`
+- `components/settings/RecoverPasswordCard.tsx`
+- `components/settings/SettingsModal.tsx`
+- `components/settings/SettingsSection.tsx`
+- `components/settings/SettingsView.tsx`
+- `components/settings/SignOutAllCard.tsx`
+- `components/settings/UpdateNameCard.tsx`
+- `components/shared/ChatWidget.tsx`
+- `components/shared/ClosesTracker.tsx`
+- `components/shared/Logo.tsx`
+- `components/shared/NotesPad.tsx`
+- `components/shared/OutreachNote.tsx`
+- `components/shared/OutreachRule.tsx`
+- `components/shared/SMSTemplate.tsx`
+- `components/shared/ScriptBlock.tsx`
+- `components/shared/SubjectLine.tsx`
+- `components/splash/SalesPortalSplash.tsx`
+- `components/training/TrainingView.tsx`
+- `components/ui/CopyBtn.tsx`
+- `components/ui/IncomeBar.tsx`
+- `components/ui/LoadingScreen.tsx`
+- `components/ui/NotesPad.tsx`
+- `components/ui/SliderInput.tsx`
+- `components/ui/Typography.tsx`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert 220a56e
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-11 [UNTAGGED] feat(theme): Phase 1 — CSS-variable architecture + light/dark toggle in TopBar
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `a0179fb4242c07eef98e7cdda66080bef1298c94` (`a0179fb`)
+
+**Files:**
+- `app/globals.css`
+- `app/layout.tsx`
+- `components/layout/TopBar.tsx`
+- `components/ui/ThemeToggle.tsx`
+- `lib/theme.ts`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert a0179fb
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
+## 2026-05-11 [UNTAGGED] fix(offer): use proper PREMM-chevron-SUS wordmark + drop tacky "Offer" badge
+
+**Status:** 🟡 STUB — needs enrichment
+
+**Commit:** `513754059dcf7a5a6c3f2264263fe9eb8b4c4be4` (`5137540`)
+
+**Files:**
+- `app/offer/page.tsx`
+
+**Idea (Elliott's intent):** _(to be filled in)_
+
+**What shipped:** _(to be filled in — 1-3 sentences)_
+
+**Rollback:**
+```bash
+git revert 5137540
+```
+
+**Verification:** _(to be filled in — what was actually run/observed)_
+
+**Watch for:** _(to be filled in — failure modes, related env vars, coupled files)_
+
+---
+
 ## 2026-05-11 [UNTAGGED] fix(call-center): bump callback button tap targets to 40px for mobile
 
 **Status:** 🟡 STUB — needs enrichment

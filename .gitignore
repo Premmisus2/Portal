@@ -1,6 +1,14 @@
 .vercel
 node_modules/
 .next/
-.env.local
-.env*.local
+
+# Env files — broad catch-all to prevent future variants (.env.fresh,
+# .env.staging, .env.vercel.local, etc.) from leaking secrets. Add an
+# explicit exception for .env.example if you ever commit a template.
+.env*
+!.env.example
+
 .DS_Store
+
+# Supabase CLI temp / cache state — not source.
+supabase/.temp/

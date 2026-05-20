@@ -89,12 +89,24 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
         insertPayload.additional_callback_reasons = additionalReasons;
         updatePayload.additional_callback_reasons = additionalReasons;
       }
+      let resolvedCallLogId: string | null = existingCallLogId || null;
       if (existingCallLogId) {
         const { error: updateLogErr } = await supabase.from('call_logs').update(updatePayload).eq('id', existingCallLogId);
         if (updateLogErr) { alert('Failed to update call log: ' + updateLogErr.message); setSaving(false); return; }
       } else {
-        const { error: insertErr } = await supabase.from('call_logs').insert(insertPayload);
+        const { data: inserted, error: insertErr } = await supabase.from('call_logs').insert(insertPayload).select('id').single();
         if (insertErr) { alert('Failed to save call log: ' + insertErr.message); setSaving(false); return; }
+        resolvedCallLogId = inserted?.id || null;
+      }
+
+      // Missed-call SMS auto-reply: fire idempotently when the rep logs a
+      // dead-dial outcome. The route guards on auto_reply_sent_at + 24h cooldown.
+      if (resolvedCallLogId && (primary === 'voicemail_left' || primary === 'no_answer')) {
+        fetch('/api/missed-call-autoreply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ call_log_id: resolvedCallLogId }),
+        }).catch(() => {});
       }
       const { error: updateErr } = await supabase.from('leads').update({ status: STATUS_MAP[primary] || 'contacted', updated_at: new Date().toISOString() }).eq('id', lead.id);
       if (updateErr) { alert('Call logged but failed to update lead status: ' + updateErr.message); setSaving(false); return; }

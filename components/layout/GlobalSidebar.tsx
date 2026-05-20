@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
 
 const Logo = ({ height = 32 }: { height?: number }) => (
   <div style={{height, display:'flex', alignItems:'center'}}>
@@ -10,8 +11,32 @@ const Logo = ({ height = 32 }: { height?: number }) => (
 
 export default function GlobalSidebar({ open, onClose, onNav, currentView, isDirector }: { open: any; onClose: any; onNav: any; currentView: any; isDirector: any }) {
   const [expanded, setExpanded] = useState({ outreach: false, scripts: false });
+  const [unreadSms, setUnreadSms] = useState<number>(0);
   const toggle = (cat: string) => setExpanded(e => ({ ...e, [cat]: !e[cat] }));
   const go = (key: string) => { onNav(key); onClose(); };
+
+  // Poll unread inbound SMS count every 30s for the Inbox badge.
+  // Keep last known count on network failure rather than zeroing it.
+  useEffect(() => {
+    let cancelled = false;
+    const loadUnread = async () => {
+      try {
+        const { count, error } = await supabase
+          .from('sms_messages')
+          .select('id', { count: 'exact', head: true })
+          .eq('direction', 'inbound')
+          .eq('is_read', false);
+        if (!cancelled && !error && typeof count === 'number') setUnreadSms(count);
+      } catch {
+        // Keep last known count on failure.
+      }
+    };
+    loadUnread();
+    const interval = setInterval(loadUnread, 30_000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, []);
+
+  const unreadDisplay = unreadSms > 99 ? '99+' : String(unreadSms);
   return (
     <>
       <div className={`global-sidebar-overlay${open ? ' open' : ''}`} onClick={onClose}/>
@@ -26,6 +51,28 @@ export default function GlobalSidebar({ open, onClose, onNav, currentView, isDir
           <div className="gs-category">
             <button className={`gs-item${currentView==='coldcall'?' active':''}`} onClick={()=>go('coldcall')} style={{paddingLeft:'20px'}}>
               <span style={{fontSize:'14px'}}>&#9742;</span> Call Center
+            </button>
+          </div>
+
+          {/* Inbox (SMS conversations) */}
+          <div className="gs-category">
+            <button className={`gs-item${currentView==='inbox'?' active':''}`} onClick={()=>go('inbox')} style={{paddingLeft:'20px', display:'flex', alignItems:'center', justifyContent:'space-between'}}>
+              <span><span style={{fontSize:'14px'}}>&#128172;</span> Inbox</span>
+              {unreadSms > 0 && (
+                <span style={{
+                  fontSize: '10px',
+                  fontWeight: 800,
+                  padding: '2px 7px',
+                  borderRadius: '10px',
+                  background: 'var(--accent-glow-15)',
+                  border: '1px solid var(--accent-glow-50)',
+                  color: 'var(--accent-ink)',
+                  fontFamily: 'JetBrains Mono, monospace',
+                  letterSpacing: '.02em',
+                  minWidth: '22px',
+                  textAlign: 'center',
+                }}>{unreadDisplay}</span>
+              )}
             </button>
           </div>
 

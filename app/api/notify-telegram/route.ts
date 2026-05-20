@@ -72,6 +72,12 @@ export async function POST(request: Request) {
       message = `🆕 *Portal Sign-Up*\nRep: ${repName || 'Unknown'}${email ? '\nEmail: ' + email : ''}\nAt: ${time} ET`;
       break;
     }
+    case 'inbound_sms': {
+      const preview = (notes || '').slice(0, 240);
+      const routedLine = repName === 'unrouted' ? '\n_Unrouted — no matching lead_' : '';
+      message = `💬 *INBOUND SMS*\nFrom: ${businessName || 'Unknown'}${phone ? ' (' + phone + ')' : ''}${routedLine}\n\n${preview}\n\n_Reply from portal.premmisus.ca → Inbox_`;
+      break;
+    }
     default:
       message = `📋 *${type?.toUpperCase() || 'UPDATE'}*\n${repName || 'Rep'}: ${businessName || 'Activity update'}`;
   }

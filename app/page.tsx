@@ -34,6 +34,7 @@ import HandoffView from '@/components/handoff/HandoffView';
 import DMView from '@/components/outreach/DMView';
 import EmailView from '@/components/outreach/EmailView';
 import SMSView from '@/components/outreach/SMSView';
+import InboxView from '@/components/inbox/InboxView';
 import OfferStackView from '@/components/offer-stack/OfferStackView';
 import AIToolsView from '@/components/ai-tools/AIToolsView';
 import TrainingView from '@/components/training/TrainingView';
@@ -247,7 +248,7 @@ function AppShell() {
         const num = e.code.replace('Digit', '');
         setView(v => {
           if (v === 'home') {
-            const m: Record<string, string> = { '1': 'coldcall', '2': 'scripts', '3': 'foundation', '4': 'dms', '5': 'postcall', '6': 'ladder', '7': 'handoff', '8': 'aitools', '9': 'director' };
+            const m: Record<string, string> = { '0': 'inbox', '1': 'coldcall', '2': 'scripts', '3': 'foundation', '4': 'dms', '5': 'postcall', '6': 'ladder', '7': 'handoff', '8': 'aitools', '9': 'director' };
             if (num === '9' && userRole !== 'director') return v;
             return m[num] || v;
           }
@@ -354,6 +355,7 @@ function AppShell() {
     userEmail,
     onHome: handleHome,
     onLogout: handleLogout,
+    onNav: handleNav,
     totalCloses,
     setTotalCloses,
     totalPoints,
@@ -449,6 +451,7 @@ function AppShell() {
   if (view === 'dms')        return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<DMView {...shared} />{bottomNav}{chat}</>;
   if (view === 'email')      return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<EmailView {...shared} />{bottomNav}{chat}</>;
   if (view === 'sms')        return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<SMSView {...shared} />{bottomNav}{chat}</>;
+  if (view === 'inbox')      return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<InboxView {...shared} />{bottomNav}{chat}</>;
   if (view === 'offerstack') return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<OfferStackView {...shared} />{bottomNav}{chat}</>;
   if (view === 'aitools')    return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<AIToolsView {...shared} />{bottomNav}{chat}</>;
   if (view === 'training')   return <>{notifPopup}{settingsModal}{shadowBanner}{sidebar}<TrainingView {...shared} />{bottomNav}{chat}</>;

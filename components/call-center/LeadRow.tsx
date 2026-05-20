@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { OUTCOME_LABELS, OUTCOME_COLORS } from '@/lib/constants';
 import { todayInToronto } from '@/lib/date';
@@ -8,12 +8,35 @@ import { reportClientError } from '@/lib/error-reporting';
 import { recordingProxySrc } from '@/lib/recording';
 import CallLogger from './CallLogger';
 import TwilioCallModal from './TwilioCallModal';
+import InboundDispositionModal from './InboundDispositionModal';
+import SmsThread from '@/components/inbox/SmsThread';
+import SmsComposer from '@/components/inbox/SmsComposer';
 
 const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadowMode, repPhone, setToast, leadNumber, userName }: any) => {
   const [showQuickLog, setShowQuickLog] = useState(false);
   const [expandedNote, setExpandedNote] = useState<string | null>(null);
   const [showCallModal, setShowCallModal] = useState(false);
   const [twilioCallData, setTwilioCallData] = useState<any>(null);
+  const [dispositionLog, setDispositionLog] = useState<any>(null);
+  const [smsMessages, setSmsMessages] = useState<any[] | null>(null);
+  const untaggedInbound = Array.isArray(callLogs)
+    ? callLogs.find((l: any) => l?.outcome === 'inbound_callback' && !l?.inbound_disposition)
+    : null;
+
+  const loadSms = useCallback(async () => {
+    if (!lead?.id) return;
+    const { data } = await supabase
+      .from('sms_messages')
+      .select('id, direction, body, status, keyword, created_at')
+      .eq('lead_id', lead.id)
+      .order('created_at', { ascending: false })
+      .limit(10);
+    setSmsMessages(data || []);
+  }, [lead?.id]);
+
+  useEffect(() => {
+    if (isExpanded && smsMessages === null) loadSms();
+  }, [isExpanded, smsMessages, loadSms]);
   const priorityClass = lead.priority === 'HOT' ? 'priority-hot' : lead.priority === 'HIGH' ? 'priority-high' : 'priority-medium';
   const lastLog = callLogs && callLogs.length > 0 ? callLogs[0] : null;
   const today = todayInToronto();
@@ -87,6 +110,17 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
             <span style={{fontSize:'10px', color: isOverdue ? 'var(--red)' : isDueToday ? 'var(--amber)' : 'var(--text-faint)', fontWeight:600}}>
               {isOverdue ? '⚠ Overdue' : isDueToday ? '📞 Today' : `CB: ${lastLog.callback_date}`}
             </span>
+          )}
+          {untaggedInbound && !shadowMode && (
+            <button onClick={e=>{e.stopPropagation(); setDispositionLog(untaggedInbound);}}
+              title="They called back — tag the disposition so it's logged correctly."
+              style={{padding:'4px 10px', borderRadius:'6px', cursor:'pointer', fontSize:'9px', fontWeight:800, fontFamily:'JetBrains Mono,monospace', letterSpacing:'.08em', textTransform:'uppercase', transition:'all .15s',
+                background:'rgba(245,158,11,.12)', border:'1px solid rgba(245,158,11,.45)', color:'var(--amber)',
+                animation:'pulse-amber 2s ease-in-out infinite'}}
+              onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(245,158,11,.22)';}}
+              onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='rgba(245,158,11,.12)';}}>
+              📞 Tag Callback
+            </button>
           )}
           <button onClick={e=>{e.stopPropagation(); if(!shadowMode) setShowQuickLog(!showQuickLog);}}
             disabled={shadowMode} className="lr-action-btn"
@@ -174,6 +208,27 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
             </div>
           )}
 
+          {/* SMS Thread (inline) */}
+          {smsMessages !== null && smsMessages.length > 0 && (
+            <div style={{marginBottom:'14px'}}>
+              <p style={{fontSize:'9px', fontWeight:700, color:'var(--text-faint)', letterSpacing:'.12em', textTransform:'uppercase', margin:'0 0 8px'}}>SMS Thread {smsMessages.length >= 10 ? '(last 10)' : ''}</p>
+              <div style={{padding:'10px 12px', background:'var(--bg-elev-2)', borderRadius:'8px', border:'1px solid var(--border)', display:'flex', flexDirection:'column'}}>
+                <SmsThread messages={smsMessages.slice(0,10) as any} />
+              </div>
+            </div>
+          )}
+          {/* SMS Composer — only when not opted out, has phone, not shadow */}
+          {!shadowMode && lead.phone && !lead.sms_opted_out_at && repId && (
+            <div style={{marginBottom:'14px'}} onClick={e=>e.stopPropagation()}>
+              <SmsComposer leadId={lead.id} leadPhone={lead.phone} repId={repId} optedOut={false} onSent={loadSms} setToast={setToast}/>
+            </div>
+          )}
+          {lead.sms_opted_out_at && (
+            <div style={{marginBottom:'14px', padding:'8px 12px', background:'rgba(255,96,96,.08)', border:'1px solid rgba(255,96,96,.25)', borderRadius:'6px', color:'var(--red)', fontSize:'11px', fontWeight:600}}>
+              🚫 SMS opted out — replied STOP
+            </div>
+          )}
+
           {/* Call Logger — hidden in shadow mode */}
           {!shadowMode && <CallLogger lead={lead} repId={repId} userName={userName} onLogged={(leadId: any, outcome: any, newStatus: any) => { setTwilioCallData(null); onLogged(leadId, outcome, newStatus); }} existingCallLogId={twilioCallData?.callLogId || null}/>}
         </div>
@@ -184,6 +239,15 @@ const LeadRow = ({ lead, repId, isExpanded, onToggle, onLogged, callLogs, shadow
         <TwilioCallModal lead={lead} repId={repId} repPhone={repPhone}
           onClose={() => setShowCallModal(false)}
           onCallComplete={(data: any) => { setTwilioCallData(data); setShowCallModal(false); setShowQuickLog(false); onToggle(lead.id); }}/>
+      )}
+
+      {/* Inbound Callback Disposition Modal */}
+      {dispositionLog && (
+        <InboundDispositionModal
+          log={dispositionLog}
+          businessName={lead.business_name}
+          onClose={() => setDispositionLog(null)}
+          onSaved={() => { window.dispatchEvent(new Event('refreshCallLogs')); if (setToast) setToast({ message: '✓ Callback tagged', type: 'success' }); }}/>
       )}
     </div>
   );

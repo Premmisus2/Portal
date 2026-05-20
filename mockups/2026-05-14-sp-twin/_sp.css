@@ -1,0 +1,130 @@
+/* SP simplified-twin shell — matches Sales Portal's actual visual register
+   (#000 bg, #1e1e1e borders, #00F0FF accent — plainer than CC's panel-frosted look) */
+:root {
+  --bg-app:           #000;
+  --bg-elev-1:        #0d0d0d;
+  --bg-elev-2:        #080808;
+  --bg-elev-pill:     #0a0a0a;
+  --bg-nav:           #050505;
+  --bg-strong-overlay: rgba(0,0,0,.7);
+  --text-primary:     #fff;
+  --text-secondary:   #ccc;
+  --text-tertiary:    #888;
+  --text-muted:       #555;
+  --text-faint:       #444;
+  --border:           #1e1e1e;
+  --border-soft:      #1a1a1a;
+  --border-strong:    #252525;
+  --accent:           #00F0FF;
+  --accent-deep:      #00838f;
+  --on-accent:        #000;
+  --accent-glow-04:   rgba(0,240,255,.04);
+  --accent-glow-05:   rgba(0,240,255,.05);
+  --accent-glow-06:   rgba(0,240,255,.06);
+  --green:            #22c55e;
+  --amber:            #f59e0b;
+  --red:              #ef4444;
+  --gold:             #FFC800;
+  --silver:           #C0C0C0;
+  --bronze:           #CD7F32;
+  --cc-purple:        #c084fc;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg-app);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+.mono { font-family: 'JetBrains Mono', monospace; }
+a { color: inherit; text-decoration: none; }
+
+/* TopBar (matches SP's existing pattern) */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--bg-nav);
+  border-bottom: 1px solid var(--border-soft);
+  position: sticky; top: 0; z-index: 30;
+}
+.topbar .brand { display: flex; align-items: center; gap: 12px; }
+.topbar .logo {
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--on-accent);
+  display: grid; place-items: center;
+  font-weight: 700; font-size: 15px;
+}
+.topbar .title { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-secondary); letter-spacing: 0.05em; }
+.topbar .user { display: flex; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text-tertiary); }
+.topbar .user .badge { padding: 3px 9px; background: var(--accent-glow-05); color: var(--accent); border-radius: 3px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em; }
+
+/* Bottom nav (matches SP) */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--bg-nav);
+  border-top: 1px solid var(--border-soft);
+  padding: 10px 0;
+  display: flex;
+  justify-content: space-around;
+  z-index: 30;
+}
+.bottom-nav .item { display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; color: var(--text-tertiary); padding: 4px 18px; }
+.bottom-nav .item .icon { font-size: 18px; }
+.bottom-nav .item .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; }
+.bottom-nav .item.active { color: var(--accent); }
+
+/* Page shell */
+.page { padding: 16px 20px 100px; max-width: 720px; margin: 0 auto; }
+
+/* Card */
+.card {
+  background: var(--bg-elev-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.card.elev2 { background: var(--bg-elev-2); }
+
+/* Button */
+.btn {
+  padding: 14px 20px;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elev-1);
+  color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  text-align: center;
+}
+.btn:hover { background: var(--bg-elev-2); border-color: var(--accent-deep); }
+.btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 700; }
+.btn.big {
+  padding: 22px;
+  font-size: 17px;
+  letter-spacing: 0.18em;
+}
+.btn.green { background: var(--green); color: #000; border-color: var(--green); }
+.btn.amber { background: rgba(245,158,11,0.1); color: var(--amber); border-color: rgba(245,158,11,0.4); }
+.btn.red   { background: rgba(239,68,68,0.1); color: var(--red); border-color: rgba(239,68,68,0.4); }
+.btn.muted { color: var(--text-tertiary); }
+
+/* Section label */
+.section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-tertiary);
+  margin-bottom: 10px;
+}

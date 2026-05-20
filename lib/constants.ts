@@ -22,6 +22,24 @@ export const OUTCOME_LABELS: Record<string, string> = {
   discovery_completed: 'Discovery Booked',
   no_show: 'No Show',
   wrong_number: 'Wrong Number',
+  inbound_callback: 'Inbound Callback',
+  ai_receptionist: 'AI Receptionist',
+};
+
+export const INBOUND_DISPOSITION_LABELS: Record<string, string> = {
+  interested: 'Interested — Move Forward',
+  follow_up: 'Follow Up Later',
+  not_interested: 'Not Interested Right Now',
+  dnc: 'Do Not Contact',
+  wrong_person: 'Wrong Person / Mis-dial',
+};
+
+export const INBOUND_DISPOSITION_COLORS: Record<string, string> = {
+  interested: '#22c55e',
+  follow_up: '#F59E0B',
+  not_interested: '#888',
+  dnc: '#ff6060',
+  wrong_person: '#555',
 };
 
 export const CALLBACK_REASON_LABELS: Record<string, string> = {
@@ -53,6 +71,8 @@ export const OUTCOME_COLORS: Record<string, string> = {
   discovery_completed: '#00F0FF',
   no_show: '#ff8800',
   wrong_number: '#ff6060',
+  inbound_callback: '#00F0FF',
+  ai_receptionist: '#A78BFA',
 };
 
 export const NICHE_LIST = [
