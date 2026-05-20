@@ -14,6 +14,7 @@ import { resolveRoute } from '@/lib/notification-routes';
 const TYPE_TO_ALERT_TYPE: Record<string, string> = {
   booked: 'booked_call',
   idle: 'idle',
+  idle_team: 'idle',
   daily_summary: 'daily_summary',
   close_approved: 'close_approved',
   close_rejected: 'close_rejected',
@@ -42,7 +43,10 @@ export async function POST(request: Request) {
       message = `🟢 *BOOKED CALL*\nRep: ${repName || 'Unknown'}\nBusiness: ${businessName || 'Unknown'}${phone ? '\nPhone: ' + phone : ''}${notes ? '\nNotes: ' + notes.slice(0, 200) : ''}\n\n_Check portal for details_`;
       break;
     case 'idle':
-      message = `🔴 *IDLE ALERT*\nNo rep activity for 2+ hours during business hours.\n\n_Check portal.premmisus.ca_`;
+      message = `🔴 *IDLE ALERT*\n${repName || 'A rep'} has not dialed in 2+ hours.\n\n_Check portal.premmisus.ca_`;
+      break;
+    case 'idle_team':
+      message = `🔴 *TEAM SILENCE*\nNo team calls in 2h during business hours.\n\n_Check portal.premmisus.ca_`;
       break;
     case 'daily_summary':
       message = `📊 *DAILY SUMMARY*\n${stats || 'No stats available.'}`;

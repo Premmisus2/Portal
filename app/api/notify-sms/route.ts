@@ -24,7 +24,10 @@ export async function POST(request: Request) {
       message = `[Premmisus] ${repName || 'Rep'} — follow-up requested: ${businessName || 'Unknown'}${notes ? '. Notes: ' + notes.slice(0, 80) : ''}`;
       break;
     case 'idle':
-      message = `[Premmisus] No rep activity for 2+ hours. Check portal.premmisus.ca`;
+      message = `[Premmisus] ${repName || 'A rep'} idle 2+ hours. Check portal.premmisus.ca`;
+      break;
+    case 'idle_team':
+      message = `[Premmisus] No team calls in 2h during business hours. Check portal.premmisus.ca`;
       break;
     case 'handoff':
       message = `[Premmisus] ${repName || 'Rep'} handed off ${businessName || 'a lead'}. Check portal for details.`;
