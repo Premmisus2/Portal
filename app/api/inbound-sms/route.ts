@@ -87,6 +87,7 @@ export async function POST(request: Request) {
   const SB_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
   const AUTH_TOKEN = (process.env.TWILIO_AUTH_TOKEN || '').trim();
   const BASE = (process.env.BASE_URL || '').trim();
+  const FANOUT_SECRET = (process.env.PORTAL_FANOUT_SECRET || '').trim();
 
   // Parse form-encoded body
   let params: Record<string, string> = {};
@@ -97,12 +98,22 @@ export async function POST(request: Request) {
     return new Response(twimlEmpty(), { status: 400, headers: { 'Content-Type': 'application/xml' } });
   }
 
-  // Signature verification
+  // Auth: TWO valid paths.
+  //   1. Direct from Twilio — verify X-Twilio-Signature.
+  //   2. Fan-out from Command Center (Path B architecture, 2026-05-20) —
+  //      CC owns the Twilio webhook and forwards unmatched-against-outreach_leads
+  //      inbound here. Auth via shared X-Portal-Fanout-Secret header.
+  //
+  // Either path must succeed. Reject if neither.
   const signatureHeader = request.headers.get('x-twilio-signature') || '';
-  const fullUrl = BASE ? `${BASE}/api/inbound-sms` : new URL(request.url).toString().split('?')[0];
-  if (AUTH_TOKEN && !verifyTwilioSignature(fullUrl, params, signatureHeader, AUTH_TOKEN)) {
-    console.error('inbound-sms: signature verification failed', { url: fullUrl, hasSig: !!signatureHeader });
-    return new Response(twimlEmpty(), { status: 403, headers: { 'Content-Type': 'application/xml' } });
+  const fanoutHeader = (request.headers.get('x-portal-fanout-secret') || '').trim();
+  const isFanout = !!FANOUT_SECRET && fanoutHeader === FANOUT_SECRET;
+  if (!isFanout) {
+    const fullUrl = BASE ? `${BASE}/api/inbound-sms` : new URL(request.url).toString().split('?')[0];
+    if (AUTH_TOKEN && !verifyTwilioSignature(fullUrl, params, signatureHeader, AUTH_TOKEN)) {
+      console.error('inbound-sms: auth failed (no fan-out header AND Twilio signature invalid)', { url: fullUrl, hasSig: !!signatureHeader });
+      return new Response(twimlEmpty(), { status: 403, headers: { 'Content-Type': 'application/xml' } });
+    }
   }
 
   const fromRaw = params.From || '';
@@ -178,9 +189,11 @@ export async function POST(request: Request) {
     }
   }
 
-  // Telegram alert — fire-and-forget. Only for non-keyword inbounds (don't spam
-  // on STOP/HELP since Twilio handles those quietly at the account layer).
-  if (BASE && !keyword) {
+  // Telegram alert — fire-and-forget. Skipped on fan-out path because Command
+  // Center has already sent its own Telegram alert for the same inbound (Path B
+  // architecture). Also skipped for keyword replies (STOP/HELP/START) to avoid
+  // noise — Twilio handles those quietly at the account layer.
+  if (BASE && !keyword && !isFanout) {
     const repName = repId ? '' : 'unrouted';
     fetch(`${BASE}/api/notify-telegram`, {
       method: 'POST',
