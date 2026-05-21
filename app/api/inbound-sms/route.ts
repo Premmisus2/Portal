@@ -20,7 +20,11 @@ import { verifyTwilioSignature } from '@/lib/twilio-signature';
 const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 const ELLIOTT_EMAIL = 'elliott@premmisus.com';
 
-const STOP_WORDS = new Set(['STOP', 'STOPALL', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT']);
+// Keyword list aligned with Command Center's superset (twilio-inbound/route.ts)
+// so opt-outs route to the same destination regardless of which system processes
+// the inbound. Note: the firstToken normalizer strips non-alpha chars, so
+// "OPT-OUT" → "OPTOUT" matches naturally without needing both forms.
+const STOP_WORDS = new Set(['STOP', 'STOPALL', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT', 'REVOKE', 'OPTOUT']);
 const START_WORDS = new Set(['START', 'YES', 'UNSTOP']);
 const HELP_WORDS = new Set(['HELP', 'INFO']);
 
