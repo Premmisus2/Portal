@@ -23,7 +23,7 @@ import {
   flexRender,
 } from '@tanstack/react-table';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import type { FloorLead } from '@/app/floor/page';
+import type { FloorLead } from './types';
 
 const ROW_HEIGHT = 44;
 const VIRTUALIZATION_THRESHOLD = 100;

@@ -13,7 +13,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import type { FloorLead } from '@/app/floor/page';
+import type { FloorLead } from './types';
 import { getLeadTimeline, updateLeadOutcome, type TimelineEntry, type LeadStatus } from '@/features/leads';
 import { sendSms } from '@/features/messaging';
 import { recordAuditEvent } from '@/features/audit';
