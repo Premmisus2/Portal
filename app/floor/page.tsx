@@ -29,6 +29,7 @@ import { recordAuditEvent } from '@/features/audit';
 import LeadSheet from '@/components/floor/LeadSheet';
 import LeadDrawer from '@/components/floor/LeadDrawer';
 import FloorPageSkeleton from '@/components/floor/FloorPageSkeleton';
+import TeamActivityPanel from '@/components/floor/TeamActivityPanel';
 
 // Extended lead row with the new counter columns (added 2026-05-21).
 export interface FloorLead extends Lead {
@@ -198,6 +199,9 @@ export default function FloorPage() {
 
   return (
     <main style={{ background: '#000', minHeight: '100vh', color: '#fff' }}>
+      <div style={{ paddingTop: 14 }}>
+        <TeamActivityPanel />
+      </div>
       <LeadSheet
         leads={leads}
         selectedLeadId={selectedLeadId}
