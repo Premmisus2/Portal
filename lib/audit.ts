@@ -54,13 +54,10 @@ export async function audit(params: AuditParams): Promise<void> {
     };
     const { error } = await supabase.from('audit_log').insert(row);
     if (error) {
-      // 42P01 = relation does not exist (migration not applied) → swallow
-      // silently. Anything else is unexpected; surface to error-reporting
-      // for visibility but DON'T re-throw.
-      const code = (error as { code?: string }).code || '';
-      if (code === '42P01' || /audit_log/.test(error.message || '') && /relation/.test(error.message || '')) {
-        return;
-      }
+      // The audit_log table is now in production (20260504 + 20260521 RLS
+      // fix). The old fuzzy-regex fallback for "relation does not exist" was
+      // too broad and could mask other errors. Every insert error now
+      // surfaces to error-reporting; nothing silently swallowed.
       reportClientError('audit.insert', error, { actionType: params.actionType }, 'settings-activity-log');
     }
   } catch (err) {
