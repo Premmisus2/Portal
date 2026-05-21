@@ -363,9 +363,19 @@ export default function LeadSheet({ leads, selectedLeadId, searchQuery, onSearch
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 14 }}>
         <div>
-          <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', color: '#00F0FF', marginBottom: 6 }}>
-            <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#00F0FF', boxShadow: '0 0 6px rgba(0,240,255,.8)', marginRight: 8, verticalAlign: 'middle' }} />
-            Sales Floor
+          <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 10, letterSpacing: '.2em', textTransform: 'uppercase', color: '#00F0FF', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 12 }}>
+            <a
+              href="/"
+              style={{ color: '#888', textDecoration: 'none', fontSize: 10, letterSpacing: '.2em' }}
+              aria-label="Back to portal"
+            >
+              ← PORTAL
+            </a>
+            <span style={{ color: '#1e1e1e' }}>|</span>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#00F0FF', boxShadow: '0 0 6px rgba(0,240,255,.8)' }} />
+              Sales Floor
+            </span>
           </div>
           <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-.01em', color: '#fff' }}>
             My Leads · {data.length}

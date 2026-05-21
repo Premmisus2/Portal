@@ -47,7 +47,34 @@ export default function GlobalSidebar({ open, onClose, onNav, currentView, isDir
         </div>
 
         <div style={{padding:'12px 0'}}>
-          {/* Cold Calling */}
+          {/* Sales Floor — new rep cockpit at its own /floor route (not part of
+              the SPA's internal currentView system). Sits at the top to surface
+              the new surface while ColdCallView stays available below during
+              the dual-track window. */}
+          <div className="gs-category">
+            <a
+              href="/floor"
+              className="gs-item"
+              style={{
+                paddingLeft:'20px', display:'flex', alignItems:'center', gap:'8px',
+                textDecoration:'none', color:'var(--accent-ink)', fontWeight:700,
+                borderLeft:'2px solid var(--accent)',
+              }}
+              onClick={onClose}
+            >
+              <span style={{fontSize:'14px'}}>&#9889;</span>
+              <span>Sales Floor</span>
+              <span style={{
+                marginLeft:'auto', fontSize:'8px', fontWeight:800,
+                padding:'2px 6px', borderRadius:'4px',
+                background:'var(--accent-glow-15)', border:'1px solid var(--accent-glow-50)',
+                color:'var(--accent-ink)', letterSpacing:'.1em',
+                fontFamily:'JetBrains Mono, monospace',
+              }}>NEW</span>
+            </a>
+          </div>
+
+          {/* Cold Calling (legacy — kept during dual-track per audit decision Option C) */}
           <div className="gs-category">
             <button className={`gs-item${currentView==='coldcall'?' active':''}`} onClick={()=>go('coldcall')} style={{paddingLeft:'20px'}}>
               <span style={{fontSize:'14px'}}>&#9742;</span> Call Center
