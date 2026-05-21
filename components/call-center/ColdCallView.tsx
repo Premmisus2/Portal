@@ -10,6 +10,7 @@ import QuickLogForm from './QuickLogForm';
 import CallTranscriptToggle from './CallTranscriptToggle';
 import EditCallLogModal from './EditCallLogModal';
 import TwilioCallModal from './TwilioCallModal';
+import ManualDialerModal from './ManualDialerModal';
 import SmsComposer from '@/components/inbox/SmsComposer';
 import { recordingProxySrc } from '@/lib/recording';
 
@@ -47,6 +48,7 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
   const [batches, setBatches] = useState<any[]>([]);
   const [callModalLead, setCallModalLead] = useState<any | null>(null);
   const [composingSmsLeadId, setComposingSmsLeadId] = useState<string | null>(null);
+  const [manualDialerOpen, setManualDialerOpen] = useState(false);
 
   useEffect(() => { try { localStorage.setItem('pmss_cc_batch', selectedBatch); } catch {} }, [selectedBatch]);
   useEffect(() => { try { localStorage.setItem('pmss_cc_tab', tab); } catch {} }, [tab]);
@@ -330,7 +332,14 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
               </button>
             );
           })}
-          <button onClick={()=>{ loadLeads(); loadStats(); loadCalendar(); }} style={{marginLeft:'auto', padding:'8px 14px', borderRadius:'7px', cursor:'pointer', border:'1px solid var(--border)', background:'transparent', color:'var(--text-faint)', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif', transition:'all .15s'}}
+          {/* Manual dialer — tucked right of the tabs, sized smaller than Refresh. Ad-hoc dial for numbers not yet in the pipeline. Slice 1.6 polish 2026-05-21. */}
+          <button onClick={() => setManualDialerOpen(true)} style={{marginLeft:'auto', padding:'8px 12px', borderRadius:'7px', cursor:'pointer', border:'1px solid var(--accent-glow-30)', background:'transparent', color:'var(--accent-ink)', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif', transition:'all .15s', display:'inline-flex', alignItems:'center', gap:'6px'}}
+            onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='var(--accent-glow-08)';}}
+            onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='transparent';}}
+            aria-label="Manual dial — call a number not in the pipeline">
+            <span>📞</span><span>Dial Number</span>
+          </button>
+          <button onClick={()=>{ loadLeads(); loadStats(); loadCalendar(); }} style={{marginLeft:'8px', padding:'8px 14px', borderRadius:'7px', cursor:'pointer', border:'1px solid var(--border)', background:'transparent', color:'var(--text-faint)', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif', transition:'all .15s'}}
             onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.borderColor='var(--accent-glow-30)';(e.currentTarget as HTMLElement).style.color='var(--accent-ink)';}}
             onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.borderColor='var(--border)';(e.currentTarget as HTMLElement).style.color='var(--text-faint)';}}>
             Refresh
@@ -1046,6 +1055,13 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
           onCallComplete={() => { setCallModalLead(null); loadLeads(); loadStats(); }}
         />
       )}
+      <ManualDialerModal
+        open={manualDialerOpen}
+        onClose={() => setManualDialerOpen(false)}
+        repId={repId}
+        repPhone={repPhone}
+        onDialed={() => { loadLeads(); loadStats(); }}
+      />
     </div>
   );
 };

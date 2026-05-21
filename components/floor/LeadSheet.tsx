@@ -30,11 +30,16 @@ const VIRTUALIZATION_THRESHOLD = 100;
 
 interface LeadSheetProps {
   leads: FloorLead[];
+  totalCount: number | null;
   selectedLeadId: string | null;
   searchQuery: string;
   onSearchQueryChange: (q: string) => void;
   onRowClick: (leadId: string) => void;
   repId: string;
+  isDirector: boolean;
+  allReps: Array<{ id: string; name: string }>;
+  filterRepId: string | null;
+  onFilterRepIdChange: (repId: string | null) => void;
 }
 
 function relativeTime(iso?: string | null): string {
@@ -104,7 +109,7 @@ function initialsOf(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export default function LeadSheet({ leads, selectedLeadId, searchQuery, onSearchQueryChange, onRowClick, repId }: LeadSheetProps) {
+export default function LeadSheet({ leads, totalCount, selectedLeadId, searchQuery, onSearchQueryChange, onRowClick, repId, isDirector, allReps, filterRepId, onFilterRepIdChange }: LeadSheetProps) {
   const [sorting, setSorting] = useState<SortingState>([{ id: 'next_action_due_at', desc: false }]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() => {
     if (typeof window === 'undefined') return {};
@@ -378,20 +383,47 @@ export default function LeadSheet({ leads, selectedLeadId, searchQuery, onSearch
             </span>
           </div>
           <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-.01em', color: '#fff' }}>
-            My Leads · {data.length}
+            {isDirector && !filterRepId ? (
+              <>All Leads · {data.length}{totalCount != null && totalCount !== data.length ? <span style={{ fontSize: 14, fontWeight: 500, color: '#888', marginLeft: 8 }}>of {totalCount.toLocaleString()}</span> : null}</>
+            ) : isDirector && filterRepId ? (
+              <>{allReps.find((r) => r.id === filterRepId)?.name?.split(/\s+/)[0] || 'Rep'}'s Leads · {data.length}</>
+            ) : (
+              <>My Leads · {data.length}</>
+            )}
           </h1>
         </div>
-        <input
-          type="text"
-          placeholder="🔍 Search business, contact, phone…"
-          value={searchQuery}
-          onChange={(e) => onSearchQueryChange(e.target.value)}
-          style={{
-            background: '#0d0d0d', border: '1px solid #1e1e1e', borderRadius: 8,
-            padding: '9px 14px', color: '#fff', fontSize: 13, width: 320,
-            fontFamily: 'Inter, sans-serif',
-          }}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Director-only: filter-by-rep dropdown */}
+          {isDirector && (
+            <select
+              value={filterRepId ?? ''}
+              onChange={(e) => onFilterRepIdChange(e.target.value || null)}
+              style={{
+                background: '#0d0d0d', border: '1px solid #1e1e1e', borderRadius: 8,
+                padding: '9px 12px', color: filterRepId ? '#00F0FF' : '#ccc', fontSize: 12,
+                fontFamily: "'JetBrains Mono', monospace", letterSpacing: '.05em',
+                cursor: 'pointer',
+              }}
+              aria-label="Filter leads by rep"
+            >
+              <option value="">VIEWING: ALL REPS</option>
+              {allReps.map((r) => (
+                <option key={r.id} value={r.id}>VIEWING: {r.name.toUpperCase()}</option>
+              ))}
+            </select>
+          )}
+          <input
+            type="text"
+            placeholder="🔍 Search business, contact, phone…"
+            value={searchQuery}
+            onChange={(e) => onSearchQueryChange(e.target.value)}
+            style={{
+              background: '#0d0d0d', border: '1px solid #1e1e1e', borderRadius: 8,
+              padding: '9px 14px', color: '#fff', fontSize: 13, width: 320,
+              fontFamily: 'Inter, sans-serif',
+            }}
+          />
+        </div>
       </div>
 
       {/* Sheet */}

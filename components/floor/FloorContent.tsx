@@ -17,15 +17,23 @@ import type { FloorLead } from './types';
 
 const DIRECTOR_LEAD_CAP = 1000;
 
+// Sales Floor is a CRM lens — shows leads that have been TOUCHED or are
+// otherwise warm (in-person source, status != 'new'). Untouched cold leads
+// stay in Call Center until first contact. Locked 2026-05-21 after Elliott
+// articulated the Call Center vs CRM split.
+const FLOOR_TOUCHED_OR_WARM_FILTER = 'status.neq.new,last_touch_at.not.is.null';
+
 export default function FloorContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const [leads, setLeads] = useState<FloorLead[]>([]);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [repId, setRepId] = useState<string | null>(null);
   const [isDirector, setIsDirector] = useState(false);
+  const [allReps, setAllReps] = useState<Array<{ id: string; name: string }>>([]);
 
   // ── auth gate — always verify rep + role from session, never trust localStorage ──
   useEffect(() => {
@@ -60,20 +68,39 @@ export default function FloorContent() {
     return () => { cancelled = true; };
   }, [router]);
 
-  // ── lead fetch — abortable, capped for directors ──
+  // ── filter-by-rep dropdown state (director only) ──
+  // URL param ?rep=<rep_id> filters the lead pool. Default null = "All" for
+  // directors / "My leads" for reps (who can't change it).
+  const filterRepId = searchParams?.get('rep') ?? null;
+
+  // ── lead fetch — abortable, CRM-filtered, capped for directors ──
+  // CRM filter: status != 'new' OR last_touch_at IS NOT NULL.
+  // (Untouched cold leads belong to Call Center, not Sales Floor.)
   const fetchLeads = useCallback(async (signal?: AbortSignal) => {
     if (!repId) return;
     setError(null);
-    const baseQuery = supabase.from('leads').select('*');
-    const query = isDirector
-      ? baseQuery
-          .order('last_touch_at', { ascending: false, nullsFirst: false })
-          .limit(DIRECTOR_LEAD_CAP)
-      : baseQuery
-          .eq('assigned_rep_id', repId)
-          .order('last_touch_at', { ascending: false, nullsFirst: false });
 
-    const { data, error: fetchErr } = await query.abortSignal(signal as AbortSignal);
+    // Determine the effective scope:
+    //   * Rep → their own assigned leads, CRM-filtered
+    //   * Director with ?rep=X → that rep's assigned leads, CRM-filtered
+    //   * Director with no filter → ALL CRM-filtered leads, capped
+    const effectiveRepFilter = isDirector ? filterRepId : repId;
+
+    const buildQuery = (countOnly: boolean) => {
+      let q = supabase
+        .from('leads')
+        .select(countOnly ? 'id' : '*', countOnly ? { count: 'exact', head: true } : undefined)
+        .or(FLOOR_TOUCHED_OR_WARM_FILTER);
+      if (effectiveRepFilter) q = q.eq('assigned_rep_id', effectiveRepFilter);
+      if (!countOnly) {
+        q = q.order('last_touch_at', { ascending: false, nullsFirst: false });
+        if (isDirector && !effectiveRepFilter) q = q.limit(DIRECTOR_LEAD_CAP);
+      }
+      return q;
+    };
+
+    const dataQuery = buildQuery(false);
+    const { data, error: fetchErr } = await dataQuery.abortSignal(signal as AbortSignal);
     if (signal?.aborted) return;
     if (fetchErr) {
       if ((fetchErr as { code?: string }).code === '20') return;
@@ -82,14 +109,45 @@ export default function FloorContent() {
       return;
     }
     setLeads((data || []) as FloorLead[]);
+
+    // Fetch total count (only matters when director hits the cap).
+    if (isDirector && !effectiveRepFilter) {
+      const { count } = await buildQuery(true).abortSignal(signal as AbortSignal);
+      if (!signal?.aborted && typeof count === 'number') setTotalCount(count);
+    } else {
+      setTotalCount(null);
+    }
     setLoading(false);
-  }, [repId, isDirector]);
+  }, [repId, isDirector, filterRepId]);
 
   useEffect(() => {
     const ac = new AbortController();
     void fetchLeads(ac.signal);
     return () => ac.abort();
   }, [fetchLeads]);
+
+  // Load rep roster for the filter-by-rep dropdown (director only).
+  useEffect(() => {
+    if (!isDirector) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('reps')
+        .select('id, name')
+        .order('name', { ascending: true });
+      if (!cancelled && data) setAllReps(data as Array<{ id: string; name: string }>);
+    })();
+    return () => { cancelled = true; };
+  }, [isDirector]);
+
+  const setFilterRepId = useCallback((newRepId: string | null) => {
+    const params = new URLSearchParams(Array.from(searchParams?.entries() || []));
+    if (newRepId) params.set('rep', newRepId); else params.delete('rep');
+    // Clear drawer state when switching rep view — that lead may not exist in new scope.
+    params.delete('lead');
+    const s = params.toString();
+    router.replace(s ? `/floor?${s}` : '/floor', { scroll: false });
+  }, [router, searchParams]);
 
   // ── URL → drawer state ────────────────────────────────────────────
   const selectedLeadId = searchParams?.get('lead') ?? null;
@@ -173,11 +231,16 @@ export default function FloorContent() {
       </div>
       <LeadSheet
         leads={leads}
+        totalCount={totalCount}
         selectedLeadId={selectedLeadId}
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}
         onRowClick={openLeadDrawer}
         repId={repId!}
+        isDirector={isDirector}
+        allReps={allReps}
+        filterRepId={filterRepId}
+        onFilterRepIdChange={setFilterRepId}
       />
       {selectedLeadId && selectedLead && repId && (
         <LeadDrawer

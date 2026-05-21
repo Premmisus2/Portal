@@ -35,6 +35,123 @@ function firstName(full: string): string {
   return full?.split(/\s+/)[0] || full || 'rep';
 }
 
+// Collapsed leaderboard — shows top rep + "▾ N more". Click to expand a
+// dropdown listing all reps. Replaces inline rep list which wrapped to a
+// second row past 5 reps (caught by Elliott eyeballing the deployed view).
+function Leaderboard({ counts }: { counts: TodayCountRow[] }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  // Click-outside to close
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
+
+  const top = counts[0];
+  const remaining = counts.length - 1;
+  const teamTotal = counts.reduce((s, c) => s + c.call_count, 0);
+
+  return (
+    <div ref={rootRef} style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div style={{
+        fontFamily: "'JetBrains Mono',monospace", fontSize: 9,
+        letterSpacing: '.18em', textTransform: 'uppercase', color: '#00F0FF',
+        whiteSpace: 'nowrap',
+      }}>
+        ⚡ Today
+      </div>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          background: 'transparent', border: '1px solid #1e1e1e', borderRadius: 8,
+          padding: '6px 12px', cursor: 'pointer',
+          display: 'flex', alignItems: 'center', gap: 10,
+          fontFamily: "'JetBrains Mono',monospace", fontSize: 11,
+          color: '#ccc', whiteSpace: 'nowrap',
+        }}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        {top && top.call_count > 0 ? (
+          <>
+            <span style={{ color: '#F59E0B', fontSize: 11 }}>👑</span>
+            <span style={{ fontWeight: 700 }}>{firstName(top.rep_name)}</span>
+            <span style={{ color: '#fff', fontWeight: 800 }}>{top.call_count}</span>
+            <span style={{ color: '#555', fontSize: 9 }}>calls</span>
+            {top.booked_count > 0 && (
+              <>
+                <span style={{ color: '#22c55e', fontWeight: 800 }}>· {top.booked_count}</span>
+                <span style={{ color: '#555', fontSize: 9 }}>booked</span>
+              </>
+            )}
+          </>
+        ) : (
+          <span style={{ color: '#555' }}>No calls today yet</span>
+        )}
+        {remaining > 0 && (
+          <span style={{
+            color: '#555', fontSize: 9, marginLeft: 4,
+            paddingLeft: 8, borderLeft: '1px solid #1e1e1e',
+          }}>
+            +{remaining} {open ? '▴' : '▾'}
+          </span>
+        )}
+      </button>
+      <span style={{ fontSize: 10, color: '#444', fontFamily: "'JetBrains Mono',monospace" }}>
+        team: {teamTotal}
+      </span>
+
+      {open && (
+        <div
+          role="listbox"
+          style={{
+            position: 'absolute', top: 'calc(100% + 8px)', left: 80,
+            background: '#0d0d0d', border: '1px solid #1e1e1e', borderRadius: 10,
+            padding: '8px 0', minWidth: 260, zIndex: 50,
+            boxShadow: '0 12px 32px rgba(0,0,0,.5)',
+          }}
+        >
+          <div style={{
+            padding: '4px 14px 8px', fontFamily: "'JetBrains Mono',monospace",
+            fontSize: 9, letterSpacing: '.15em', textTransform: 'uppercase',
+            color: '#555', borderBottom: '1px solid #1a1a1a',
+          }}>
+            Today's Leaderboard
+          </div>
+          {counts.map((c, idx) => (
+            <div key={c.rep_id} style={{
+              padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 10,
+              fontFamily: "'JetBrains Mono',monospace", fontSize: 12,
+              borderBottom: idx === counts.length - 1 ? 'none' : '1px solid #111',
+            }}>
+              <span style={{
+                color: idx === 0 && c.call_count > 0 ? '#F59E0B' : '#444',
+                width: 16, textAlign: 'center', fontSize: 10,
+              }}>
+                {idx === 0 && c.call_count > 0 ? '👑' : String(idx + 1)}
+              </span>
+              <span style={{ color: '#ccc', fontWeight: 700, flex: 1 }}>{firstName(c.rep_name)}</span>
+              <span style={{ color: c.call_count === 0 ? '#444' : '#fff', fontWeight: 800, width: 32, textAlign: 'right' }}>
+                {c.call_count}
+              </span>
+              <span style={{ color: '#444', fontSize: 9, width: 36 }}>calls</span>
+              <span style={{ color: c.booked_count === 0 ? '#444' : '#22c55e', fontWeight: 800, width: 24, textAlign: 'right' }}>
+                {c.booked_count}
+              </span>
+              <span style={{ color: '#444', fontSize: 9, width: 40 }}>booked</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function eventLine(e: FloorEventRow): string {
   const verb = e.event_type === 'booked' ? 'booked a discovery' : 'completed a discovery';
   const subject = e.business_name
@@ -107,51 +224,15 @@ export default function TeamActivityPanel() {
       display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) 2fr', gap: 24,
       alignItems: 'center',
     }} className="team-activity-panel">
-      {/* Leaderboard */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', minWidth: 0 }}>
-        <div style={{
-          fontFamily: "'JetBrains Mono',monospace", fontSize: 9,
-          letterSpacing: '.18em', textTransform: 'uppercase', color: '#00F0FF',
-          whiteSpace: 'nowrap',
-        }}>
-          ⚡ Today
-        </div>
-        <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', minWidth: 0 }}>
-          {counts.length === 0 && (
-            <span style={{ fontSize: 11, color: '#555', fontFamily: "'JetBrains Mono',monospace" }}>
-              No reps active.
-            </span>
-          )}
-          {counts.map((c, idx) => (
-            <div key={c.rep_id} style={{
-              display: 'flex', alignItems: 'baseline', gap: 6,
-              fontFamily: "'JetBrains Mono',monospace", fontSize: 11,
-              whiteSpace: 'nowrap',
-            }}>
-              {idx === 0 && c.call_count > 0 && (
-                <span style={{ color: '#F59E0B', fontSize: 10 }}>👑</span>
-              )}
-              <span style={{ color: '#ccc', fontWeight: 700 }}>{firstName(c.rep_name)}</span>
-              <span style={{ color: c.call_count === 0 ? '#555' : '#fff', fontWeight: 800 }}>
-                {c.call_count}
-              </span>
-              <span style={{ color: '#555', fontSize: 9 }}>calls</span>
-              {c.booked_count > 0 && (
-                <>
-                  <span style={{ color: '#22c55e', fontWeight: 800 }}>· {c.booked_count}</span>
-                  <span style={{ color: '#555', fontSize: 9 }}>booked</span>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* Leaderboard — collapsible. Top rep shown inline; full list opens
+          on click. Survives 10+ reps without wrapping to a second row. */}
+      <Leaderboard counts={counts} />
 
-      {/* Headline events */}
       <div style={{
         display: 'flex', alignItems: 'center', gap: 12, minWidth: 0,
         borderLeft: '1px solid #1e1e1e', paddingLeft: 18,
       }}>
+        {/* Headline events */}
         <div style={{
           fontFamily: "'JetBrains Mono',monospace", fontSize: 9,
           letterSpacing: '.18em', textTransform: 'uppercase', color: '#22c55e',
