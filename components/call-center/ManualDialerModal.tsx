@@ -44,6 +44,83 @@ function isValidPhone(p: string): boolean {
   return /^\+\d{10,15}$/.test(s);
 }
 
+// Classic phone dialer keypad — 4×3 grid + a "+ / ⌫" row.
+// Each cell is the digit + sub-letters (ABC, DEF…). Tapping appends the
+// digit to the phone display via onKey. Backspace pops last char.
+const KEYPAD: Array<{ digit: string; letters?: string }> = [
+  { digit: '1' },
+  { digit: '2', letters: 'ABC' },
+  { digit: '3', letters: 'DEF' },
+  { digit: '4', letters: 'GHI' },
+  { digit: '5', letters: 'JKL' },
+  { digit: '6', letters: 'MNO' },
+  { digit: '7', letters: 'PQRS' },
+  { digit: '8', letters: 'TUV' },
+  { digit: '9', letters: 'WXYZ' },
+  { digit: '*' },
+  { digit: '0', letters: '+' },
+  { digit: '#' },
+];
+
+function Keypad({ onKey, onBackspace }: { onKey: (k: string) => void; onBackspace: () => void }) {
+  return (
+    <div>
+      <div style={{
+        display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8,
+      }}>
+        {KEYPAD.map(({ digit, letters }) => (
+          <button
+            key={digit}
+            type="button"
+            onClick={() => onKey(digit)}
+            // Long-press 0 → "+". Convenience for E.164 entry.
+            onPointerDown={digit === '0' ? (e) => {
+              const target = e.currentTarget;
+              const timer = setTimeout(() => { onKey('+'); }, 450);
+              const cancel = () => { clearTimeout(timer); target.removeEventListener('pointerup', cancel); target.removeEventListener('pointerleave', cancel); };
+              target.addEventListener('pointerup', cancel, { once: true });
+              target.addEventListener('pointerleave', cancel, { once: true });
+            } : undefined}
+            style={{
+              background: '#0d0d0d', border: '1px solid #1e1e1e', borderRadius: 10,
+              padding: '14px 0', cursor: 'pointer',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+              fontFamily: "'JetBrains Mono', monospace",
+              transition: 'all .12s',
+            }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(0,240,255,.3)'; (e.currentTarget as HTMLButtonElement).style.background = '#111'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = '#1e1e1e'; (e.currentTarget as HTMLButtonElement).style.background = '#0d0d0d'; }}
+            aria-label={`Dial ${digit}`}
+          >
+            <span style={{ fontSize: 22, fontWeight: 700, color: '#fff', lineHeight: 1 }}>{digit}</span>
+            {letters && (
+              <span style={{ fontSize: 9, fontWeight: 600, color: '#555', letterSpacing: '.12em' }}>
+                {letters}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
+        <button
+          type="button"
+          onClick={onBackspace}
+          style={{
+            background: 'transparent', border: '1px solid #1e1e1e', borderRadius: 8,
+            padding: '8px 18px', cursor: 'pointer', color: '#888',
+            fontFamily: "'JetBrains Mono', monospace", fontSize: 12,
+            display: 'inline-flex', alignItems: 'center', gap: 6,
+          }}
+          aria-label="Backspace"
+        >
+          <span style={{ fontSize: 14 }}>⌫</span>
+          <span style={{ fontSize: 9, letterSpacing: '.15em' }}>BACK</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function ManualDialerModal({ open, onClose, repId, repPhone, onDialed }: ManualDialerModalProps) {
   const [phone, setPhone] = useState('');
   const [businessName, setBusinessName] = useState('');
@@ -158,7 +235,10 @@ export default function ManualDialerModal({ open, onClose, repId, repPhone, onDi
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <label style={{ display: 'block' }}>
+          {/* Phone display + keypad — classic phone dialer UX. The display
+              is still an editable input so paste-from-clipboard works. Tapping
+              keypad buttons appends to the display. */}
+          <div>
             <span style={{ fontSize: 10, fontFamily: "'JetBrains Mono',monospace", letterSpacing: '.15em', textTransform: 'uppercase', color: '#888', display: 'block', marginBottom: 4 }}>
               Phone *
             </span>
@@ -170,11 +250,17 @@ export default function ManualDialerModal({ open, onClose, repId, repPhone, onDi
               onChange={(e) => setPhone(e.target.value)}
               style={{
                 width: '100%', background: '#000', border: '1px solid #1e1e1e', borderRadius: 6,
-                padding: '10px 12px', color: '#fff', fontSize: 14,
-                fontFamily: "'JetBrains Mono', monospace",
+                padding: '12px 14px', color: '#fff', fontSize: 22,
+                fontFamily: "'JetBrains Mono', monospace", letterSpacing: '.04em',
+                textAlign: 'center', fontWeight: 600,
               }}
             />
-          </label>
+          </div>
+
+          <Keypad
+            onKey={(k) => setPhone((p) => (p ?? '') + k)}
+            onBackspace={() => setPhone((p) => (p || '').slice(0, -1))}
+          />
 
           <label style={{ display: 'block' }}>
             <span style={{ fontSize: 10, fontFamily: "'JetBrains Mono',monospace", letterSpacing: '.15em', textTransform: 'uppercase', color: '#888', display: 'block', marginBottom: 4 }}>
