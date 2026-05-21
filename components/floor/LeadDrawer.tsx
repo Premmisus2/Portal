@@ -16,6 +16,7 @@ import { createPortal } from 'react-dom';
 import type { FloorLead } from './types';
 import { getLeadTimeline, updateLeadOutcome, type TimelineEntry, type LeadStatus } from '@/features/leads';
 import { sendSms } from '@/features/messaging';
+import { scheduleCallback } from '@/features/reminders';
 import { recordAuditEvent } from '@/features/audit';
 import LeadTimeline from './LeadTimeline';
 
@@ -56,6 +57,11 @@ export default function LeadDrawer({ lead, repId, onClose, onLeadUpdated }: Lead
   const [smsComposerOpen, setSmsComposerOpen] = useState(false);
   const [smsBody, setSmsBody] = useState('');
   const [smsSending, setSmsSending] = useState(false);
+  const [callbackPickerOpen, setCallbackPickerOpen] = useState(false);
+  const [callbackDate, setCallbackDate] = useState('');
+  const [callbackTime, setCallbackTime] = useState('');
+  const [callbackNotes, setCallbackNotes] = useState('');
+  const [callbackBusy, setCallbackBusy] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -166,10 +172,60 @@ export default function LeadDrawer({ lead, repId, onClose, onLeadUpdated }: Lead
     }
   }, [smsBody, lead.id, repId, flashToast]);
 
-  // ── ACTION: Schedule Callback (Slice 2 placeholder) ──────────────
+  // ── ACTION: Schedule Callback ────────────────────────────────────
+  // Toggles the picker. The actual scheduling happens on Confirm via
+  // handleConfirmCallback below. Rep enters date + time in their own
+  // timezone (browser default); we convert to UTC at write time and store
+  // the wall-clock + tz alongside for DST verification.
   const handleScheduleCallback = useCallback(() => {
-    flashToast('Schedule Callback → ships in Slice 2 (callback_tasks + reminders)', 'error');
-  }, [flashToast]);
+    setCallbackPickerOpen((v) => !v);
+  }, []);
+
+  const handleConfirmCallback = useCallback(async () => {
+    if (!callbackDate || !callbackTime) {
+      flashToast('Pick a date and time', 'error');
+      return;
+    }
+    // Build a Date in the browser's local timezone, then send as UTC.
+    // The rep's timezone is captured from Intl — matches whatever their
+    // browser says they're in. Stored alongside for DST safety.
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Toronto';
+    const local = new Date(`${callbackDate}T${callbackTime}:00`);
+    if (Number.isNaN(local.getTime())) {
+      flashToast('Invalid date or time', 'error');
+      return;
+    }
+    setCallbackBusy(true);
+    try {
+      await scheduleCallback({
+        leadId: lead.id,
+        repId,
+        scheduledAtUtc: local,
+        scheduledLocalTime: callbackTime,
+        scheduledTz: tz,
+        notes: callbackNotes.trim() || null,
+      });
+      flashToast(`Callback scheduled for ${callbackDate} ${callbackTime}`);
+      // Optimistic: update local lead state so the row + drawer reflect callback.
+      onLeadUpdated({
+        id: lead.id,
+        status: 'callback' as LeadStatus,
+        callback_date: callbackDate,
+      });
+      // Reset picker.
+      setCallbackPickerOpen(false);
+      setCallbackDate('');
+      setCallbackTime('');
+      setCallbackNotes('');
+      // Refresh timeline (the scheduled callback isn't a timeline event yet, but
+      // status change + future audit_log row may be relevant).
+      getLeadTimeline(lead.id).then(setTimeline).catch(() => {});
+    } catch (err) {
+      flashToast(`Schedule failed: ${(err as Error).message}`, 'error');
+    } finally {
+      setCallbackBusy(false);
+    }
+  }, [callbackDate, callbackTime, callbackNotes, lead.id, repId, flashToast, onLeadUpdated]);
 
   if (!mounted) return null;
 
@@ -248,6 +304,71 @@ export default function LeadDrawer({ lead, repId, onClose, onLeadUpdated }: Lead
             Timeline
           </div>
           <LeadTimeline entries={timeline} loading={timelineLoading} error={timelineError} />
+
+          {/* Callback scheduler (collapsible) */}
+          {callbackPickerOpen && (
+            <div style={{ padding: '12px 18px', borderTop: '1px solid #1a1a1a', background: '#0a0a0a' }}>
+              <div style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 9, letterSpacing: '.15em', textTransform: 'uppercase', color: '#F59E0B', marginBottom: 8 }}>
+                ⏱ SCHEDULE CALLBACK
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                <input
+                  type="date"
+                  value={callbackDate}
+                  onChange={(e) => setCallbackDate(e.target.value)}
+                  min={new Date().toISOString().slice(0, 10)}
+                  style={{
+                    flex: 1, background: '#000', border: '1px solid #1e1e1e', borderRadius: 6,
+                    padding: '10px 12px', color: '#fff', fontSize: 13,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    colorScheme: 'dark',
+                  }}
+                />
+                <input
+                  type="time"
+                  value={callbackTime}
+                  onChange={(e) => setCallbackTime(e.target.value)}
+                  style={{
+                    width: 110, background: '#000', border: '1px solid #1e1e1e', borderRadius: 6,
+                    padding: '10px 12px', color: '#fff', fontSize: 13,
+                    fontFamily: "'JetBrains Mono', monospace",
+                    colorScheme: 'dark',
+                  }}
+                />
+              </div>
+              <textarea
+                value={callbackNotes}
+                onChange={(e) => setCallbackNotes(e.target.value)}
+                placeholder="Why are you calling them back? (optional)"
+                rows={2}
+                style={{
+                  width: '100%', background: '#000', border: '1px solid #1e1e1e', borderRadius: 6,
+                  padding: 10, color: '#fff', fontSize: 13, fontFamily: 'Inter, sans-serif',
+                  resize: 'vertical', minHeight: 50,
+                }}
+              />
+              <div style={{ fontSize: 10, color: '#555', fontFamily: "'JetBrains Mono', monospace", marginTop: 6, marginBottom: 8 }}>
+                Reminders fire at T-60 · T-30 · T-10 via SMS to your cell. Timezone: {Intl.DateTimeFormat().resolvedOptions().timeZone}
+              </div>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button
+                  onClick={() => { setCallbackPickerOpen(false); setCallbackDate(''); setCallbackTime(''); setCallbackNotes(''); }}
+                  style={{ background: 'transparent', border: '1px solid #1e1e1e', borderRadius: 6, padding: '6px 12px', fontSize: 11, color: '#888', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
+                >Cancel</button>
+                <button
+                  onClick={handleConfirmCallback}
+                  disabled={callbackBusy || !callbackDate || !callbackTime}
+                  style={{
+                    background: !callbackBusy && callbackDate && callbackTime ? '#F59E0B' : '#1e1e1e',
+                    color: !callbackBusy && callbackDate && callbackTime ? '#000' : '#555', border: 'none',
+                    borderRadius: 6, padding: '6px 14px', fontSize: 11, fontWeight: 800,
+                    cursor: callbackBusy ? 'not-allowed' : 'pointer',
+                    letterSpacing: '.08em', textTransform: 'uppercase', fontFamily: 'Inter, sans-serif',
+                  }}
+                >{callbackBusy ? 'Scheduling…' : 'Schedule'}</button>
+              </div>
+            </div>
+          )}
 
           {/* SMS composer (collapsible) */}
           {smsComposerOpen && (
