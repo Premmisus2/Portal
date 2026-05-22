@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, Roboto, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { ANTI_FLASH_SCRIPT } from '@/lib/theme';
@@ -26,7 +26,26 @@ const jetbrains = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: 'Premmisus — Sales Portal',
-  icons: { icon: '/favicon.png' },
+  icons: {
+    icon: '/favicon.png',
+    apple: '/favicon.png',
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Premmisus',
+  },
+};
+
+// viewport-fit=cover is what makes iOS PWAs treat `position: fixed; bottom: 0`
+// as anchored to the VISUAL viewport instead of the layout viewport. Without
+// it the bottom nav scrolls with content on home-screen-installed iOS. Also
+// required for env(safe-area-inset-*) to return non-zero values.
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#000000',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
