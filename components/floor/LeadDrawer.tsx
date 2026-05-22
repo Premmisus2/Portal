@@ -16,7 +16,7 @@ import { createPortal } from 'react-dom';
 import type { FloorLead } from './types';
 import { getLeadTimeline, updateLeadOutcome, type TimelineEntry, type LeadStatus } from '@/features/leads';
 import { sendSms } from '@/features/messaging';
-import { scheduleCallback } from '@/features/reminders';
+import { scheduleCallback, findCallbackConflicts } from '@/features/reminders';
 import { recordAuditEvent } from '@/features/audit';
 import LeadTimeline from './LeadTimeline';
 
@@ -62,6 +62,29 @@ export default function LeadDrawer({ lead, repId, onClose, onLeadUpdated }: Lead
   const [callbackTime, setCallbackTime] = useState('');
   const [callbackNotes, setCallbackNotes] = useState('');
   const [callbackBusy, setCallbackBusy] = useState(false);
+  const [callbackRecurrence, setCallbackRecurrence] = useState<string>(''); // '' | 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY'
+  const [callbackConflicts, setCallbackConflicts] = useState<Array<{ id: string; businessName: string; scheduledAtUtc: string }>>([]);
+
+  // Conflict detection — debounced query when date+time both set. Warns
+  // (never blocks) per audit consensus. Per-rep scoped via RPC.
+  useEffect(() => {
+    if (!callbackDate || !callbackTime || !repId) {
+      setCallbackConflicts([]);
+      return;
+    }
+    const handle = setTimeout(async () => {
+      try {
+        const target = new Date(`${callbackDate}T${callbackTime}:00`);
+        if (Number.isNaN(target.getTime())) return;
+        const conflicts = await findCallbackConflicts({ repId, targetUtc: target, windowMinutes: 15 });
+        // Filter out the lead's own existing callback (rescheduling shouldn't warn about self).
+        setCallbackConflicts(conflicts.filter(c => c.id !== lead.id));
+      } catch {
+        // Silent — conflict detection is advisory only.
+      }
+    }, 350);
+    return () => clearTimeout(handle);
+  }, [callbackDate, callbackTime, repId, lead.id]);
 
   useEffect(() => {
     setMounted(true);
@@ -204,6 +227,7 @@ export default function LeadDrawer({ lead, repId, onClose, onLeadUpdated }: Lead
         scheduledLocalTime: callbackTime,
         scheduledTz: tz,
         notes: callbackNotes.trim() || null,
+        recurrenceRule: callbackRecurrence ? `FREQ=${callbackRecurrence}` : null,
       });
       flashToast(`Callback scheduled for ${callbackDate} ${callbackTime}`);
       // Optimistic: update local lead state so the row + drawer reflect callback.
@@ -217,6 +241,8 @@ export default function LeadDrawer({ lead, repId, onClose, onLeadUpdated }: Lead
       setCallbackDate('');
       setCallbackTime('');
       setCallbackNotes('');
+      setCallbackRecurrence('');
+      setCallbackConflicts([]);
       // Refresh timeline (the scheduled callback isn't a timeline event yet, but
       // status change + future audit_log row may be relevant).
       getLeadTimeline(lead.id).then(setTimeline).catch(() => {});
@@ -225,7 +251,7 @@ export default function LeadDrawer({ lead, repId, onClose, onLeadUpdated }: Lead
     } finally {
       setCallbackBusy(false);
     }
-  }, [callbackDate, callbackTime, callbackNotes, lead.id, repId, flashToast, onLeadUpdated]);
+  }, [callbackDate, callbackTime, callbackNotes, callbackRecurrence, lead.id, repId, flashToast, onLeadUpdated]);
 
   if (!mounted) return null;
 
@@ -336,6 +362,18 @@ export default function LeadDrawer({ lead, repId, onClose, onLeadUpdated }: Lead
                   }}
                 />
               </div>
+              {/* Conflict warning — advisory only, never blocks. Audit-locked per-rep scope. */}
+              {callbackConflicts.length > 0 && (
+                <div style={{
+                  background: 'rgba(251,191,36,0.08)', border: '1px solid rgba(251,191,36,0.35)',
+                  borderRadius: 6, padding: '8px 10px', marginBottom: 8, fontSize: 11,
+                  color: '#fbbf24', fontFamily: 'Inter, sans-serif',
+                }}>
+                  ⚠️ Overlaps within ±15min:{' '}
+                  {callbackConflicts.slice(0, 2).map(c => c.businessName).join(', ')}
+                  {callbackConflicts.length > 2 && ` +${callbackConflicts.length - 2}`}
+                </div>
+              )}
               <textarea
                 value={callbackNotes}
                 onChange={(e) => setCallbackNotes(e.target.value)}
@@ -347,12 +385,31 @@ export default function LeadDrawer({ lead, repId, onClose, onLeadUpdated }: Lead
                   resize: 'vertical', minHeight: 50,
                 }}
               />
+              {/* Recurrence picker — sets RRULE FREQ. Server expands next occurrence on Complete. */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
+                <span style={{ fontSize: 11, color: '#888', fontFamily: 'Inter, sans-serif' }}>Repeat:</span>
+                <select
+                  value={callbackRecurrence}
+                  onChange={(e) => setCallbackRecurrence(e.target.value)}
+                  style={{
+                    background: '#000', border: '1px solid #1e1e1e', borderRadius: 6,
+                    padding: '6px 8px', color: '#fff', fontSize: 12, fontFamily: 'Inter, sans-serif',
+                    colorScheme: 'dark', cursor: 'pointer',
+                  }}
+                >
+                  <option value="">No repeat</option>
+                  <option value="DAILY">Daily</option>
+                  <option value="WEEKLY">Weekly</option>
+                  <option value="BIWEEKLY">Every 2 weeks</option>
+                  <option value="MONTHLY">Monthly</option>
+                </select>
+              </div>
               <div style={{ fontSize: 10, color: '#555', fontFamily: "'JetBrains Mono', monospace", marginTop: 6, marginBottom: 8 }}>
-                Reminders fire at T-60 · T-30 · T-10 via SMS to your cell. Timezone: {Intl.DateTimeFormat().resolvedOptions().timeZone}
+                Reminders T-60/30/10 · auto-confirm SMS to lead at booking · {Intl.DateTimeFormat().resolvedOptions().timeZone}
               </div>
               <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                 <button
-                  onClick={() => { setCallbackPickerOpen(false); setCallbackDate(''); setCallbackTime(''); setCallbackNotes(''); }}
+                  onClick={() => { setCallbackPickerOpen(false); setCallbackDate(''); setCallbackTime(''); setCallbackNotes(''); setCallbackRecurrence(''); setCallbackConflicts([]); }}
                   style={{ background: 'transparent', border: '1px solid #1e1e1e', borderRadius: 6, padding: '6px 12px', fontSize: 11, color: '#888', cursor: 'pointer', fontFamily: 'Inter, sans-serif' }}
                 >Cancel</button>
                 <button
