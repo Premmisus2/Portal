@@ -74,9 +74,19 @@ export async function GET(
   }
   const providedHash = createHash('sha256').update(rawBytes).digest('hex');
 
+  // FIX (post-ship audit 2026-05-21): encodeURIComponent on rep_id.
+  // Previously `${params.rep_id}` was interpolated raw, letting an attacker
+  // send /api/ical/123&select=*/abc.ics to inject PostgREST query modifiers
+  // and exfiltrate columns the route never intended to expose.
+  // Also validate UUID shape — anything that isn't a uuid is rejected outright.
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(params.rep_id)) {
+    return new NextResponse('Not found', { status: 404 });
+  }
+  const safeRepId = encodeURIComponent(params.rep_id);
+
   // Look up the rep.
   const reps = await sbFetch<RepRow[]>(
-    `reps?id=eq.${params.rep_id}&select=id,name,ical_token,timezone&limit=1`,
+    `reps?id=eq.${safeRepId}&select=id,name,ical_token,timezone&limit=1`,
     SB_KEY,
   );
   const rep = reps?.[0];
@@ -104,8 +114,9 @@ export async function GET(
   // ones stay in the feed for 7 days so calendar apps that cached them
   // pick up the CANCELLED status on next poll.
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60_000).toISOString();
+  // rep.id came from the DB lookup so it's safe; still encode it for symmetry.
   const callbacks = await sbFetch<CallbackRow[]>(
-    `callback_tasks?rep_id=eq.${rep.id}&or=(status.eq.scheduled,and(status.eq.cancelled,cancelled_at.gte.${sevenDaysAgo}))&select=id,lead_id,scheduled_at_utc,scheduled_local_time,scheduled_tz,status,notes,leads(business_name,contact_name,phone,niche)&order=scheduled_at_utc.asc&limit=200`,
+    `callback_tasks?rep_id=eq.${encodeURIComponent(rep.id)}&or=(status.eq.scheduled,and(status.eq.cancelled,cancelled_at.gte.${encodeURIComponent(sevenDaysAgo)}))&select=id,lead_id,scheduled_at_utc,scheduled_local_time,scheduled_tz,status,notes,leads(business_name,contact_name,phone,niche)&order=scheduled_at_utc.asc&limit=200`,
     SB_KEY,
   );
 

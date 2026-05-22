@@ -75,18 +75,31 @@ export async function scheduleCallback(params: ScheduleCallbackParams): Promise<
     throw new Error(`callback_tasks insert failed: ${taskErr?.message || 'no id returned'}`);
   }
 
-  // 2. Insert the 3 reminder rows (T-60, T-30, T-10). They share the same
-  //    callback_task_id; UNIQUE (callback_task_id, type) prevents accidental
-  //    duplicates on retry.
-  const queueRows = (Object.entries(OFFSETS_MS) as Array<[keyof typeof OFFSETS_MS, number]>).map(
-    ([type, offsetMs]) => ({
+  // 2. Insert the reminder rows. FIX (post-ship audit 2026-05-21): only
+  //    insert rows whose send_at_utc is in the FUTURE. Previously, scheduling
+  //    a callback < 60 minutes out caused the T-60 row to land with a
+  //    send_at_utc in the past — the worker fired it immediately, sending
+  //    a "Callback in 60 min" SMS for a callback only 30 min away.
+  //
+  //    UNIQUE (callback_task_id, type) prevents accidental duplicates on retry.
+  const nowMs = Date.now();
+  const queueRows: Array<{
+    callback_task_id: string;
+    rep_id: string;
+    type: string;
+    send_at_utc: string;
+    status: 'pending';
+  }> = (Object.entries(OFFSETS_MS) as Array<[keyof typeof OFFSETS_MS, number]>)
+    .map(([type, offsetMs]) => ({
       callback_task_id: task.id,
       rep_id: params.repId,
-      type,
+      type: type as string,
       send_at_utc: new Date(params.scheduledAtUtc.getTime() - offsetMs).toISOString(),
+      _sendAtMs: params.scheduledAtUtc.getTime() - offsetMs,
       status: 'pending' as const,
-    }),
-  );
+    }))
+    .filter((r) => r._sendAtMs > nowMs)
+    .map(({ _sendAtMs: _unused, ...row }) => row);
 
   // 3. Check reps.cc_director_on_callbacks to decide whether to add the CC row.
   //    Done in a separate query so the bulk insert doesn't have to know about it.
@@ -97,13 +110,35 @@ export async function scheduleCallback(params: ScheduleCallbackParams): Promise<
     .single();
 
   if (rep?.cc_director_on_callbacks) {
-    queueRows.push({
-      callback_task_id: task.id,
-      rep_id: params.repId,
-      type: 'callback_director_cc' as unknown as keyof typeof OFFSETS_MS, // cast for inserter
-      send_at_utc: new Date(params.scheduledAtUtc.getTime() - OFFSETS_MS.callback_30min).toISOString(),
-      status: 'pending' as const,
+    const ccSendAtMs = params.scheduledAtUtc.getTime() - OFFSETS_MS.callback_30min;
+    if (ccSendAtMs > nowMs) {
+      queueRows.push({
+        callback_task_id: task.id,
+        rep_id: params.repId,
+        type: 'callback_director_cc',
+        send_at_utc: new Date(ccSendAtMs).toISOString(),
+        status: 'pending',
+      });
+    }
+  }
+
+  // If ALL reminder offsets fell in the past (e.g. scheduling 5 min out),
+  // there's nothing to insert. That's fine — the callback_tasks row still
+  // exists, the rep sees it in the agenda; just no SMS. Skip the empty insert.
+  if (queueRows.length === 0) {
+    await recordAuditEvent({
+      actionType: 'lead.callback_scheduled',
+      leadId: params.leadId,
+      payload: {
+        callbackTaskId: task.id,
+        scheduledAtUtc: scheduledAtIso,
+        scheduledLocalTime: params.scheduledLocalTime,
+        scheduledTz: params.scheduledTz,
+        ccDirector: !!rep?.cc_director_on_callbacks,
+        no_reminders: 'all_offsets_in_past',
+      },
     });
+    return { callbackTaskId: task.id };
   }
 
   const { error: queueErr } = await supabase
