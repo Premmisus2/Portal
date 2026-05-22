@@ -36,11 +36,27 @@ async function sbGet(path: string, sbKey: string) {
 }
 
 async function resolveRepId(leadId: string, leadAssignedRepId: string | null, sbKey: string): Promise<string | null> {
-  // Prefer the most recent rep that called this lead.
-  const recent = await sbGet(`call_logs?lead_id=eq.${leadId}&select=rep_id&order=created_at.desc&limit=1`, sbKey);
-  if (Array.isArray(recent) && recent.length > 0 && recent[0]?.rep_id) return recent[0].rep_id;
+  // Priority 1: most recent rep that TOUCHED this lead — via call OR outbound
+  // SMS. Pulling SMS too closes the "we texted them, they called back" gap:
+  // if the only contact was a text, the call-only lookup would have routed
+  // the inbound to the wrong rep (or Elliott). See 2026-05-21 inbound-routing
+  // patch note in Slice 1 build.
+  const [recentCall, recentSms] = await Promise.all([
+    sbGet(`call_logs?lead_id=eq.${leadId}&rep_id=not.is.null&select=rep_id,created_at&order=created_at.desc&limit=1`, sbKey),
+    sbGet(`sms_messages?lead_id=eq.${leadId}&direction=eq.outbound&rep_id=not.is.null&select=rep_id,created_at&order=created_at.desc&limit=1`, sbKey),
+  ]);
 
-  // Fallback: lead's assigned rep.
+  const callRow = Array.isArray(recentCall) && recentCall.length > 0 ? recentCall[0] : null;
+  const smsRow = Array.isArray(recentSms) && recentSms.length > 0 ? recentSms[0] : null;
+
+  if (callRow?.rep_id && smsRow?.rep_id) {
+    // Both surfaces have touched this lead — route to whichever is newer.
+    return callRow.created_at >= smsRow.created_at ? callRow.rep_id : smsRow.rep_id;
+  }
+  if (callRow?.rep_id) return callRow.rep_id;
+  if (smsRow?.rep_id) return smsRow.rep_id;
+
+  // Priority 2: lead's assigned rep.
   if (leadAssignedRepId) return leadAssignedRepId;
 
   // Final fallback: Elliott (director) by email.

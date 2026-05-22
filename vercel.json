@@ -4,6 +4,7 @@
     { "path": "/api/cron-idle-check",         "schedule": "0 15-22 * * 1-5" },
     { "path": "/api/cron-daily-summary",      "schedule": "0 1 * * 2-6" },
     { "path": "/api/cron-callback-reminder",  "schedule": "0 14 * * 1-5" },
-    { "path": "/api/cron-watchdog",           "schedule": "0 13,16,19,22 * * 1-5" }
+    { "path": "/api/cron-watchdog",           "schedule": "0 13,16,19,22 * * 1-5" },
+    { "path": "/api/cron/drain-notifications","schedule": "* * * * *"     }
   ]
 }
