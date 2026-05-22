@@ -35,6 +35,44 @@ export default function FloorContent() {
   const [isDirector, setIsDirector] = useState(false);
   const [allReps, setAllReps] = useState<Array<{ id: string; name: string }>>([]);
 
+  // Shadow View persistence (audit-locked 2026-05-22).
+  // Director sets shadow in app/page.tsx → writes localStorage. /floor is a
+  // separate Next route so we read those keys on mount, sync across tabs via
+  // 'storage' event, and re-read on focus.
+  const [shadowRepId, setShadowRepId] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    try { return localStorage.getItem('pmss_shadow_rep_id'); } catch { return null; }
+  });
+  const [shadowRepName, setShadowRepName] = useState<string>(() => {
+    if (typeof window === 'undefined') return '';
+    try { return localStorage.getItem('pmss_shadow_rep_name') || ''; } catch { return ''; }
+  });
+  const shadowMode = shadowRepId !== null;
+
+  useEffect(() => {
+    const sync = () => {
+      try {
+        setShadowRepId(localStorage.getItem('pmss_shadow_rep_id'));
+        setShadowRepName(localStorage.getItem('pmss_shadow_rep_name') || '');
+      } catch {}
+    };
+    window.addEventListener('storage', sync);
+    window.addEventListener('focus', sync);
+    return () => {
+      window.removeEventListener('storage', sync);
+      window.removeEventListener('focus', sync);
+    };
+  }, []);
+
+  const exitShadow = useCallback(() => {
+    try {
+      localStorage.removeItem('pmss_shadow_rep_id');
+      localStorage.removeItem('pmss_shadow_rep_name');
+    } catch {}
+    setShadowRepId(null);
+    setShadowRepName('');
+  }, []);
+
   // ── auth gate — always verify rep + role from session, never trust localStorage ──
   useEffect(() => {
     let cancelled = false;
@@ -71,7 +109,10 @@ export default function FloorContent() {
   // ── filter-by-rep dropdown state (director only) ──
   // URL param ?rep=<rep_id> filters the lead pool. Default null = "All" for
   // directors / "My leads" for reps (who can't change it).
-  const filterRepId = searchParams?.get('rep') ?? null;
+  // Shadow mode FORCES filterRepId to the shadowed rep, overriding any URL
+  // param. Audit-locked 2026-05-22.
+  const urlFilterRepId = searchParams?.get('rep') ?? null;
+  const filterRepId = shadowMode ? shadowRepId : urlFilterRepId;
 
   // ── lead fetch — abortable, CRM-filtered, capped for directors ──
   // CRM filter: status != 'new' OR last_touch_at IS NOT NULL.
@@ -226,6 +267,36 @@ export default function FloorContent() {
 
   return (
     <main style={{ background: '#000', minHeight: '100vh', color: '#fff' }}>
+      {/* Shadow Banner — visible whenever shadow mode is active. Matches the
+          amber banner from app/page.tsx so the director gets a consistent
+          "you are shadowing X" affordance across all routes. */}
+      {shadowMode && (
+        <div style={{
+          position: 'sticky', top: 0, zIndex: 500,
+          background: '#F59E0B', color: '#000',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          gap: 12, padding: '8px 16px',
+          fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 700,
+          letterSpacing: '.03em', boxShadow: '0 2px 12px rgba(245,158,11,.4)',
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+          <span>SHADOWING: {shadowRepName} — Read Only</span>
+          <button
+            onClick={exitShadow}
+            style={{
+              background: '#000', color: '#F59E0B', border: 'none',
+              borderRadius: 5, padding: '4px 14px', fontSize: 11, fontWeight: 800,
+              cursor: 'pointer', letterSpacing: '.08em', textTransform: 'uppercase',
+              fontFamily: 'Inter, sans-serif',
+            }}
+          >
+            Exit
+          </button>
+        </div>
+      )}
       <div style={{ paddingTop: 14 }}>
         <TeamActivityPanel />
       </div>
@@ -237,7 +308,7 @@ export default function FloorContent() {
         onSearchQueryChange={setSearchQuery}
         onRowClick={openLeadDrawer}
         repId={repId!}
-        isDirector={isDirector}
+        isDirector={isDirector && !shadowMode}
         allReps={allReps}
         filterRepId={filterRepId}
         onFilterRepIdChange={setFilterRepId}
