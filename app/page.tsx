@@ -98,9 +98,17 @@ function AppShell() {
   const [missedEvents, setMissedEvents] = useState<any>(null);
   const [lastDirectorVisit, setLastDirectorVisit] = useState<string | null>(null);
 
-  // Shadow View
-  const [shadowRepId, setShadowRepId] = useState<string | null>(null);
-  const [shadowRepName, setShadowRepName] = useState('');
+  // Shadow View — persisted to localStorage so it survives navigation to
+  // separate Next.js routes (e.g. /floor) and tab refresh. Per 4-prong audit
+  // 2026-05-22: localStorage chosen over sessionStorage so shadow lasts until
+  // director explicitly exits, matching the stated expectation
+  // "I should remain within Shadow View until I turn off Shadow View."
+  const [shadowRepId, setShadowRepId] = useState<string | null>(() => {
+    try { return localStorage.getItem('pmss_shadow_rep_id'); } catch { return null; }
+  });
+  const [shadowRepName, setShadowRepName] = useState(() => {
+    try { return localStorage.getItem('pmss_shadow_rep_name') || ''; } catch { return ''; }
+  });
   const [allReps, setAllReps] = useState<any[]>([]);
   const shadowMode = shadowRepId !== null;
 
@@ -325,11 +333,17 @@ function AppShell() {
   const effectiveRepId = shadowMode ? shadowRepId : repId;
   const effectiveIsDirector = shadowMode ? false : isDirector;
 
-  // Shadow mode enter/exit handlers
+  // Shadow mode enter/exit handlers. localStorage writes added 2026-05-22
+  // so the /floor route (separate Next.js route, doesn't share React state)
+  // can read shadow state from the same source.
   const enterShadow = async (sRepId: string, sRepName: string) => {
     setShadowRepId(sRepId);
     setShadowRepName(sRepName);
     setViewAsRep(true);
+    try {
+      localStorage.setItem('pmss_shadow_rep_id', sRepId);
+      localStorage.setItem('pmss_shadow_rep_name', sRepName);
+    } catch {}
     const { data } = await supabase.from('closes').select('*').eq('rep_id', sRepId).order('created_at', { ascending: true });
     if (data) {
       setCloseHistory(data.map((c: any) => ({ pts: c.pts, id: c.id, status: c.status || 'approved', product_label: c.product_label })));
@@ -343,6 +357,10 @@ function AppShell() {
     setShadowRepId(null);
     setShadowRepName('');
     setViewAsRep(false);
+    try {
+      localStorage.removeItem('pmss_shadow_rep_id');
+      localStorage.removeItem('pmss_shadow_rep_name');
+    } catch {}
     if (repId) await loadCloses(repId);
   };
 
