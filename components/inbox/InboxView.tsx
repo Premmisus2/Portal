@@ -54,6 +54,21 @@ const fmtRelTime = (iso: string) => {
   return `${Math.floor(diff / 86_400_000)}d`;
 };
 
+// Mobile-stack layout below 768px so the desktop split-pane doesn't squish
+// the conversation thread into a 30px vertical sliver on iPhone.
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(max-width: 768px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+  return isMobile;
+};
+
 const InboxView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTotalCloses, totalPoints, addClose, undoClose, repId, shadowMode }: any) => {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [leadInfo, setLeadInfo] = useState<Record<string, LeadInfo>>({});
@@ -146,6 +161,9 @@ const InboxView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTota
   }, [selectedKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const totalUnread = threads.reduce((sum, t) => sum + t.unread, 0);
+  const isMobile = useIsMobile();
+  const showList = !isMobile || !selected;
+  const showThread = !isMobile || !!selected;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg-app)', paddingTop: shadowMode ? '40px' : 0 }}>
@@ -161,8 +179,14 @@ const InboxView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTota
         }}>{toast.message}</div>
       )}
       <main className="section-main" style={{ flex: 1, overflow: 'hidden', display: 'flex', minHeight: 0 }}>
-        {/* Left rail — thread list */}
-        <aside style={{ width: '320px', minWidth: '280px', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', background: 'var(--bg-app)' }}>
+        {/* Left rail — thread list. On mobile, takes full width when no thread selected. */}
+        {showList && (
+        <aside style={{
+          width: isMobile ? '100%' : '320px',
+          minWidth: isMobile ? '0' : '280px',
+          borderRight: isMobile ? 'none' : '1px solid var(--border)',
+          display: 'flex', flexDirection: 'column', background: 'var(--bg-app)',
+        }}>
           {/* Filter chips */}
           <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--border)', display: 'flex', gap: '6px' }}>
             {(['all', 'unread', 'unrouted'] as const).map(k => (
@@ -215,8 +239,10 @@ const InboxView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTota
             })}
           </div>
         </aside>
+        )}
 
-        {/* Right — conversation */}
+        {/* Right — conversation. On mobile, takes full width when a thread is selected. */}
+        {showThread && (
         <section style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           {!selected && (
             <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-faint)', fontSize: '13px' }}>
@@ -225,13 +251,35 @@ const InboxView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTota
           )}
           {selected && (
             <>
-              <header style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)' }}>{selected.label}</h3>
-                  <p style={{ margin: '2px 0 0', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono,monospace' }}>{selected.phone}{selected.optedOut ? ' · 🚫 OPTED OUT' : ''}</p>
+              <header style={{ padding: '14px 18px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                  {isMobile && (
+                    <button
+                      onClick={() => setSelectedKey(null)}
+                      aria-label="Back to inbox"
+                      style={{
+                        background: 'transparent',
+                        border: '1px solid var(--border)',
+                        borderRadius: '8px',
+                        padding: '8px 10px',
+                        minHeight: '40px',
+                        minWidth: '40px',
+                        cursor: 'pointer',
+                        color: 'var(--accent-ink)',
+                        fontSize: '16px',
+                        lineHeight: 1,
+                        flexShrink: 0,
+                      }}>
+                      ←
+                    </button>
+                  )}
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.label}</h3>
+                    <p style={{ margin: '2px 0 0', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'JetBrains Mono,monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selected.phone}{selected.optedOut ? ' · 🚫 OPTED OUT' : ''}</p>
+                  </div>
                 </div>
                 {selected.leadId && (
-                  <a href={`/?lead=${selected.leadId}`} style={{ fontSize: '10px', color: 'var(--accent-ink)', textDecoration: 'none', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase' }}>View Lead →</a>
+                  <a href={`/?lead=${selected.leadId}`} style={{ fontSize: '10px', color: 'var(--accent-ink)', textDecoration: 'none', fontWeight: 700, letterSpacing: '.06em', textTransform: 'uppercase', flexShrink: 0 }}>View Lead →</a>
                 )}
               </header>
               <div style={{ flex: 1, overflowY: 'auto', padding: '18px 20px', display: 'flex', flexDirection: 'column' }}>
@@ -257,6 +305,7 @@ const InboxView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTota
             </>
           )}
         </section>
+        )}
       </main>
     </div>
   );
