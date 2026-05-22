@@ -24,6 +24,8 @@ export type AuditAction =
   | 'lead.callback_scheduled'
   | 'lead.callback_cancelled'
   | 'lead.callback_rescheduled'
+  | 'lead.callback_completed'
+  | 'lead.callback_recurrence_stopped'
   | 'lead.note_added'
   | 'lead.assigned'
   | 'lead.unassigned'

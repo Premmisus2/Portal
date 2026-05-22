@@ -13,6 +13,7 @@ import LeadSheet from '@/components/floor/LeadSheet';
 import LeadDrawer from '@/components/floor/LeadDrawer';
 import FloorPageSkeleton from '@/components/floor/FloorPageSkeleton';
 import TeamActivityPanel from '@/components/floor/TeamActivityPanel';
+import AgendaQueue from '@/components/floor/AgendaQueue';
 import type { FloorLead } from './types';
 
 const DIRECTOR_LEAD_CAP = 1000;
@@ -300,6 +301,16 @@ export default function FloorContent() {
       <div style={{ paddingTop: 14 }}>
         <TeamActivityPanel />
       </div>
+      {/* Agenda Queue — sticky Next Action card + Overdue/Today/Upcoming.
+          In shadow view, follows the shadow rep; otherwise follows the
+          logged-in rep (directors can have their own callbacks too — the
+          component returns null when there are zero callbacks). */}
+      {(shadowMode ? shadowRepId : repId) && (
+        <AgendaQueue
+          repId={(shadowMode ? shadowRepId : repId)!}
+          onOpenLead={openLeadDrawer}
+        />
+      )}
       <LeadSheet
         leads={leads}
         totalCount={totalCount}

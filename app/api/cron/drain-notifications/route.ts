@@ -18,6 +18,7 @@
 // Auth: CRON_SECRET bearer (Vercel cron supplies this header).
 
 import { NextResponse } from 'next/server';
+import { withCaslFooter } from '@/lib/sms-compliance';
 
 const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 const MAX_RETRIES = 3;
@@ -28,7 +29,7 @@ interface QueueRow {
   id: string;
   callback_task_id: string;
   rep_id: string;
-  type: 'callback_60min' | 'callback_30min' | 'callback_10min' | 'callback_director_cc';
+  type: 'callback_60min' | 'callback_30min' | 'callback_10min' | 'callback_director_cc' | 'callback_confirm_to_lead';
   send_at_utc: string;
   retry_count: number;
 }
@@ -45,6 +46,8 @@ interface CallbackTaskRow {
 interface LeadRow {
   business_name: string;
   contact_name: string | null;
+  phone: string | null;
+  sms_opted_out_at: string | null;
 }
 
 interface RepRow {
@@ -82,6 +85,8 @@ function smsBody(
   contact: string,
   business: string,
   leadId: string,
+  scheduledLocal?: string,
+  scheduledTz?: string,
 ): string {
   const link = `https://portal.premmisus.ca/floor?lead=${leadId}`;
   const who = contact || business || 'this lead';
@@ -94,6 +99,13 @@ function smsBody(
       return `🔔 Callback in 10 MIN — ${who} (${business}). Open: ${link}`;
     case 'callback_director_cc':
       return `[CC] ${repFirstName} has a callback in 30 min — ${who} (${business}). ${link}`;
+    case 'callback_confirm_to_lead': {
+      // CASL Section 6 footer auto-appended by withCaslFooter() at send time.
+      // Body kept tight to fit in one segment (160 chars incl. footer).
+      const firstName = (contact || '').split(/\s+/)[0] || 'there';
+      const when = scheduledLocal && scheduledTz ? ` at ${scheduledLocal} (${scheduledTz})` : '';
+      return `Hi ${firstName}, this is ${repFirstName} from Premmisus — your callback is confirmed${when}. Talk soon.`;
+    }
   }
 }
 
@@ -252,27 +264,45 @@ async function processRow(
     // 3. Look up rep + lead for SMS body + dest phone.
     const [reps, leads] = await Promise.all([
       sbFetch<RepRow[]>(`reps?select=id,name,phone&id=eq.${row.rep_id}&limit=1`, sbKey),
-      sbFetch<LeadRow[]>(`leads?select=business_name,contact_name&id=eq.${task.lead_id}&limit=1`, sbKey),
+      sbFetch<LeadRow[]>(`leads?select=business_name,contact_name,phone,sms_opted_out_at&id=eq.${task.lead_id}&limit=1`, sbKey),
     ]);
     const rep = reps?.[0];
     const lead = leads?.[0];
 
-    // Destination depends on type. The director-CC row goes to ELLIOTT_PHONE.
+    // Destination + opt-out gate depend on type.
+    //   - rep-targeting (callback_60/30/10min): dest is rep.phone, no gate.
+    //   - director CC: dest is ELLIOTT_PHONE, no gate.
+    //   - LEAD-targeting (callback_confirm_to_lead): dest is lead.phone, gate
+    //     on lead.sms_opted_out_at (CASL hard-block, audit consensus).
     let dest: string | undefined;
     if (row.type === 'callback_director_cc') {
       dest = elliottPhone || undefined;
+    } else if (row.type === 'callback_confirm_to_lead') {
+      // CASL gate — skip silently if lead opted out. Mark sent so we don't retry.
+      if (!lead) {
+        await markFailed(row, sbKey, 'lead not found for confirm SMS', false);
+        return { sent: false };
+      }
+      if (lead.sms_opted_out_at) {
+        await fetch(`${SUPABASE_URL}/rest/v1/notifications_queue?id=eq.${row.id}`, {
+          method: 'PATCH',
+          headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'cancelled', error: 'lead opted out (CASL gate)' }),
+        });
+        return { sent: false };
+      }
+      // Normalize lead phone to E.164 — leads.phone format varies, scraper output.
+      const raw = (lead.phone || '').replace(/[^+0-9]/g, '');
+      dest = raw.startsWith('+') ? raw : `+1${raw.replace(/^1/, '')}`;
     } else {
       dest = rep?.phone || undefined;
     }
 
     if (!dest || !lead || !rep) {
-      // Missing critical context — dead-letter immediately (no retry will fix).
-      await markFailed(row, sbKey, 'missing rep phone or lead', false);
+      await markFailed(row, sbKey, 'missing dest phone or lead', false);
       return { sent: false };
     }
 
-    // FIX (post-ship audit): validate E.164 BEFORE firing Twilio. Bad
-    // numbers cost money on every retry attempt.
     if (!isValidE164(dest)) {
       await markFailed(row, sbKey, `invalid E.164 phone: ${dest.slice(0, 20)}`, false);
       return { sent: false };
@@ -282,7 +312,18 @@ async function processRow(
     const repFirst = (rep.name || '').split(/\s+/)[0] || 'Rep';
     const contact = truncate(lead.contact_name || '');
     const business = truncate(lead.business_name || '');
-    const body = smsBody(row.type, repFirst, contact, business, task.lead_id);
+    const rawBody = smsBody(
+      row.type,
+      repFirst,
+      contact,
+      business,
+      task.lead_id,
+      task.scheduled_local_time,
+      task.scheduled_tz,
+    );
+    // CASL footer (sender + STOP) ONLY on lead-targeting messages. Rep-/director-
+    // facing reminders don't need it.
+    const body = row.type === 'callback_confirm_to_lead' ? withCaslFooter(rawBody) : rawBody;
 
     const twRes = await sendTwilio(dest, body, twSid, twToken, twFrom);
 

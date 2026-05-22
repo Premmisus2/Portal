@@ -1,13 +1,18 @@
-// scheduleCallback — book a callback for a lead. Single-transaction insert
-// of one callback_tasks row + 3 notifications_queue rows (T-60 / T-30 / T-10).
+// scheduleCallback — book a callback for a lead. Single Supabase RPC call
+// (schedule_callback_atomic) that does callback_tasks insert + 3 reminder rows
+// + optional director CC + auto-confirm SMS to lead all in ONE transaction.
 //
-// Per locked Slice 2 spec (2026-05-20 audit verdict):
+// Locked Phase 1 (2026-05-22) after 6-prong audit verdict on the original
+// 2-step JS flow — every prong flagged the orphan-task risk if the queue
+// insert failed mid-flight. The atomic RPC eliminates that.
+//
+// Per locked Slice 2 + Phase 1 spec:
 //   * scheduled_at_utc is the queue source of truth.
-//   * scheduled_local_time + scheduled_tz stored alongside for far-future
-//     DST verification (Gemini load-bearing catch).
+//   * scheduled_local_time + scheduled_tz stored for far-future DST verification.
 //   * Worker cron drains notifications_queue every minute.
-//   * If reps.cc_director_on_callbacks is true, a 4th queue row routes a
-//     director-CC SMS to ELLIOTT_PHONE at T-30 (single reminder, not all 3).
+//   * If reps.cc_director_on_callbacks is true, server enables p_cc_director.
+//   * Auto-confirm SMS to lead enqueued at booking; drain worker checks
+//     leads.sms_opted_out_at before firing (CASL gate, see lib/sms-compliance).
 
 import { supabase } from '@/lib/supabase';
 import { recordAuditEvent } from '@/features/audit';
@@ -25,6 +30,10 @@ export interface ScheduleCallbackParams {
   notes?: string | null;
   /** If the booking was triggered from a specific call log (e.g. PostCallView). */
   callLogId?: string | null;
+  /** Optional RRULE for recurring callbacks (FREQ=DAILY/WEEKLY/BIWEEKLY/MONTHLY). */
+  recurrenceRule?: string | null;
+  /** Skip the auto-confirm SMS to the lead (e.g. internal-only callbacks). */
+  skipAutoConfirm?: boolean;
 }
 
 export interface ScheduleCallbackResult {
@@ -44,126 +53,149 @@ function validateScheduledTime(when: Date): void {
   }
 }
 
-const OFFSETS_MS = {
-  callback_60min: 60 * 60_000,
-  callback_30min: 30 * 60_000,
-  callback_10min: 10 * 60_000,
-};
-
 export async function scheduleCallback(params: ScheduleCallbackParams): Promise<ScheduleCallbackResult> {
   validateScheduledTime(params.scheduledAtUtc);
 
   const scheduledAtIso = params.scheduledAtUtc.toISOString();
 
-  // 1. Insert the callback_tasks row.
-  const { data: task, error: taskErr } = await supabase
-    .from('callback_tasks')
-    .insert({
-      lead_id: params.leadId,
-      call_log_id: params.callLogId ?? null,
-      rep_id: params.repId,
-      scheduled_at_utc: scheduledAtIso,
-      scheduled_local_time: params.scheduledLocalTime,
-      scheduled_tz: params.scheduledTz,
-      notes: params.notes ?? null,
-      status: 'scheduled',
-    })
-    .select('id')
-    .single();
-
-  if (taskErr || !task?.id) {
-    throw new Error(`callback_tasks insert failed: ${taskErr?.message || 'no id returned'}`);
-  }
-
-  // 2. Insert the reminder rows. FIX (post-ship audit 2026-05-21): only
-  //    insert rows whose send_at_utc is in the FUTURE. Previously, scheduling
-  //    a callback < 60 minutes out caused the T-60 row to land with a
-  //    send_at_utc in the past — the worker fired it immediately, sending
-  //    a "Callback in 60 min" SMS for a callback only 30 min away.
-  //
-  //    UNIQUE (callback_task_id, type) prevents accidental duplicates on retry.
-  const nowMs = Date.now();
-  const queueRows: Array<{
-    callback_task_id: string;
-    rep_id: string;
-    type: string;
-    send_at_utc: string;
-    status: 'pending';
-  }> = (Object.entries(OFFSETS_MS) as Array<[keyof typeof OFFSETS_MS, number]>)
-    .map(([type, offsetMs]) => ({
-      callback_task_id: task.id,
-      rep_id: params.repId,
-      type: type as string,
-      send_at_utc: new Date(params.scheduledAtUtc.getTime() - offsetMs).toISOString(),
-      _sendAtMs: params.scheduledAtUtc.getTime() - offsetMs,
-      status: 'pending' as const,
-    }))
-    .filter((r) => r._sendAtMs > nowMs)
-    .map(({ _sendAtMs: _unused, ...row }) => row);
-
-  // 3. Check reps.cc_director_on_callbacks to decide whether to add the CC row.
-  //    Done in a separate query so the bulk insert doesn't have to know about it.
+  // Read rep CC preference (one query — could be inlined in RPC later if we
+  // want a single round-trip; kept here so the RPC stays a pure scheduler).
   const { data: rep } = await supabase
     .from('reps')
     .select('cc_director_on_callbacks')
     .eq('id', params.repId)
     .single();
 
-  if (rep?.cc_director_on_callbacks) {
-    const ccSendAtMs = params.scheduledAtUtc.getTime() - OFFSETS_MS.callback_30min;
-    if (ccSendAtMs > nowMs) {
-      queueRows.push({
-        callback_task_id: task.id,
-        rep_id: params.repId,
-        type: 'callback_director_cc',
-        send_at_utc: new Date(ccSendAtMs).toISOString(),
-        status: 'pending',
-      });
-    }
+  const { data, error } = await supabase.rpc('schedule_callback_atomic', {
+    p_lead_id: params.leadId,
+    p_rep_id: params.repId,
+    p_scheduled_at_utc: scheduledAtIso,
+    p_scheduled_local_time: params.scheduledLocalTime,
+    p_scheduled_tz: params.scheduledTz,
+    p_notes: params.notes ?? null,
+    p_call_log_id: params.callLogId ?? null,
+    p_recurrence_rule: params.recurrenceRule ?? null,
+    p_cc_director: !!rep?.cc_director_on_callbacks,
+    p_send_auto_confirm: params.skipAutoConfirm ? false : true,
+  });
+
+  if (error || !data) {
+    throw new Error(`schedule_callback_atomic failed: ${error?.message || 'no id returned'}`);
   }
 
-  // If ALL reminder offsets fell in the past (e.g. scheduling 5 min out),
-  // there's nothing to insert. That's fine — the callback_tasks row still
-  // exists, the rep sees it in the agenda; just no SMS. Skip the empty insert.
-  if (queueRows.length === 0) {
-    await recordAuditEvent({
-      actionType: 'lead.callback_scheduled',
-      leadId: params.leadId,
-      payload: {
-        callbackTaskId: task.id,
-        scheduledAtUtc: scheduledAtIso,
-        scheduledLocalTime: params.scheduledLocalTime,
-        scheduledTz: params.scheduledTz,
-        ccDirector: !!rep?.cc_director_on_callbacks,
-        no_reminders: 'all_offsets_in_past',
-      },
-    });
-    return { callbackTaskId: task.id };
-  }
-
-  const { error: queueErr } = await supabase
-    .from('notifications_queue')
-    .insert(queueRows);
-
-  if (queueErr) {
-    // Best-effort cleanup — try to mark the orphan task as cancelled so it
-    // doesn't appear as a real callback. The CALLBACK_TASK row exists; the
-    // queue failed. Without queue rows, no reminder will fire.
-    await supabase.from('callback_tasks').update({ status: 'cancelled', cancelled_at: new Date().toISOString() }).eq('id', task.id);
-    throw new Error(`notifications_queue insert failed: ${queueErr.message}`);
-  }
+  const callbackTaskId = data as string;
 
   await recordAuditEvent({
     actionType: 'lead.callback_scheduled',
     leadId: params.leadId,
     payload: {
-      callbackTaskId: task.id,
+      callbackTaskId,
       scheduledAtUtc: scheduledAtIso,
       scheduledLocalTime: params.scheduledLocalTime,
       scheduledTz: params.scheduledTz,
       ccDirector: !!rep?.cc_director_on_callbacks,
+      recurrenceRule: params.recurrenceRule ?? null,
+      autoConfirmEnqueued: !params.skipAutoConfirm,
     },
   });
 
-  return { callbackTaskId: task.id };
+  return { callbackTaskId };
+}
+
+/**
+ * Find any existing rep callbacks within ±window minutes of the target UTC
+ * moment. Used by the booking UI to WARN (never block) on overlaps. Per-rep
+ * scoped so no cross-rep schedule data leaks.
+ */
+export async function findCallbackConflicts(params: {
+  repId: string;
+  targetUtc: Date;
+  windowMinutes?: number;
+}): Promise<Array<{ id: string; businessName: string; scheduledAtUtc: string }>> {
+  const { data, error } = await supabase.rpc('find_callback_conflicts', {
+    p_rep_id: params.repId,
+    p_target_utc: params.targetUtc.toISOString(),
+    p_window_minutes: params.windowMinutes ?? 15,
+  });
+  if (error || !data) return [];
+  return (data as Array<{ callback_id: string; business_name: string; scheduled_at_utc: string }>).map(r => ({
+    id: r.callback_id,
+    businessName: r.business_name,
+    scheduledAtUtc: r.scheduled_at_utc,
+  }));
+}
+
+/**
+ * Mark a callback complete + expand the next occurrence atomically if
+ * recurrence_rule is set on the parent. Returns the new child callback id
+ * (or null if non-recurring).
+ */
+export async function completeCallback(params: {
+  callbackTaskId: string;
+  leadId: string;
+}): Promise<{ nextCallbackId: string | null }> {
+  const nowIso = new Date().toISOString();
+
+  // 1. Flip the status — RLS allows rep update on own callback_tasks rows.
+  const { error: updateErr } = await supabase
+    .from('callback_tasks')
+    .update({ status: 'completed', completed_at: nowIso })
+    .eq('id', params.callbackTaskId);
+
+  if (updateErr) {
+    throw new Error(`Failed to complete callback: ${updateErr.message}`);
+  }
+
+  // 2. Call expand RPC — returns new child id if recurrence rule was set, NULL otherwise.
+  const { data: nextId, error: expandErr } = await supabase.rpc('expand_recurring_callback', {
+    p_completed_task_id: params.callbackTaskId,
+  });
+
+  if (expandErr) {
+    // Best-effort log — completion already saved, just no recurrence.
+    await recordAuditEvent({
+      actionType: 'lead.callback_completed',
+      leadId: params.leadId,
+      payload: {
+        callbackTaskId: params.callbackTaskId,
+        recurrenceExpandError: expandErr.message,
+      },
+    });
+    return { nextCallbackId: null };
+  }
+
+  await recordAuditEvent({
+    actionType: 'lead.callback_completed',
+    leadId: params.leadId,
+    payload: {
+      callbackTaskId: params.callbackTaskId,
+      nextCallbackId: (nextId as string | null) || null,
+    },
+  });
+
+  return { nextCallbackId: (nextId as string | null) || null };
+}
+
+/**
+ * Stop a recurring series — sets recurrence_rule=NULL on the current callback.
+ * The current occurrence stays; no future expansions.
+ */
+export async function stopRecurringCallback(params: {
+  callbackTaskId: string;
+  leadId: string;
+}): Promise<void> {
+  const { error } = await supabase
+    .from('callback_tasks')
+    .update({ recurrence_rule: null })
+    .eq('id', params.callbackTaskId);
+
+  if (error) {
+    throw new Error(`Failed to stop recurrence: ${error.message}`);
+  }
+
+  await recordAuditEvent({
+    actionType: 'lead.callback_recurrence_stopped',
+    leadId: params.leadId,
+    payload: { callbackTaskId: params.callbackTaskId },
+  });
 }

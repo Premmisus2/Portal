@@ -15,11 +15,73 @@ const STATUS_MAP: Record<string, string> = {
   wrong_number: 'wrong_number',
 };
 
+// Outcome sub-tags — Phase 2 of finish-build, locked 2026-05-22 audit verdict.
+// OPTIONAL field (audit consensus: no friction on post-call). Drives AI-drafted
+// SMS template matching: outcome+subtag finds the most specific template; falls
+// back to outcome alone if no subtag-specific template exists.
+const OUTCOME_SUBTAGS: Record<string, Array<{ key: string; label: string }>> = {
+  not_interested: [
+    { key: 'too_busy',           label: 'Too busy' },
+    { key: 'using_competitor',   label: 'Using competitor' },
+    { key: 'wrong_timing',       label: 'Wrong timing' },
+    { key: 'not_decision_maker', label: 'Not decision maker' },
+    { key: 'price_objection',    label: 'Price objection' },
+    { key: 'vague_brushoff',     label: 'Vague brushoff' },
+  ],
+  voicemail_left: [
+    { key: 'first_touch',    label: 'First touch' },
+    { key: 'repeat_attempt', label: 'Repeat attempt' },
+    { key: 'no_mailbox',     label: 'No mailbox' },
+  ],
+  no_answer: [
+    { key: 'first_touch',    label: 'First touch' },
+    { key: 'repeat_attempt', label: 'Repeat attempt' },
+    { key: 'bad_number',     label: 'Bad number' },
+  ],
+};
+
+function interpolateTemplate(body: string, lead: any, repName: string): string {
+  const firstName = (lead.contact_name || '').split(/\s+/)[0] || 'there';
+  return body
+    .replace(/\{\{first_name\}\}/g, firstName)
+    .replace(/\{\{business_name\}\}/g, lead.business_name || 'your business')
+    .replace(/\{\{rep_name\}\}/g, repName || 'Premmisus')
+    .replace(/\{\{niche\}\}/g, lead.niche || 'business');
+}
+
+interface SmsTemplateRow {
+  id: string;
+  body_template: string;
+  owner_rep_id: string | null;
+  outcome_subtag: string | null;
+}
+
+/** Pick the most specific template for an outcome + optional subtag. */
+async function fetchMatchingTemplate(outcome: string, subtag: string | null, repId: string): Promise<SmsTemplateRow | null> {
+  // Priority: rep-owned + subtag → global + subtag → rep-owned (no subtag) → global (no subtag)
+  const { data } = await supabase
+    .from('sms_templates')
+    .select('id, body_template, owner_rep_id, outcome_subtag')
+    .eq('outcome_trigger', outcome)
+    .eq('active', true);
+  if (!data || data.length === 0) return null;
+  const subtagMatches = (data as SmsTemplateRow[]).filter(t => subtag && t.outcome_subtag === subtag);
+  const ownedSub = subtagMatches.find(t => t.owner_rep_id === repId);
+  if (ownedSub) return ownedSub;
+  const globalSub = subtagMatches.find(t => !t.owner_rep_id);
+  if (globalSub) return globalSub;
+  const fallbacks = (data as SmsTemplateRow[]).filter(t => !t.outcome_subtag);
+  const ownedFallback = fallbacks.find(t => t.owner_rep_id === repId);
+  if (ownedFallback) return ownedFallback;
+  return fallbacks.find(t => !t.owner_rep_id) || null;
+}
+
 const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any) => {
   // Ordered selection. First entry is the PRIMARY outcome (drives lead.status,
   // AI suggestion match, notifications). Subsequent entries are secondary tags.
   const [selected, setSelected] = useState<string[]>([]);
   const primary = selected[0] || '';
+  const [outcomeSubtag, setOutcomeSubtag] = useState<string>('');
   const [notes, setNotes] = useState('');
   const [callbackDate, setCallbackDate] = useState('');
   const [callbackTime, setCallbackTime] = useState('');
@@ -28,6 +90,13 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
   const [bookingType, setBookingType] = useState('');
   const [saving, setSaving] = useState(false);
   const [aiSuggestion, setAiSuggestion] = useState<{ outcome: string; confidence: number; reasoning: string } | null>(null);
+  // Phase 2: AI-drafted SMS panel — shown after Log Call success.
+  const [smsDraftPanel, setSmsDraftPanel] = useState<{
+    body: string;
+    templateId: string | null;
+    callLogId: string | null;
+  } | null>(null);
+  const [smsDraftSending, setSmsDraftSending] = useState(false);
 
   useEffect(() => {
     if (!existingCallLogId) { setAiSuggestion(null); return; }
@@ -66,6 +135,7 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
         lead_id: lead.id,
         rep_id: repId,
         outcome: primary,
+        outcome_subtag: outcomeSubtag || null,
         notes: notes || null,
         callback_date: callbackDate || null,
         callback_time: callbackTime || null,
@@ -75,6 +145,7 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
       };
       const updatePayload: Record<string, any> = {
         outcome: primary,
+        outcome_subtag: outcomeSubtag || null,
         notes: notes || null,
         callback_date: callbackDate || null,
         callback_time: callbackTime || null,
@@ -132,9 +203,77 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
           body: JSON.stringify({ type: 'callback', repName: userName || 'Rep', businessName: lead.business_name, notes: notes })
         }).catch(() => {});
       }
-      setSelected([]); setNotes(''); setCallbackDate(''); setCallbackTime(''); setReasonSelected([]); setBookingType('');
+      // Phase 2: AI-drafted SMS — fetch matching template, fill in vars, surface
+      // editable textarea. Rep can Send / Edit-then-Send / Skip. Consent gate
+      // already lives in /api/send-sms so no separate check here.
+      // Skip if outcome is wrong_number / no_show / booked (booked has its own confirm flow).
+      if (!['wrong_number', 'no_show', 'booked_call', 'discovery_completed'].includes(primary)) {
+        try {
+          const tpl = await fetchMatchingTemplate(primary, outcomeSubtag || null, repId);
+          if (tpl) {
+            const filledBody = interpolateTemplate(tpl.body_template, lead, userName || 'Premmisus');
+            setSmsDraftPanel({ body: filledBody, templateId: tpl.id, callLogId: resolvedCallLogId });
+          }
+        } catch (err) {
+          // Silent — AI draft is optional, don't block the post-call flow.
+          console.warn('[CallLogger] template fetch failed', err);
+        }
+      }
+
+      setSelected([]); setOutcomeSubtag(''); setNotes(''); setCallbackDate(''); setCallbackTime(''); setReasonSelected([]); setBookingType('');
     } catch (err: any) { console.error('Call log error:', err); alert('Failed to save call log: ' + (err.message || 'Unknown error')); }
     setSaving(false);
+  };
+
+  // Send the AI-drafted SMS (or edited version). Records draft → sent in
+  // sms_drafts for future performance loop (which itself is deferred per audit).
+  const handleSendDraft = async () => {
+    if (!smsDraftPanel || !smsDraftPanel.body.trim()) return;
+    setSmsDraftSending(true);
+    try {
+      const res = await fetch('/api/send-sms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lead_id: lead.id, rep_id: repId, body: smsDraftPanel.body }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(`SMS not sent: ${data?.error || res.status}`);
+        setSmsDraftSending(false);
+        return;
+      }
+      await supabase.from('sms_drafts').insert({
+        lead_id: lead.id,
+        rep_id: repId,
+        call_log_id: smsDraftPanel.callLogId,
+        template_id: smsDraftPanel.templateId,
+        drafted_body: smsDraftPanel.body,
+        final_body: smsDraftPanel.body,
+        status: 'sent',
+        sent_at: new Date().toISOString(),
+        twilio_sid: data?.sid || null,
+      });
+      setSmsDraftPanel(null);
+    } catch (err: any) {
+      alert('SMS send failed: ' + (err.message || 'unknown'));
+    } finally {
+      setSmsDraftSending(false);
+    }
+  };
+
+  const handleSkipDraft = async () => {
+    if (!smsDraftPanel) return;
+    // Record the skip for future template performance tuning.
+    await supabase.from('sms_drafts').insert({
+      lead_id: lead.id,
+      rep_id: repId,
+      call_log_id: smsDraftPanel.callLogId,
+      template_id: smsDraftPanel.templateId,
+      drafted_body: smsDraftPanel.body,
+      final_body: null,
+      status: 'skipped',
+    }).then(() => {}, () => {});
+    setSmsDraftPanel(null);
   };
 
   const showCallback = selected.includes('callback_requested');
@@ -190,6 +329,32 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
           );
         })}
       </div>
+      {/* Phase 2 — Outcome sub-chips. Optional, appears AFTER primary outcome. */}
+      {primary && OUTCOME_SUBTAGS[primary] && (
+        <div style={{marginBottom:'12px'}}>
+          <p style={{margin:'0 0 6px', fontSize:'9px', fontWeight:700, letterSpacing:'.15em', textTransform:'uppercase', color:'var(--text-faint)'}}>
+            Why? (optional, one tap)
+          </p>
+          <div style={{display:'flex', gap:'6px', flexWrap:'wrap'}}>
+            {OUTCOME_SUBTAGS[primary].map(s => {
+              const isOn = outcomeSubtag === s.key;
+              return (
+                <button key={s.key}
+                  onClick={() => setOutcomeSubtag(isOn ? '' : s.key)}
+                  style={{
+                    padding:'4px 10px', borderRadius:'5px', cursor:'pointer', fontSize:'10px', fontWeight:600,
+                    fontFamily:'Inter,sans-serif', transition:'all .15s',
+                    background: isOn ? 'rgba(0,240,255,.15)' : 'transparent',
+                    border: `1px solid ${isOn ? 'rgba(0,240,255,.45)' : 'var(--border)'}`,
+                    color: isOn ? '#00F0FF' : 'var(--text-muted)',
+                  }}>
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
       {showCallback && (
         <div style={{marginBottom:'12px'}}>
           <div style={{display:'flex', gap:'10px', flexWrap:'wrap'}}>
@@ -263,6 +428,61 @@ const CallLogger = ({ lead, repId, onLogged, existingCallLogId, userName }: any)
           fontWeight:800, fontSize:'12px', fontFamily:'Inter,sans-serif', letterSpacing:'.06em', textTransform:'uppercase',
           opacity: saving ? .6 : 1, transition:'all .15s',
         }}>{saving ? 'Saving...' : 'Log Call'}</button>
+
+      {/* Phase 2 — AI-drafted SMS panel (audit-locked 2026-05-22). Appears
+          after a non-booked outcome is logged. Pre-filled from sms_templates
+          via outcome+subtag match. Consent gate enforced in /api/send-sms. */}
+      {smsDraftPanel && (
+        <div style={{
+          marginTop: 16, padding: 14, background: 'rgba(0,240,255,.04)',
+          border: '1px solid rgba(0,240,255,.25)', borderRadius: 10,
+        }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom: 8 }}>
+            <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: '.15em', textTransform:'uppercase', color:'#00F0FF' }}>
+              ✨ AI-drafted follow-up SMS
+            </span>
+            <span style={{ fontSize: 10, color: 'var(--text-faint)', fontFamily: 'JetBrains Mono,monospace' }}>
+              {smsDraftPanel.body.length} chars · {Math.ceil(smsDraftPanel.body.length / 153)} seg
+            </span>
+          </div>
+          <textarea
+            value={smsDraftPanel.body}
+            onChange={(e) => setSmsDraftPanel({ ...smsDraftPanel, body: e.target.value })}
+            rows={4}
+            style={{
+              width:'100%', background:'#000', border:'1px solid var(--border)',
+              borderRadius: 6, padding: 10, color:'#fff', fontSize: 13,
+              fontFamily: 'Inter, sans-serif', resize: 'vertical', minHeight: 70,
+            }}
+          />
+          <div style={{ marginTop: 8, fontSize: 10, color: 'var(--text-faint)' }}>
+            CASL footer ("Reply STOP to unsubscribe") auto-added by the server. Lead opt-outs are honored.
+          </div>
+          <div style={{ marginTop: 10, display:'flex', gap: 8, justifyContent:'flex-end' }}>
+            <button
+              onClick={handleSkipDraft}
+              disabled={smsDraftSending}
+              style={{
+                padding:'7px 14px', borderRadius:6, background:'transparent',
+                border:'1px solid var(--border)', color:'var(--text-muted)', cursor:'pointer',
+                fontSize: 11, fontFamily:'Inter, sans-serif',
+              }}
+            >Skip</button>
+            <button
+              onClick={handleSendDraft}
+              disabled={smsDraftSending || !smsDraftPanel.body.trim()}
+              style={{
+                padding:'7px 16px', borderRadius:6,
+                background: smsDraftSending ? '#1e1e1e' : '#00F0FF',
+                color: smsDraftSending ? '#555' : '#000',
+                border:'none', cursor: smsDraftSending ? 'not-allowed' : 'pointer',
+                fontSize: 11, fontWeight: 700, fontFamily:'Inter, sans-serif',
+                letterSpacing: '.05em', textTransform:'uppercase',
+              }}
+            >{smsDraftSending ? 'Sending…' : 'Send SMS'}</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
