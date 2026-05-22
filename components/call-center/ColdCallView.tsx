@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { OUTCOME_LABELS, OUTCOME_COLORS, NICHE_LIST, CALENDAR_ENDPOINT } from '@/lib/constants';
 import { todayInToronto, torontoDayBoundsUTC, weekStartInToronto } from '@/lib/date';
@@ -27,6 +28,7 @@ function buildIntroSmsTemplate(lead: any, repName?: string) {
 }
 
 const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, totalPoints, addClose, undoClose, repId, isDirector, shadowMode, repPhone }: any) => {
+  const router = useRouter();
   const [tab, setTab] = useState(() => { try { return localStorage.getItem('pmss_cc_tab') || 'list'; } catch { return 'list'; } });
   const [leads, setLeads] = useState<any[]>([]);
   const [callLogs, setCallLogs] = useState<Record<string, any[]>>({});
@@ -629,12 +631,14 @@ const ColdCallView = ({ userName, userEmail, onHome, onLogout, totalCloses, tota
                                   Text
                                 </button>
                               )}
-                              <button onClick={()=>{ setTab('allleads'); setQuickFilter('all'); setFilterStatus('all'); setSelectedBatch('all'); setSearchQuery(''); setExpandedLead(lead.id); }}
+                              <button onClick={()=>{ router.push(`/floor?lead=${lead.id}`); }}
                                 style={{padding:'9px 12px', minHeight:'40px', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:700, fontFamily:'Inter,sans-serif',
                                   background:'transparent', border:'1px solid var(--accent-glow-30)', color:'var(--accent-ink)', transition:'all .15s'}}
                                 onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='var(--accent-glow-08)';}}
-                                onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='transparent';}}>
-                                Open
+                                onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='transparent';}}
+                                title="Open in Sales Floor (full lead history + drawer)"
+                                aria-label="Open lead in Sales Floor">
+                                Open ↗
                               </button>
                             </div>
                           )}
