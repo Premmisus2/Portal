@@ -16,6 +16,7 @@
 // line of defense and the source-of-truth record for sms_opted_out_at.
 
 import { verifyTwilioSignature } from '@/lib/twilio-signature';
+import { sendPushToRep } from '@/lib/push';
 
 const SUPABASE_URL = 'https://qokvhrrjrivvshaapncd.supabase.co';
 const ELLIOTT_EMAIL = 'elliott@premmisus.com';
@@ -210,6 +211,21 @@ export async function POST(request: Request) {
         notes: bodyRaw,
       }),
     }).catch(() => {});
+  }
+
+  // Web Push fan-out — pings the rep's installed PWA so a reply buzzes their
+  // phone like a regular iMessage. Skipped for keyword replies and unrouted
+  // inbounds (no rep to ping). Fire-and-forget; failures are logged inside
+  // sendPushToRep and dead subscriptions are auto-pruned there.
+  if (repId && !keyword) {
+    const inboxUrl = leadId ? `/?view=inbox&lead=${leadId}` : '/?view=inbox';
+    const preview = bodyRaw.length > 140 ? bodyRaw.slice(0, 137) + '…' : bodyRaw;
+    sendPushToRep(repId, {
+      title: leadName || `Unknown (${fromRaw})`,
+      body: preview,
+      url: inboxUrl,
+      tag: `sms-${leadId || fromDigits}`,
+    }).catch((e) => console.warn('inbound-sms push fan-out failed:', e));
   }
 
   // Reply with appropriate TwiML

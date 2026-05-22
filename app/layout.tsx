@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter, Roboto, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { ANTI_FLASH_SCRIPT } from '@/lib/theme';
+import ServiceWorkerRegistrar from '@/components/inbox/ServiceWorkerRegistrar';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -55,6 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Anti-flash: applies theme class BEFORE React hydrates so users
             never see a flash of the wrong theme on first paint */}
         <script dangerouslySetInnerHTML={{ __html: ANTI_FLASH_SCRIPT }} />
+        <ServiceWorkerRegistrar />
         {children}
       </body>
     </html>

@@ -15,6 +15,7 @@ import TopBar from '@/components/layout/TopBar';
 import { supabase } from '@/lib/supabase';
 import SmsThread from './SmsThread';
 import SmsComposer from './SmsComposer';
+import EnablePushButton from './EnablePushButton';
 
 type Msg = {
   id: string;
@@ -187,8 +188,8 @@ const InboxView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTota
           borderRight: isMobile ? 'none' : '1px solid var(--border)',
           display: 'flex', flexDirection: 'column', background: 'var(--bg-app)',
         }}>
-          {/* Filter chips */}
-          <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--border)', display: 'flex', gap: '6px' }}>
+          {/* Filter chips + push toggle */}
+          <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--border)', display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
             {(['all', 'unread', 'unrouted'] as const).map(k => (
               <button key={k} onClick={() => setFilter(k)}
                 style={{
@@ -206,6 +207,11 @@ const InboxView = ({ userName, userEmail, onHome, onLogout, totalCloses, setTota
                 {k}{k === 'unread' && totalUnread > 0 ? ` · ${totalUnread}` : ''}
               </button>
             ))}
+            {repId && (
+              <div style={{ marginLeft: 'auto' }}>
+                <EnablePushButton repId={repId} setToast={showToast} />
+              </div>
+            )}
           </div>
           <div style={{ flex: 1, overflowY: 'auto' }}>
             {loading && <div style={{ padding: '16px', color: 'var(--text-faint)', fontSize: '12px' }}>Loading…</div>}
