@@ -53,6 +53,11 @@ interface RepRow {
   phone: string | null;
 }
 
+// FIX (post-ship audit 2026-05-21): distinguish "row not found" from "fetch
+// failed." Previously this swallowed ALL non-2xx as null, which meant a
+// transient Supabase 503 caused the caller to think the row didn't exist
+// and incorrectly revert valid claims. Now: 4xx returns null (genuinely
+// not-found); 5xx + network errors throw so the caller can decide.
 async function sbFetch<T>(path: string, sbKey: string, init?: RequestInit): Promise<T | null> {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     ...init,
@@ -64,6 +69,9 @@ async function sbFetch<T>(path: string, sbKey: string, init?: RequestInit): Prom
       ...(init?.headers || {}),
     },
   });
+  if (res.status >= 500) {
+    throw new Error(`Supabase ${res.status} on ${path.slice(0, 60)}`);
+  }
   if (!res.ok) return null;
   return (await res.json()) as T;
 }
@@ -125,12 +133,18 @@ async function handle(request: Request) {
   const TW_FROM = (process.env.TWILIO_PHONE_NUMBER || '').trim();
   const ELLIOTT_PHONE = (process.env.ELLIOTT_PHONE || '').trim();
 
-  // Auth — Vercel cron sends "Authorization: Bearer <CRON_SECRET>".
-  if (CRON_SECRET) {
-    const hdr = request.headers.get('authorization') || '';
-    if (hdr !== `Bearer ${CRON_SECRET}`) {
-      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
-    }
+  // FIX (post-ship audit 2026-05-21): CRON_SECRET is now HARD-REQUIRED.
+  // Previously `if (CRON_SECRET)` made the auth check skip if env var was
+  // empty or missing — the endpoint became publicly invokable. Now: if
+  // CRON_SECRET isn't set, the route refuses to run (500). If set, Bearer
+  // token comparison is mandatory.
+  if (!CRON_SECRET) {
+    console.error('[drain-notifications] CRON_SECRET env var not set — refusing to run');
+    return NextResponse.json({ error: 'CRON_SECRET not configured' }, { status: 500 });
+  }
+  const hdr = request.headers.get('authorization') || '';
+  if (hdr !== `Bearer ${CRON_SECRET}`) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
   if (!SB_KEY || !TW_SID || !TW_TOKEN || !TW_FROM) {
@@ -169,6 +183,21 @@ async function handle(request: Request) {
   return NextResponse.json({ drained: results.length, sent, failed });
 }
 
+// E.164 validation — FIX (post-ship audit): bad To numbers cost Twilio
+// money on every failed retry. Reject anything that doesn't look like a
+// valid E.164 number BEFORE firing the API.
+function isValidE164(p: string): boolean {
+  return /^\+[1-9]\d{6,14}$/.test(p);
+}
+
+// FIX (post-ship audit): truncate user-controlled strings before SMS
+// interpolation. Long business names balloon SMS into multi-segment messages
+// (7x cost on a 1KB business name). 40 chars each is enough for context.
+function truncate(s: string, max = 40): string {
+  if (!s) return '';
+  return s.length <= max ? s : s.slice(0, max - 1) + '…';
+}
+
 async function processRow(
   row: QueueRow,
   sbKey: string,
@@ -196,67 +225,92 @@ async function processRow(
   const claimed = (await claimRes.json()) as unknown[];
   if (!Array.isArray(claimed) || claimed.length === 0) return { sent: false };
 
-  // 2. Re-verify callback_tasks is still scheduled. Reschedule-race defense:
-  //    rep may have cancelled or rescheduled while this row was pending.
-  const tasks = await sbFetch<CallbackTaskRow[]>(
-    `callback_tasks?select=id,lead_id,status,scheduled_at_utc,scheduled_local_time,scheduled_tz&id=eq.${row.callback_task_id}&limit=1`,
-    sbKey,
-  );
-  const task = tasks?.[0];
-  if (!task || task.status !== 'scheduled') {
-    // Revert our optimistic claim — it should have been 'cancelled', not 'sent'.
+  // FIX (post-ship audit 2026-05-21): wrap the entire post-claim body in
+  // try/catch. Previously, ANY thrown error after the claim (DNS failure,
+  // Supabase 5xx, JSON parse, anything) left the row stuck in 'sent' state
+  // forever with no SMS actually fired — bypassing the entire retry chain.
+  // Now: any throw reverts the row back to 'pending' so the next pass picks
+  // it up, OR escalates to dead_letter if we've already burned retries.
+  try {
+    // 2. Re-verify callback_tasks is still scheduled. Reschedule-race defense:
+    //    rep may have cancelled or rescheduled while this row was pending.
+    const tasks = await sbFetch<CallbackTaskRow[]>(
+      `callback_tasks?select=id,lead_id,status,scheduled_at_utc,scheduled_local_time,scheduled_tz&id=eq.${row.callback_task_id}&limit=1`,
+      sbKey,
+    );
+    const task = tasks?.[0];
+    if (!task || task.status !== 'scheduled') {
+      // Revert our optimistic claim — it should have been 'cancelled', not 'sent'.
+      await fetch(`${SUPABASE_URL}/rest/v1/notifications_queue?id=eq.${row.id}`, {
+        method: 'PATCH',
+        headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'cancelled', sent_at: null }),
+      });
+      return { sent: false };
+    }
+
+    // 3. Look up rep + lead for SMS body + dest phone.
+    const [reps, leads] = await Promise.all([
+      sbFetch<RepRow[]>(`reps?select=id,name,phone&id=eq.${row.rep_id}&limit=1`, sbKey),
+      sbFetch<LeadRow[]>(`leads?select=business_name,contact_name&id=eq.${task.lead_id}&limit=1`, sbKey),
+    ]);
+    const rep = reps?.[0];
+    const lead = leads?.[0];
+
+    // Destination depends on type. The director-CC row goes to ELLIOTT_PHONE.
+    let dest: string | undefined;
+    if (row.type === 'callback_director_cc') {
+      dest = elliottPhone || undefined;
+    } else {
+      dest = rep?.phone || undefined;
+    }
+
+    if (!dest || !lead || !rep) {
+      // Missing critical context — dead-letter immediately (no retry will fix).
+      await markFailed(row, sbKey, 'missing rep phone or lead', false);
+      return { sent: false };
+    }
+
+    // FIX (post-ship audit): validate E.164 BEFORE firing Twilio. Bad
+    // numbers cost money on every retry attempt.
+    if (!isValidE164(dest)) {
+      await markFailed(row, sbKey, `invalid E.164 phone: ${dest.slice(0, 20)}`, false);
+      return { sent: false };
+    }
+
+    // 4. Fire Twilio.
+    const repFirst = (rep.name || '').split(/\s+/)[0] || 'Rep';
+    const contact = truncate(lead.contact_name || '');
+    const business = truncate(lead.business_name || '');
+    const body = smsBody(row.type, repFirst, contact, business, task.lead_id);
+
+    const twRes = await sendTwilio(dest, body, twSid, twToken, twFrom);
+
+    if (!twRes.ok) {
+      // Twilio said no — mark failed with retry logic.
+      await markFailed(row, sbKey, `${twRes.errorCode}: ${twRes.errorMessage}`, true);
+      return { sent: false };
+    }
+
+    // 5. Success — patch in the twilio_sid (status is already 'sent' from the claim).
     await fetch(`${SUPABASE_URL}/rest/v1/notifications_queue?id=eq.${row.id}`, {
       method: 'PATCH',
       headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'cancelled', sent_at: null }),
+      body: JSON.stringify({ twilio_sid: twRes.sid }),
     });
+
+    return { sent: true };
+  } catch (err) {
+    // Anything threw after claim. Revert to a recoverable state so the
+    // next cron pass can try again (or dead-letter via markFailed's retry logic).
+    console.error(`[drain-notifications] row ${row.id} threw after claim:`, (err as Error).message);
+    try {
+      await markFailed(row, sbKey, `post-claim throw: ${(err as Error).message}`.slice(0, 480), true);
+    } catch (recoverErr) {
+      console.error(`[drain-notifications] row ${row.id} recovery also threw:`, (recoverErr as Error).message);
+    }
     return { sent: false };
   }
-
-  // 3. Look up rep + lead for SMS body + dest phone.
-  const [reps, leads] = await Promise.all([
-    sbFetch<RepRow[]>(`reps?select=id,name,phone&id=eq.${row.rep_id}&limit=1`, sbKey),
-    sbFetch<LeadRow[]>(`leads?select=business_name,contact_name&id=eq.${task.lead_id}&limit=1`, sbKey),
-  ]);
-  const rep = reps?.[0];
-  const lead = leads?.[0];
-
-  // Destination depends on type. The director-CC row goes to ELLIOTT_PHONE.
-  let dest: string | undefined;
-  if (row.type === 'callback_director_cc') {
-    dest = elliottPhone || undefined;
-  } else {
-    dest = rep?.phone || undefined;
-  }
-
-  if (!dest || !lead || !rep) {
-    // Missing critical context — mark failed with retry.
-    await markFailed(row, sbKey, 'missing rep phone or lead', false);
-    return { sent: false };
-  }
-
-  // 4. Fire Twilio.
-  const repFirst = (rep.name || '').split(/\s+/)[0] || 'Rep';
-  const contact = lead.contact_name || '';
-  const business = lead.business_name || '';
-  const body = smsBody(row.type, repFirst, contact, business, task.lead_id);
-
-  const twRes = await sendTwilio(dest, body, twSid, twToken, twFrom);
-
-  if (!twRes.ok) {
-    // Revert + mark failed with retry logic.
-    await markFailed(row, sbKey, `${twRes.errorCode}: ${twRes.errorMessage}`, true);
-    return { sent: false };
-  }
-
-  // 5. Success — patch in the twilio_sid (status is already 'sent' from the claim).
-  await fetch(`${SUPABASE_URL}/rest/v1/notifications_queue?id=eq.${row.id}`, {
-    method: 'PATCH',
-    headers: { apikey: sbKey, Authorization: `Bearer ${sbKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ twilio_sid: twRes.sid }),
-  });
-
-  return { sent: true };
 }
 
 async function markFailed(row: QueueRow, sbKey: string, errMsg: string, shouldRetry: boolean): Promise<void> {
